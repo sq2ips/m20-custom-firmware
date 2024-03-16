@@ -1,0 +1,7 @@
+../Drivers/STM32L0xx_HAL_Driver/Src/stm32l0xx_hal_adc_ex.c:104:19:HAL_ADCEx_Calibration_Start	32	static
+../Drivers/STM32L0xx_HAL_Driver/Src/stm32l0xx_hal_adc_ex.c:189:10:HAL_ADCEx_Calibration_GetValue	16	static
+../Drivers/STM32L0xx_HAL_Driver/Src/stm32l0xx_hal_adc_ex.c:208:19:HAL_ADCEx_Calibration_SetValue	32	static
+../Drivers/STM32L0xx_HAL_Driver/Src/stm32l0xx_hal_adc_ex.c:256:19:HAL_ADCEx_EnableVREFINT	16	static
+../Drivers/STM32L0xx_HAL_Driver/Src/stm32l0xx_hal_adc_ex.c:288:6:HAL_ADCEx_DisableVREFINT	8	static
+../Drivers/STM32L0xx_HAL_Driver/Src/stm32l0xx_hal_adc_ex.c:303:19:HAL_ADCEx_EnableVREFINTTempSensor	16	static
+../Drivers/STM32L0xx_HAL_Driver/Src/stm32l0xx_hal_adc_ex.c:335:6:HAL_ADCEx_DisableVREFINTTempSensor	8	static

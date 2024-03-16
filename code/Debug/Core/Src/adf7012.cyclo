@@ -1,0 +1,4 @@
+../Core/Src/adf7012.c:12:6:ADF_WriteReg	7
+../Core/Src/adf7012.c:43:6:ADF_Reset	1
+../Core/Src/adf7012.c:53:6:myspi	3
+../Core/Src/adf7012.c:80:10:ADF_setfreq	1

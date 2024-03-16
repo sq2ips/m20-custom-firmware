@@ -1,0 +1,6 @@
+../Drivers/STM32L0xx_HAL_Driver/Src/stm32l0xx_hal_flash_ramfunc.c:113:30:HAL_FLASHEx_EnableRunPowerDown	8	static
+../Drivers/STM32L0xx_HAL_Driver/Src/stm32l0xx_hal_flash_ramfunc.c:126:30:HAL_FLASHEx_DisableRunPowerDown	8	static
+../Drivers/STM32L0xx_HAL_Driver/Src/stm32l0xx_hal_flash_ramfunc.c:303:30:HAL_FLASHEx_HalfPageProgram	32	static,ignoring_inline_asm
+../Drivers/STM32L0xx_HAL_Driver/Src/stm32l0xx_hal_flash_ramfunc.c:374:30:HAL_FLASHEx_GetError	16	static
+../Drivers/STM32L0xx_HAL_Driver/Src/stm32l0xx_hal_flash_ramfunc.c:456:37:FLASHRAM_WaitForLastOperation	16	static
+../Drivers/STM32L0xx_HAL_Driver/Src/stm32l0xx_hal_flash_ramfunc.c:396:37:FLASHRAM_SetErrorCode	16	static
