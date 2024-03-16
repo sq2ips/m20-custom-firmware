@@ -83,8 +83,9 @@ int main(void)
 {
   /* USER CODE BEGIN 1 */
 
-	uint8_t buffer[32];
-
+	//uint8_t buffer[32];
+	uint8_t data[50];
+	uint16_t size = 0;
   /* USER CODE END 1 */
 
   /* MCU Configuration--------------------------------------------------------*/
@@ -113,12 +114,11 @@ int main(void)
   MX_TIM21_Init();
   /* USER CODE BEGIN 2 */
 
-  HAL_Delay(200);
-
   HAL_GPIO_WritePin(DC_boost_GPIO_Port, DC_boost_Pin, GPIO_PIN_SET);
+  HAL_Delay(200);
  //HAL_GPIO_WritePin(Battery_on_GPIO_Port, Battery_on_Pin, GPIO_PIN_SET);
   HAL_GPIO_WritePin(RADIO_EN_GPIO_Port, RADIO_EN_Pin, GPIO_PIN_RESET);
-  HAL_GPIO_WritePin(GPS_ON_GPIO_Port, GPS_ON_Pin, GPIO_PIN_SET);
+  HAL_GPIO_WritePin(GPS_ON_GPIO_Port, GPS_ON_Pin, GPIO_PIN_RESET);
   HAL_Delay(200);
 
   	//activeMode++;
@@ -128,6 +128,18 @@ int main(void)
   myspi(0b00000011110001000010000001001100);
   myspi(0b00000000000011011111000011001101);
 
+  HAL_GPIO_TogglePin(LED_GPIO_Port, LED_Pin);
+  HAL_Delay(200);
+  HAL_GPIO_TogglePin(LED_GPIO_Port, LED_Pin);
+  HAL_Delay(200);
+  HAL_GPIO_TogglePin(LED_GPIO_Port, LED_Pin);
+  HAL_Delay(200);
+  HAL_GPIO_TogglePin(LED_GPIO_Port, LED_Pin);
+  HAL_Delay(200);
+  HAL_GPIO_TogglePin(LED_GPIO_Port, LED_Pin);
+  HAL_Delay(200);
+  HAL_GPIO_TogglePin(LED_GPIO_Port, LED_Pin);
+  HAL_Delay(200);
   HAL_UART_Transmit_IT(&huart1, "START\n", 6);
 
   /* USER CODE END 2 */
@@ -139,13 +151,17 @@ int main(void)
     /* USER CODE END WHILE */
 
     /* USER CODE BEGIN 3 */
-	  if(HAL_OK == HAL_UART_Receive(&hlpuart1,buffer,1,10)){
-		  HAL_GPIO_TogglePin (LED_GPIO_Port, LED_Pin);
+
+	  size = sprintf(data, "%d", LPS22HB_P_ReadID(0x5D));
+	  HAL_UART_Transmit_IT(&huart1, data, size);
+	  HAL_Delay(1000);
+	  //if(HAL_OK == HAL_UART_Receive(&hlpuart1,buffer,1,10)){
+		  //HAL_GPIO_TogglePin (LED_GPIO_Port, LED_Pin);
 		  //sprintf("HEX byte: %x\n", buffer)
-		  HAL_UART_Transmit(&huart1,buffer,1,10);
+		  //HAL_UART_Transmit(&huart1,buffer,1,10);
 		  //HAL_UART_Transmit_IT(&huart1, data, size);
-		  HAL_GPIO_TogglePin(LED_GPIO_Port, LED_Pin);
-	  }
+		  //HAL_GPIO_TogglePin(LED_GPIO_Port, LED_Pin);
+	  //}
   }
   /* USER CODE END 3 */
 }
