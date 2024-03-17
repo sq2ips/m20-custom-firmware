@@ -22,7 +22,8 @@
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
 #include "adf7012.h"
-
+#include <stdio.h>
+#include <stdint.h>
 
 /* USER CODE END Includes */
 
@@ -83,9 +84,8 @@ int main(void)
 {
   /* USER CODE BEGIN 1 */
 
-	//uint8_t buffer[32];
-	uint8_t data[50];
-	uint16_t size = 0;
+	uint8_t onebyte[1];
+	int count = 0;
   /* USER CODE END 1 */
 
   /* MCU Configuration--------------------------------------------------------*/
@@ -118,7 +118,7 @@ int main(void)
   HAL_Delay(200);
  //HAL_GPIO_WritePin(Battery_on_GPIO_Port, Battery_on_Pin, GPIO_PIN_SET);
   HAL_GPIO_WritePin(RADIO_EN_GPIO_Port, RADIO_EN_Pin, GPIO_PIN_RESET);
-  HAL_GPIO_WritePin(GPS_ON_GPIO_Port, GPS_ON_Pin, GPIO_PIN_RESET);
+  HAL_GPIO_WritePin(GPS_ON_GPIO_Port, GPS_ON_Pin, GPIO_PIN_SET);
   HAL_Delay(200);
 
   	//activeMode++;
@@ -141,7 +141,7 @@ int main(void)
   HAL_GPIO_TogglePin(LED_GPIO_Port, LED_Pin);
   HAL_Delay(200);
   HAL_UART_Transmit_IT(&huart1, "START\n", 6);
-  LPS22HB_P_Init(0x5D);
+
   /* USER CODE END 2 */
 
   /* Infinite loop */
@@ -152,16 +152,11 @@ int main(void)
 
     /* USER CODE BEGIN 3 */
 
-	  size = sprintf(data, "%d", LPS22HB_P_ReadID(0x5D));
-	  HAL_UART_Transmit_IT(&huart1, data, size);
-	  HAL_Delay(1000);
-	  //if(HAL_OK == HAL_UART_Receive(&hlpuart1,buffer,1,10)){
-		  //HAL_GPIO_TogglePin (LED_GPIO_Port, LED_Pin);
-		  //sprintf("HEX byte: %x\n", buffer)
-		  //HAL_UART_Transmit(&huart1,buffer,1,10);
-		  //HAL_UART_Transmit_IT(&huart1, data, size);
-		  //HAL_GPIO_TogglePin(LED_GPIO_Port, LED_Pin);
-	  //}
+	  if(HAL_OK == HAL_UART_Receive(&hlpuart1,onebyte,1,10)){
+		  HAL_GPIO_TogglePin (LED_GPIO_Port, LED_Pin);
+		  HAL_UART_Transmit(&huart1, onebyte, 1,10);
+		  HAL_GPIO_TogglePin(LED_GPIO_Port, LED_Pin);
+	  }
   }
   /* USER CODE END 3 */
 }
