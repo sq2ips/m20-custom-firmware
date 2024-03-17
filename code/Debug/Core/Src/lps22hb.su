@@ -1,6 +1,6 @@
-../Core/Src/lps22hb.c:74:6:LPS22HB_P_Init	16	static
-../Core/Src/lps22hb.c:83:9:LPS22HB_P_ReadID	32	static
-../Core/Src/lps22hb.c:100:7:LPS22HB_P_ReadPressure	40	static
-../Core/Src/lps22hb.c:143:6:LPS22HB_T_Init	16	static
-../Core/Src/lps22hb.c:153:7:LPS22HB_T_ReadTemp	32	static
-../Core/Src/lps22hb.c:186:13:LPS22HB_Init	32	static
+../Core/Src/lps22hb.c:77:6:LPS22HB_P_Init	16	static
+../Core/Src/lps22hb.c:86:9:LPS22HB_P_ReadID	32	static
+../Core/Src/lps22hb.c:103:7:LPS22HB_P_ReadPressure	40	static
+../Core/Src/lps22hb.c:146:6:LPS22HB_T_Init	16	static
+../Core/Src/lps22hb.c:156:7:LPS22HB_T_ReadTemp	32	static
+../Core/Src/lps22hb.c:189:13:LPS22HB_Init	32	static

@@ -141,7 +141,7 @@ int main(void)
   HAL_GPIO_TogglePin(LED_GPIO_Port, LED_Pin);
   HAL_Delay(200);
   HAL_UART_Transmit_IT(&huart1, "START\n", 6);
-
+  LPS22HB_P_Init(0x5D);
   /* USER CODE END 2 */
 
   /* Infinite loop */
