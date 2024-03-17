@@ -24,7 +24,7 @@
 #include "adf7012.h"
 #include <stdio.h>
 #include <stdint.h>
-
+#include <stdbool.h>
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -83,9 +83,12 @@ static void MX_TIM21_Init(void);
 int main(void)
 {
   /* USER CODE BEGIN 1 */
-
-	uint8_t onebyte[1];
 	int count = 0;
+	int countb = 0;
+    uint8_t onebyte[1];
+    uint8_t header[4] = {170, 170, 170, 3};
+    uint8_t data[58];
+    bool dt = false;
   /* USER CODE END 1 */
 
   /* MCU Configuration--------------------------------------------------------*/
@@ -146,18 +149,39 @@ int main(void)
 
   /* Infinite loop */
   /* USER CODE BEGIN WHILE */
-  while (1)
-  {
-    /* USER CODE END WHILE */
+  while (1){
+      /* USER CODE END WHILE */
 
-    /* USER CODE BEGIN 3 */
-
-	  if(HAL_OK == HAL_UART_Receive(&hlpuart1,onebyte,1,10)){
-		  HAL_GPIO_TogglePin (LED_GPIO_Port, LED_Pin);
-		  HAL_UART_Transmit(&huart1, onebyte, 1,10);
-		  HAL_GPIO_TogglePin(LED_GPIO_Port, LED_Pin);
-	  }
-  }
+      /* USER CODE BEGIN 3 */
+        if(HAL_OK == HAL_UART_Receive(&hlpuart1,onebyte,1,10)){
+            HAL_GPIO_TogglePin (LED_GPIO_Port, LED_Pin);
+            if(dt){
+            	if(countb < 58){
+            		data[countb]=onebyte[0];
+            		countb++;
+            	}else{
+            		countb=0;
+            		HAL_UART_Transmit(&huart1, header, 4,10);
+            		HAL_UART_Transmit(&huart1, data, 58,10);
+            		dt = false;
+            	}
+            }else{
+            	if(onebyte[0] == header[count]){
+            		if(count == 3){
+            			dt = true;
+            			count = 0;
+            		}else{
+            			count++;
+            		}
+        		}else{
+        			count = 0;
+        		}
+        	}
+            //HAL_UART_Transmit(&huart1, onebyte, 1,10);
+            HAL_GPIO_TogglePin(LED_GPIO_Port, LED_Pin);
+        }
+    }
+    /* USER CODE END 3 */
   /* USER CODE END 3 */
 }
 
