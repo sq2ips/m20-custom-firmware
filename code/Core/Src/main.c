@@ -154,6 +154,7 @@ int main(void)
 
       /* USER CODE BEGIN 3 */
         if(HAL_OK == HAL_UART_Receive(&hlpuart1,onebyte,1,10)){
+
             HAL_GPIO_TogglePin (LED_GPIO_Port, LED_Pin);
             if(dt){
             	if(countb < 58){
@@ -161,7 +162,7 @@ int main(void)
             		countb++;
             	}else{
             		countb=0;
-            		HAL_UART_Transmit(&huart1, header, 4,10);
+            		HAL_UART_Transmit(&huart1, "!!!!", 4,10);
             		HAL_UART_Transmit(&huart1, data, 58,10);
             		dt = false;
             	}
