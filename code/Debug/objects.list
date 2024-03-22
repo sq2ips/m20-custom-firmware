@@ -1,5 +1,5 @@
 "./Core/Src/adf7012.o"
-"./Core/Src/lps22hb.o"
+"./Core/Src/gps.o"
 "./Core/Src/main.o"
 "./Core/Src/stm32l0xx_hal_msp.o"
 "./Core/Src/stm32l0xx_it.o"

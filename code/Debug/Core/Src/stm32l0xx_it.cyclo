@@ -5,4 +5,4 @@
 ../Core/Src/stm32l0xx_it.c:128:6:SysTick_Handler	1
 ../Core/Src/stm32l0xx_it.c:149:6:DMA1_Channel2_3_IRQHandler	1
 ../Core/Src/stm32l0xx_it.c:163:6:TIM21_IRQHandler	1
-../Core/Src/stm32l0xx_it.c:177:6:USART1_IRQHandler	1
+../Core/Src/stm32l0xx_it.c:177:6:LPUART1_IRQHandler	1

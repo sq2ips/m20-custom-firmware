@@ -22,9 +22,8 @@
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
 #include "adf7012.h"
-#include <stdio.h>
-#include <stdint.h>
-#include <stdbool.h>
+
+
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -56,6 +55,7 @@ TIM_HandleTypeDef htim21;
 
 
 
+
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
@@ -73,6 +73,8 @@ static void MX_TIM21_Init(void);
 
 /* Private user code ---------------------------------------------------------*/
 /* USER CODE BEGIN 0 */
+uint8_t onebyte[1];
+uint8_t rec = 0;
 
 /* USER CODE END 0 */
 
@@ -83,12 +85,17 @@ static void MX_TIM21_Init(void);
 int main(void)
 {
   /* USER CODE BEGIN 1 */
-	int count = 0;
-	int countb = 0;
-    uint8_t onebyte[1];
-    uint8_t header[4] = {170, 170, 170, 3};
-    uint8_t data[58];
-    bool dt = false;
+	int32_t preambule;
+	uint8_t data[58];
+	uint8_t buffer[20];
+	uint8_t dt = 0;
+	uint8_t count = 0;
+	uint8_t satcount = 0;
+
+	//uint8_t data[50];
+	//uint16_t size = 0;
+
+
   /* USER CODE END 1 */
 
   /* MCU Configuration--------------------------------------------------------*/
@@ -120,69 +127,96 @@ int main(void)
   HAL_GPIO_WritePin(DC_boost_GPIO_Port, DC_boost_Pin, GPIO_PIN_SET);
   HAL_Delay(200);
  //HAL_GPIO_WritePin(Battery_on_GPIO_Port, Battery_on_Pin, GPIO_PIN_SET);
-  HAL_GPIO_WritePin(RADIO_EN_GPIO_Port, RADIO_EN_Pin, GPIO_PIN_RESET);
-  HAL_GPIO_WritePin(GPS_ON_GPIO_Port, GPS_ON_Pin, GPIO_PIN_SET);
-  HAL_Delay(200);
-
-  	//activeMode++;
+ // HAL_GPIO_WritePin(RADIO_EN_GPIO_Port, RADIO_EN_Pin, GPIO_PIN_RESET);
 
   myspi(0b00000000000000000010000000100010);
   myspi(0b00000000011101000001100010101111);
   myspi(0b00000011110001000010000001001100);
   myspi(0b00000000000011011111000011001101);
 
-  HAL_GPIO_TogglePin(LED_GPIO_Port, LED_Pin);
-  HAL_Delay(200);
-  HAL_GPIO_TogglePin(LED_GPIO_Port, LED_Pin);
-  HAL_Delay(200);
-  HAL_GPIO_TogglePin(LED_GPIO_Port, LED_Pin);
-  HAL_Delay(200);
-  HAL_GPIO_TogglePin(LED_GPIO_Port, LED_Pin);
-  HAL_Delay(200);
-  HAL_GPIO_TogglePin(LED_GPIO_Port, LED_Pin);
-  HAL_Delay(200);
-  HAL_GPIO_TogglePin(LED_GPIO_Port, LED_Pin);
-  HAL_Delay(200);
-  HAL_UART_Transmit_IT(&huart1, "START\n", 6);
+
+    HAL_GPIO_TogglePin(LED_GPIO_Port, LED_Pin);
+    HAL_Delay(200);
+    HAL_GPIO_TogglePin(LED_GPIO_Port, LED_Pin);
+    HAL_Delay(200);
+    HAL_GPIO_TogglePin(LED_GPIO_Port, LED_Pin);
+    HAL_Delay(200);
+    HAL_GPIO_TogglePin(LED_GPIO_Port, LED_Pin);
+    HAL_Delay(200);
+    HAL_GPIO_TogglePin(LED_GPIO_Port, LED_Pin);
+    HAL_Delay(200);
+    HAL_GPIO_TogglePin(LED_GPIO_Port, LED_Pin);
+    HAL_Delay(200);
+
+    HAL_GPIO_WritePin(GPS_ON_GPIO_Port, GPS_ON_Pin, GPIO_PIN_SET);
+    HAL_UART_Transmit(&huart1, (uint8_t*)&"START\r\n", 7, 10);
+    HAL_Delay(500);
+
+    HAL_UART_Receive_IT(&huart1, onebyte, 1);
 
   /* USER CODE END 2 */
 
   /* Infinite loop */
   /* USER CODE BEGIN WHILE */
-  while (1){
-      /* USER CODE END WHILE */
+  while (1)
+  {
+    /* USER CODE END WHILE */
 
-      /* USER CODE BEGIN 3 */
-        if(HAL_OK == HAL_UART_Receive(&hlpuart1,onebyte,1,10)){
+    /* USER CODE BEGIN 3 */
+	  	  	HAL_Delay(500);
 
-            HAL_GPIO_TogglePin (LED_GPIO_Port, LED_Pin);
-            if(dt){
-            	if(countb < 58){
-            		data[countb]=onebyte[0];
-            		countb++;
-            	}else{
-            		countb=0;
-            		HAL_UART_Transmit(&huart1, "!!!!", 4,10);
-            		HAL_UART_Transmit(&huart1, data, 58,10);
-            		dt = false;
-            	}
-            }else{
-            	if(onebyte[0] == header[count]){
-            		if(count == 3){
-            			dt = true;
-            			count = 0;
-            		}else{
-            			count++;
-            		}
-        		}else{
-        			count = 0;
-        		}
-        	}
-            //HAL_UART_Transmit(&huart1, onebyte, 1,10);
-            HAL_GPIO_TogglePin(LED_GPIO_Port, LED_Pin);
-        }
-    }
-    /* USER CODE END 3 */
+	        if(rec == 1)
+	        {
+	        	HAL_GPIO_TogglePin (LED_GPIO_Port, LED_Pin);
+	        	rec = 0;
+	        	if (dt==1) {
+	            	if (count < 58){
+	            	  data[count] = onebyte[0];
+	            	  count++;
+	            	}
+	            	if (count > 57) {
+	            	  dt = 0;
+	            	  int32_t lat = data[1] << 24  |  data[2] << 16  |  data[3] << 8 | data[4];
+	            	  int32_t lon = data[5] << 24  |  data[6] << 16  |  data[7] << 8 | data[8];
+	            	  int32_t alt =  data[9] << 16  |  data[10] << 8 | data[11];
+	            	  int32_t gps_time =  data[18] << 16  |  data[19] << 8 | data[20];
+	     	          HAL_GPIO_TogglePin (LED_GPIO_Port, LED_Pin);
+
+	            	  sprintf(buffer, "Lat %d ", lat);
+	            	  HAL_UART_Transmit(&huart1, (uint8_t*)&buffer, strlen(buffer),10);
+	            	  sprintf(buffer, "Long %d ", lon);
+	            	  HAL_UART_Transmit(&huart1, (uint8_t*)&buffer, strlen(buffer),10);
+	            	  sprintf(buffer, "Alt %d ", alt);
+	            	  HAL_UART_Transmit(&huart1, (uint8_t*)&buffer, strlen(buffer),10);
+	            	  sprintf(buffer, "Time %d ", gps_time);
+	            	  HAL_UART_Transmit(&huart1, (uint8_t*)&buffer, strlen(buffer),10);
+	            	  sprintf(buffer, "Fix %d ", data[0]);
+	            	  HAL_UART_Transmit(&huart1, (uint8_t*)&buffer, strlen(buffer),10);
+	            	  	 satcount=0;
+	            	  for(uint8_t i = 0; i<12; i++){
+	            		  if(data[24+i]>0){
+	            			  satcount++;
+	            		  }
+	            	  }
+	            	  sprintf(buffer, "Sat %d ", satcount);
+	            	  HAL_UART_Transmit(&huart1, (uint8_t*)&buffer, strlen(buffer),10);
+
+	            	  HAL_UART_Transmit(&huart1, (uint8_t*)&"\r\n", 2,10);
+
+	     	          HAL_GPIO_TogglePin (LED_GPIO_Port, LED_Pin);
+	                }
+	           }
+
+	        	preambule = (preambule << 8) | onebyte[0];
+
+	            if (preambule == 0xAAAAAA03){
+	              //  HAL_UART_Transmit(&huart1, "!!!", 3,10);
+	                dt = 1;
+	                count = 0;
+	            }
+	        }
+
+	    }
   /* USER CODE END 3 */
 }
 
@@ -573,7 +607,11 @@ static void MX_GPIO_Init(void)
 }
 
 /* USER CODE BEGIN 4 */
-
+void HAL_UART_RxCpltCallback(UART_HandleTypeDef *hlpuart)
+{
+    HAL_UART_Receive_IT(&hlpuart1, onebyte, 1);
+    rec = 1;
+}
 /* USER CODE END 4 */
 
 /**
