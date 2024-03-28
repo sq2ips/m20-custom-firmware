@@ -73,8 +73,7 @@ static void MX_TIM21_Init(void);
 
 /* Private user code ---------------------------------------------------------*/
 /* USER CODE BEGIN 0 */
-uint8_t onebyte[1];
-uint8_t rec = 0;
+
 
 /* USER CODE END 0 */
 
@@ -85,6 +84,7 @@ uint8_t rec = 0;
 int main(void)
 {
   /* USER CODE BEGIN 1 */
+	uint8_t onebyte[1];
 	int32_t preambule;
 	uint8_t data[58];
 	uint8_t buffer[20];
@@ -127,12 +127,7 @@ int main(void)
   HAL_GPIO_WritePin(DC_boost_GPIO_Port, DC_boost_Pin, GPIO_PIN_SET);
   HAL_Delay(200);
  //HAL_GPIO_WritePin(Battery_on_GPIO_Port, Battery_on_Pin, GPIO_PIN_SET);
- // HAL_GPIO_WritePin(RADIO_EN_GPIO_Port, RADIO_EN_Pin, GPIO_PIN_RESET);
-
-  myspi(0b00000000000000000010000000100010);
-  myspi(0b00000000011101000001100010101111);
-  myspi(0b00000011110001000010000001001100);
-  myspi(0b00000000000011011111000011001101);
+ // HAL_GPIO_WritePin(RADIO_EN_GPIO_Port, RADIO_EN_Pin, GPIO_PIN_RESET)
 
 
     HAL_GPIO_TogglePin(LED_GPIO_Port, LED_Pin);
@@ -152,8 +147,6 @@ int main(void)
     HAL_UART_Transmit(&huart1, (uint8_t*)&"START\r\n", 7, 10);
     HAL_Delay(500);
 
-    HAL_UART_Receive_IT(&huart1, onebyte, 1);
-
   /* USER CODE END 2 */
 
   /* Infinite loop */
@@ -163,12 +156,8 @@ int main(void)
     /* USER CODE END WHILE */
 
     /* USER CODE BEGIN 3 */
-	  	  	HAL_Delay(500);
-
-	        if(rec == 1)
+	        if(HAL_OK == HAL_UART_Receive(&hlpuart1, onebyte, 1, 100))
 	        {
-	        	HAL_GPIO_TogglePin (LED_GPIO_Port, LED_Pin);
-	        	rec = 0;
 	        	if (dt==1) {
 	            	if (count < 58){
 	            	  data[count] = onebyte[0];
@@ -607,11 +596,11 @@ static void MX_GPIO_Init(void)
 }
 
 /* USER CODE BEGIN 4 */
-void HAL_UART_RxCpltCallback(UART_HandleTypeDef *hlpuart)
-{
-    HAL_UART_Receive_IT(&hlpuart1, onebyte, 1);
-    rec = 1;
-}
+//void HAL_UART_RxCpltCallback(UART_HandleTypeDef *hlpuart)
+//{
+//    HAL_UART_Receive_IT(&hlpuart1, onebyte, 1);
+//    rec = 1;
+//}
 /* USER CODE END 4 */
 
 /**

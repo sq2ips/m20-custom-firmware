@@ -83,7 +83,6 @@ MxDb.Version=DB.6.0.100
 NVIC.DMA1_Channel2_3_IRQn=true\:0\:0\:false\:false\:true\:false\:true\:true
 NVIC.ForceEnableDMAVector=true
 NVIC.HardFault_IRQn=true\:0\:0\:false\:false\:true\:false\:false\:false
-NVIC.LPUART1_IRQn=true\:0\:0\:false\:false\:true\:true\:true\:true
 NVIC.NonMaskableInt_IRQn=true\:0\:0\:false\:false\:true\:false\:true\:false
 NVIC.PendSV_IRQn=true\:0\:0\:false\:false\:true\:false\:false\:false
 NVIC.SVC_IRQn=true\:0\:0\:false\:false\:true\:false\:false\:true
