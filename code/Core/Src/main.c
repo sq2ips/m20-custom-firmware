@@ -21,8 +21,7 @@
 
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
-#include "adf7012.h"
-
+#include <stdio.h>
 
 /* USER CODE END Includes */
 
@@ -126,8 +125,6 @@ int main(void)
 
   HAL_GPIO_WritePin(DC_boost_GPIO_Port, DC_boost_Pin, GPIO_PIN_SET);
   HAL_Delay(200);
- //HAL_GPIO_WritePin(Battery_on_GPIO_Port, Battery_on_Pin, GPIO_PIN_SET);
- // HAL_GPIO_WritePin(RADIO_EN_GPIO_Port, RADIO_EN_Pin, GPIO_PIN_RESET)
 
 
     HAL_GPIO_TogglePin(LED_GPIO_Port, LED_Pin);
