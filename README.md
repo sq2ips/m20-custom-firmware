@@ -5,7 +5,7 @@ The goal of the project is to reverse engineer the Meteomodem M20 radiosonde and
 - Radio: only CW
 - Uart: :heavy_check_mark:
 - temperature sensor: :x:
-- barometer: :x:
+- barometer: :heavy_check_mark:
 - humidity sensor: :x:
 
 # Images
@@ -24,6 +24,11 @@ Code is writen in C using stm32CubeIDE.
 M20 uses xm1110 gps module that transmits data over UART but with custom firmware that transmits only binary protocol data.
 Data format:
 ![alt text](https://github.com/sq2ips/m20-custom-firmware/blob/main/img/GPS.png?raw=true)
+It has been observed that in newest models other module that is using standard NMEA: u-blox MAX-M10M is used.
+![alt text](https://github.com/sq2ips/m20-custom-firmware/blob/main/img/gps_new.png?raw=true)
+
+# Barometer
+LPS22HB sensor is used with SPI interface. File lps22hb.c and lps22hb.c are a library for this sensor.
 
 # Radio
 TODO
