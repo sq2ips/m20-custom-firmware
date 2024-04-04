@@ -73,6 +73,8 @@ void Error_Handler(void);
 #define EXPANSION_4_GPIO_Port GPIOA
 #define EXPANSION_PS_Pin GPIO_PIN_3
 #define EXPANSION_PS_GPIO_Port GPIOA
+#define LPS_CS_Pin GPIO_PIN_4
+#define LPS_CS_GPIO_Port GPIOA
 #define Temp_ADC_Pin GPIO_PIN_4
 #define Temp_ADC_GPIO_Port GPIOC
 #define Temp_EN_Pin GPIO_PIN_5

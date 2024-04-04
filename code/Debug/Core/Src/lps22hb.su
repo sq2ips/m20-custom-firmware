@@ -1,0 +1,13 @@
+../Core/Src/lps22hb.c:20:9:SPI_RW	16	static
+../Core/Src/lps22hb.c:34:6:LPS22_WriteReg	16	static
+../Core/Src/lps22hb.c:45:6:LPS22_WriteRegs	24	static
+../Core/Src/lps22hb.c:59:9:LPS22_ReadReg	32	static
+../Core/Src/lps22hb.c:74:6:LPS22_ReadRegs	32	static
+../Core/Src/lps22hb.c:88:6:LPS22_Config	8	static
+../Core/Src/lps22hb.c:95:9:LPS22_Init	24	static
+../Core/Src/lps22hb.c:144:9:LPS22_DeviceCheck	24	static
+../Core/Src/lps22hb.c:160:10:LPS22_GetRawData	40	static
+../Core/Src/lps22hb.c:189:10:LPS22_GetData	32	static
+../Core/Src/lps22hb.c:200:7:LPS22_GetPressure	24	static
+../Core/Src/lps22hb.c:211:7:LPS22_GetTemperature	24	static
+../Core/Src/lps22hb.c:224:7:LPS22_GetAltitude	24	static

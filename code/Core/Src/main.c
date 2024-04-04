@@ -22,7 +22,9 @@
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
 #include <stdio.h>
-
+#include <stdint.h>
+#include "lps22hb.h"
+#include "minmea.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -48,12 +50,7 @@ DMA_HandleTypeDef hdma_usart1_rx;
 
 SPI_HandleTypeDef hspi1;
 
-TIM_HandleTypeDef htim21;
-
 /* USER CODE BEGIN PV */
-
-
-
 
 /* USER CODE END PV */
 
@@ -65,13 +62,47 @@ static void MX_LPUART1_UART_Init(void);
 static void MX_ADC_Init(void);
 static void MX_USART1_UART_Init(void);
 static void MX_SPI1_Init(void);
-static void MX_TIM21_Init(void);
 /* USER CODE BEGIN PFP */
+uint8_t flags=0;
+uint8_t onebyte[1];
+uint8_t data[1000];
+uint8_t txt[10];
+uint8_t size = 0;
+uint16_t count = 0;
+uint16_t c = 0;
+
+void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart)
+{
+	data[count] = onebyte[0];
+	count++;
+	onebyte[0] = 0;
+	HAL_GPIO_TogglePin(LED_GPIO_Port, LED_Pin);
+	if(huart == &hlpuart1){
+		if(flags == 1){}else if(data[count-2] == '\r' && data[count-1] == '\n'){
+			for(c = 0; c<count-1; c++){
+				data[c]=data[c+1];
+			}
+			HAL_UART_Transmit(&huart1, data, count, 100);
+			size = sprintf(txt, "GOT: %p\n\r", minmea_check(((char*)data), false));
+			HAL_UART_Transmit(&huart1, txt, size, 100);
+			for(count = 0; count<1000; count++){
+				data[count]=0;
+			}
+			count = 0;
+			flags = 1;
+		}else{
+			HAL_UART_Receive_IT(&hlpuart1, onebyte, 1);
+
+		}
+	}
+	HAL_GPIO_TogglePin(LED_GPIO_Port, LED_Pin);
+}
 
 /* USER CODE END PFP */
 
 /* Private user code ---------------------------------------------------------*/
 /* USER CODE BEGIN 0 */
+
 
 
 /* USER CODE END 0 */
@@ -82,19 +113,8 @@ static void MX_TIM21_Init(void);
   */
 int main(void)
 {
+
   /* USER CODE BEGIN 1 */
-	uint8_t onebyte[1];
-	int32_t preambule;
-	uint8_t data[58];
-	uint8_t buffer[20];
-	uint8_t dt = 0;
-	uint8_t count = 0;
-	uint8_t satcount = 0;
-
-	//uint8_t data[50];
-	//uint16_t size = 0;
-
-
   /* USER CODE END 1 */
 
   /* MCU Configuration--------------------------------------------------------*/
@@ -120,29 +140,30 @@ int main(void)
   MX_ADC_Init();
   MX_USART1_UART_Init();
   MX_SPI1_Init();
-  MX_TIM21_Init();
   /* USER CODE BEGIN 2 */
+  	HAL_GPIO_TogglePin(LED_GPIO_Port, LED_Pin);
+  	HAL_UART_Transmit(&huart1, (uint8_t*)&"Starting firmware...\r\n", 22, 10);
 
-  HAL_GPIO_WritePin(DC_boost_GPIO_Port, DC_boost_Pin, GPIO_PIN_SET);
-  HAL_Delay(200);
+  	HAL_UART_Transmit(&huart1, (uint8_t*)&"Enabling DC boost...\r\n", 22, 10);
+  	HAL_GPIO_WritePin(DC_boost_GPIO_Port, DC_boost_Pin, GPIO_PIN_SET);
 
-
-    HAL_GPIO_TogglePin(LED_GPIO_Port, LED_Pin);
-    HAL_Delay(200);
-    HAL_GPIO_TogglePin(LED_GPIO_Port, LED_Pin);
-    HAL_Delay(200);
-    HAL_GPIO_TogglePin(LED_GPIO_Port, LED_Pin);
-    HAL_Delay(200);
-    HAL_GPIO_TogglePin(LED_GPIO_Port, LED_Pin);
-    HAL_Delay(200);
-    HAL_GPIO_TogglePin(LED_GPIO_Port, LED_Pin);
-    HAL_Delay(200);
-    HAL_GPIO_TogglePin(LED_GPIO_Port, LED_Pin);
-    HAL_Delay(200);
-
-    HAL_GPIO_WritePin(GPS_ON_GPIO_Port, GPS_ON_Pin, GPIO_PIN_SET);
-    HAL_UART_Transmit(&huart1, (uint8_t*)&"START\r\n", 7, 10);
-    HAL_Delay(500);
+  	HAL_UART_Transmit(&huart1, (uint8_t*)&"Enabling GPS...\r\n", 17, 10);
+  	HAL_GPIO_WritePin(GPS_ON_GPIO_Port, GPS_ON_Pin, GPIO_PIN_SET);
+  	HAL_UART_Transmit(&huart1, (uint8_t*)&"Enabling RADIO...\r\n", 19, 10);
+  	HAL_GPIO_WritePin(RADIO_EN_GPIO_Port, RADIO_EN_Pin, GPIO_PIN_SET);
+  	HAL_UART_Transmit(&huart1, (uint8_t*)&"Initialising LPS22...", 21, 10);
+    __HAL_SPI_ENABLE(&hspi1);
+    LPS22_Config();
+    if ( LPS22_Init()!=0)
+    {
+    	HAL_UART_Transmit_IT(&huart1, "FAIL\r\n", 6);
+    }
+    else
+    {
+    	HAL_UART_Transmit_IT(&huart1, "OK\r\n", 4);
+    }
+    HAL_UART_Transmit(&huart1, (uint8_t*)&"STARTED\r\n", 9, 10);
+  	HAL_GPIO_TogglePin(LED_GPIO_Port, LED_Pin);
 
   /* USER CODE END 2 */
 
@@ -151,58 +172,12 @@ int main(void)
   while (1)
   {
     /* USER CODE END WHILE */
-
+	  flags = 0;
+	  	HAL_UART_Receive_IT(&hlpuart1, onebyte, 1);
     /* USER CODE BEGIN 3 */
-	        if(HAL_OK == HAL_UART_Receive(&hlpuart1, onebyte, 1, 100))
-	        {
-	        	if (dt==1) {
-	            	if (count < 58){
-	            	  data[count] = onebyte[0];
-	            	  count++;
-	            	}
-	            	if (count > 57) {
-	            	  dt = 0;
-	            	  int32_t lat = data[1] << 24  |  data[2] << 16  |  data[3] << 8 | data[4];
-	            	  int32_t lon = data[5] << 24  |  data[6] << 16  |  data[7] << 8 | data[8];
-	            	  int32_t alt =  data[9] << 16  |  data[10] << 8 | data[11];
-	            	  int32_t gps_time =  data[18] << 16  |  data[19] << 8 | data[20];
-	     	          HAL_GPIO_TogglePin (LED_GPIO_Port, LED_Pin);
 
-	            	  sprintf(buffer, "Lat %d ", lat);
-	            	  HAL_UART_Transmit(&huart1, (uint8_t*)&buffer, strlen(buffer),10);
-	            	  sprintf(buffer, "Long %d ", lon);
-	            	  HAL_UART_Transmit(&huart1, (uint8_t*)&buffer, strlen(buffer),10);
-	            	  sprintf(buffer, "Alt %d ", alt);
-	            	  HAL_UART_Transmit(&huart1, (uint8_t*)&buffer, strlen(buffer),10);
-	            	  sprintf(buffer, "Time %d ", gps_time);
-	            	  HAL_UART_Transmit(&huart1, (uint8_t*)&buffer, strlen(buffer),10);
-	            	  sprintf(buffer, "Fix %d ", data[0]);
-	            	  HAL_UART_Transmit(&huart1, (uint8_t*)&buffer, strlen(buffer),10);
-	            	  	 satcount=0;
-	            	  for(uint8_t i = 0; i<12; i++){
-	            		  if(data[24+i]>0){
-	            			  satcount++;
-	            		  }
-	            	  }
-	            	  sprintf(buffer, "Sat %d ", satcount);
-	            	  HAL_UART_Transmit(&huart1, (uint8_t*)&buffer, strlen(buffer),10);
 
-	            	  HAL_UART_Transmit(&huart1, (uint8_t*)&"\r\n", 2,10);
-
-	     	          HAL_GPIO_TogglePin (LED_GPIO_Port, LED_Pin);
-	                }
-	           }
-
-	        	preambule = (preambule << 8) | onebyte[0];
-
-	            if (preambule == 0xAAAAAA03){
-	              //  HAL_UART_Transmit(&huart1, "!!!", 3,10);
-	                dt = 1;
-	                count = 0;
-	            }
-	        }
-
-	    }
+  }
   /* USER CODE END 3 */
 }
 
@@ -349,7 +324,7 @@ static void MX_LPUART1_UART_Init(void)
 
   /* USER CODE END LPUART1_Init 1 */
   hlpuart1.Instance = LPUART1;
-  hlpuart1.Init.BaudRate = 38400;
+  hlpuart1.Init.BaudRate = 9600;
   hlpuart1.Init.WordLength = UART_WORDLENGTH_8B;
   hlpuart1.Init.StopBits = UART_STOPBITS_1;
   hlpuart1.Init.Parity = UART_PARITY_NONE;
@@ -422,13 +397,13 @@ static void MX_SPI1_Init(void)
   hspi1.Init.Mode = SPI_MODE_MASTER;
   hspi1.Init.Direction = SPI_DIRECTION_2LINES;
   hspi1.Init.DataSize = SPI_DATASIZE_8BIT;
-  hspi1.Init.CLKPolarity = SPI_POLARITY_LOW;
-  hspi1.Init.CLKPhase = SPI_PHASE_1EDGE;
-  hspi1.Init.NSS = SPI_NSS_HARD_OUTPUT;
-  hspi1.Init.BaudRatePrescaler = SPI_BAUDRATEPRESCALER_2;
+  hspi1.Init.CLKPolarity = SPI_POLARITY_HIGH;
+  hspi1.Init.CLKPhase = SPI_PHASE_2EDGE;
+  hspi1.Init.NSS = SPI_NSS_SOFT;
+  hspi1.Init.BaudRatePrescaler = SPI_BAUDRATEPRESCALER_16;
   hspi1.Init.FirstBit = SPI_FIRSTBIT_MSB;
   hspi1.Init.TIMode = SPI_TIMODE_DISABLE;
-  hspi1.Init.CRCCalculation = SPI_CRCCALCULATION_DISABLE;
+  hspi1.Init.CRCCalculation = SPI_CRCCALCULATION_ENABLE;
   hspi1.Init.CRCPolynomial = 7;
   if (HAL_SPI_Init(&hspi1) != HAL_OK)
   {
@@ -437,51 +412,6 @@ static void MX_SPI1_Init(void)
   /* USER CODE BEGIN SPI1_Init 2 */
 
   /* USER CODE END SPI1_Init 2 */
-
-}
-
-/**
-  * @brief TIM21 Initialization Function
-  * @param None
-  * @retval None
-  */
-static void MX_TIM21_Init(void)
-{
-
-  /* USER CODE BEGIN TIM21_Init 0 */
-
-  /* USER CODE END TIM21_Init 0 */
-
-  TIM_ClockConfigTypeDef sClockSourceConfig = {0};
-  TIM_MasterConfigTypeDef sMasterConfig = {0};
-
-  /* USER CODE BEGIN TIM21_Init 1 */
-
-  /* USER CODE END TIM21_Init 1 */
-  htim21.Instance = TIM21;
-  htim21.Init.Prescaler = 0;
-  htim21.Init.CounterMode = TIM_COUNTERMODE_UP;
-  htim21.Init.Period = 65535;
-  htim21.Init.ClockDivision = TIM_CLOCKDIVISION_DIV1;
-  htim21.Init.AutoReloadPreload = TIM_AUTORELOAD_PRELOAD_DISABLE;
-  if (HAL_TIM_Base_Init(&htim21) != HAL_OK)
-  {
-    Error_Handler();
-  }
-  sClockSourceConfig.ClockSource = TIM_CLOCKSOURCE_INTERNAL;
-  if (HAL_TIM_ConfigClockSource(&htim21, &sClockSourceConfig) != HAL_OK)
-  {
-    Error_Handler();
-  }
-  sMasterConfig.MasterOutputTrigger = TIM_TRGO_RESET;
-  sMasterConfig.MasterSlaveMode = TIM_MASTERSLAVEMODE_DISABLE;
-  if (HAL_TIMEx_MasterConfigSynchronization(&htim21, &sMasterConfig) != HAL_OK)
-  {
-    Error_Handler();
-  }
-  /* USER CODE BEGIN TIM21_Init 2 */
-
-  /* USER CODE END TIM21_Init 2 */
 
 }
 
@@ -527,6 +457,9 @@ static void MX_GPIO_Init(void)
   HAL_GPIO_WritePin(GPIOA, EXPANSION_4_Pin|EXPANSION_PS_Pin|DC_boost_Pin, GPIO_PIN_RESET);
 
   /*Configure GPIO pin Output Level */
+  HAL_GPIO_WritePin(LPS_CS_GPIO_Port, LPS_CS_Pin, GPIO_PIN_SET);
+
+  /*Configure GPIO pin Output Level */
   HAL_GPIO_WritePin(GPIOB, RF_Boost_Pin|ADF_TX_Data_Pin|GPS_ON_Pin|RADIO_EN_Pin
                           |Trmp_R4_Pin|Temp_R2_Pin|Temp_R1_Pin|EXPANSION_3_Pin
                           |Temp_R5_Pin|Temp_R3_Pin, GPIO_PIN_RESET);
@@ -555,8 +488,8 @@ static void MX_GPIO_Init(void)
   GPIO_InitStruct.Pull = GPIO_NOPULL;
   HAL_GPIO_Init(IR_RX_GPIO_Port, &GPIO_InitStruct);
 
-  /*Configure GPIO pins : EXPANSION_4_Pin EXPANSION_PS_Pin DC_boost_Pin */
-  GPIO_InitStruct.Pin = EXPANSION_4_Pin|EXPANSION_PS_Pin|DC_boost_Pin;
+  /*Configure GPIO pins : EXPANSION_4_Pin EXPANSION_PS_Pin LPS_CS_Pin DC_boost_Pin */
+  GPIO_InitStruct.Pin = EXPANSION_4_Pin|EXPANSION_PS_Pin|LPS_CS_Pin|DC_boost_Pin;
   GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
   GPIO_InitStruct.Pull = GPIO_NOPULL;
   GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;

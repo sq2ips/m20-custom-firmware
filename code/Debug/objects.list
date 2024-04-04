@@ -1,6 +1,6 @@
-"./Core/Src/adf7012.o"
-"./Core/Src/gps.o"
+"./Core/Src/lps22hb.o"
 "./Core/Src/main.o"
+"./Core/Src/minmea.o"
 "./Core/Src/stm32l0xx_hal_msp.o"
 "./Core/Src/stm32l0xx_it.o"
 "./Core/Src/syscalls.o"
