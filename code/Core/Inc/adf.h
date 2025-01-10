@@ -1,5 +1,5 @@
-//#ifndef WOMBAT_ADF_H
-//#define WOMBAT_ADF_H
+#ifndef ADF_H_
+#define ADF_H_
 
 #include <main.h>
 
@@ -68,4 +68,4 @@ void adf_RF_off(void);
 #define ADF_LD_PRECISION_3_CYCLES 0
 #define ADF_LD_PRECISION_5_CYCLES 1
 
-//#endif
+#endif
