@@ -7,9 +7,9 @@
 
 
 
-#include <stdint.h>
+#include "stdint.h"
 #include "lps22hb.h"
-#include "math.h"   //only for calculating altitude
+//#include "math.h"   //only for calculating altitude
 
 
 
@@ -20,14 +20,12 @@
 uint8_t SPI_RW(uint8_t sendByte )
 {
 
-
-
-  while ((SPI1->SR & SPI_FLAG_TXE) == (uint8_t)RESET);
-  SPI1->DR = sendByte;
-  //HAL_Delay(10);
-  while ((SPI1->SR & SPI_FLAG_RXNE) == (uint8_t)RESET);
-  return SPI1->DR;
-
+	while(((SPI1->SR) & SPI_FLAG_TXE) != SPI_FLAG_TXE); // wait while tx-flag not empty
+	*(uint8_t *)&(SPI1->DR) = sendByte; // write data to be transmitted to the SPI data register
+	while ((SPI1->SR & SPI_FLAG_RXNE) != SPI_FLAG_RXNE); // wait while rx-buffer not empty
+	/* Wait until the bus is ready before releasing Chip select */
+	while(((SPI1->SR) & SPI_FLAG_BSY) == SPI_FLAG_BSY);
+	return *(uint8_t *)&(SPI1->DR); // return received data from SPI data register
 
 }
 
@@ -87,7 +85,10 @@ void LPS22_ReadRegs( uint8_t readAddr, uint8_t *readData, uint8_t lens )
  */
 void LPS22_Config( void )
 {
+	HAL_GPIO_WritePin(RADIO_EN_GPIO_Port, RADIO_EN_Pin, 1);  //for M20 sonde - switching on power for radio and sensor
 	HAL_GPIO_WritePin(LPS_CS_GPIO_Port, LPS_CS_Pin, 1);    // LOW ENABLE
+
+
 }
 
 
@@ -202,9 +203,9 @@ float LPS22_GetPressure()
   int32_t buff[2] = {0};
   float press = 0;
 
-  LPS22_GetRawData(buff);
-  press = buff[0] * LPS22HB_SENS_HPA;  // hPa
-
+  if (LPS22_GetRawData(buff)!=1)  {  press = buff[0] * LPS22HB_SENS_HPA;  // hPa
+  }
+  else { press=-1; }
   return press;
 }
 
@@ -221,6 +222,8 @@ float LPS22_GetTemperature()
 /**
  *  @brief  LPS22_GetAltitude
  */
+
+/*
 float LPS22_GetAltitude( float pressure )
 {
   float altitude;
@@ -236,5 +239,6 @@ float LPS22_GetAltitude( float pressure )
 
   return altitude;
 }
+*/
 
 /*************************************** END OF FILE ****************************************/

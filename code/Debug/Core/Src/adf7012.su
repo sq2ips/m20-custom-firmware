@@ -1,4 +1,0 @@
-../Core/Src/adf7012.c:12:6:ADF_WriteReg	32	static,ignoring_inline_asm
-../Core/Src/adf7012.c:43:6:ADF_Reset	8	static
-../Core/Src/adf7012.c:53:6:myspi	24	static
-../Core/Src/adf7012.c:80:10:ADF_setfreq	40	static

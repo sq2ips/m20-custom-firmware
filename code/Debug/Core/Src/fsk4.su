@@ -1,0 +1,6 @@
+../Core/Src/fsk4.c:31:6:FSK4_stop_TX	8	static
+../Core/Src/fsk4.c:39:6:FSK4_send_2bit	16	static
+../Core/Src/fsk4.c:44:9:FSK4_is_active	4	static
+../Core/Src/fsk4.c:53:6:FSK4_write	32	static
+../Core/Src/fsk4.c:61:6:FSK4_timer_handler	16	static
+../Core/Src/fsk4.c:87:6:FSK4_start_TX	24	static

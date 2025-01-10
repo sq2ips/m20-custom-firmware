@@ -1,4 +1,3 @@
-
 /**
  *       __            ____
  *      / /__ _  __   / __/                      __
@@ -141,7 +140,7 @@ uint32_t  LPS22_GetRawData( int32_t *raw );
 uint32_t  LPS22_GetData( uint32_t *raw );
 float     LPS22_GetPressure();
 float     LPS22_GetTemperature();
-float     LPS22_GetAltitude( float pressure );
+//float     LPS22_GetAltitude( float pressure );
 
 /*
 #ifdef __cplusplus
