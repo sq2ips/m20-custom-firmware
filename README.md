@@ -30,10 +30,10 @@ Great pcb reverse enginering work was made by [joyel24](https://github.com/joyel
 Code is writen in C using stm32CubeIDE and HAL libraries.
 
 # Used libraries
-- NMEA parsed based on (https://github.com/sztvka/stm32-nmea-gps-hal)
-- LPS22 implementation based on (https://github.com/KitSprout/KSDK/tree/master/firmwareSTM32/KSSTM_Module_LPS22HB/Program/modules)
-- Radio modules implementation based on (https://github.com/adamgreig/wombat)
-- Horus Binary encoder based on (https://github.com/whallmann/RS41HUP_V2/blob/master/horus_l2.c)
+- NMEA parsed based on https://github.com/sztvka/stm32-nmea-gps-hal
+- LPS22 implementation based on https://github.com/KitSprout/KSDK/tree/master/firmwareSTM32/KSSTM_Module_LPS22HB/Program/modules
+- Radio modules implementation based on https://github.com/adamgreig/wombat
+- Horus Binary encoder based on https://github.com/whallmann/RS41HUP_V2/blob/master/horus_l2.c
 
 # GPS (NMEA)
 In newer M20 sondes u-blox MAX-M10M that uses NMEA protocol.
