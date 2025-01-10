@@ -2,11 +2,11 @@
 The goal of the project is to reverse engineer the Meteomodem M20 radiosonde and build custom firmware for it for use in ham radio baloons and the [Horus Binary](https://github.com/projecthorus/horusdemodlib/wiki) V2 radio protocol. 
 
 ## Current code development is done on a modified M20 sonde with replaced uC
-Stm32CubeIDE + HAL libraries are not fitting in the very small memory of the original STM32L051R6T6, currently a pin compatible STM32L431RCT6 is resoldered on the original board and the code is writen for it.
+Stm32CubeIDE + HAL libraries are not fitting in the very small memory of the original STM32L051R6T6, currently a pin compatible STM32L431RCT6 is resoldered on the original board and the code is written for it.
 There is a plan to write this code using CMSIS libraries to fit into the original chip.
 
 # Stage
-In this state the code works to the point where it gets GPS and all the sensors data and sends it using Horus Binary over radio. Hoever this code is currently highly experimental and will probably not yet work correctly in the intended aplication.
+In this state the code works to the point where it gets GPS and all the sensors data and sends it using Horus Binary over radio. However this code is currently highly experimental and will probably not yet work correctly in the intended application.
 
 # What works
 - GPS (NMEA): :heavy_check_mark:
