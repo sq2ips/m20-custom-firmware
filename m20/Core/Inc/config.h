@@ -37,7 +37,7 @@
 /*-----------------------*/
 
 /* GPS configuration */
-#define AscentRateTime 10       // Time of ascent rate mesure (not implemented in u-blox)
+#define AscentRateTime 10       // Time of ascent rate mesure
 
 // type 1
 #define DATA_SIZE 35            // Max number of NMEA sentences in one parsing
