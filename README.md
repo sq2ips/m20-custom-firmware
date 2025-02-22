@@ -21,7 +21,7 @@ In this state the code works to the point where it gets GPS data and sends it us
 - Jędrzej SQ2DK
 
 # License
-See LICENSE.md
+See LICENSE
 
 # Images
 
