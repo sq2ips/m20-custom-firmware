@@ -92,7 +92,8 @@ And now you can `make` the firmware:
 make
 ```
 After succesful building you should see a memoy usage table like this:
-![alt text](https://github.com/sq2ips/m20-custom-firmware/blob/main/img/memory.jpg?raw=true)
+
+![alt text](https://github.com/sq2ips/m20-custom-firmware/blob/main/img/memory.png?raw=true)
 
 ### Building with Docker on Linux
 ### Building with Docker on Windows
