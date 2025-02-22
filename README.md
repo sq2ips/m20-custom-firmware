@@ -58,12 +58,12 @@ First you need to obtain the code, you can do it with `git`:
 git clone https://github.com/sq2ips/m20-custom-firmware.git
 ```
 Or directly from github.
-## Configuration
+# Configuration
 Before building the firmware you fist need to configure parameters located in the [`config.h`](https://github.com/sq2ips/m20-custom-firmware/blob/main/m20/Core/Inc/config.h) file.
 TODO description
-## Building the firmware
+# Building the firmware
 Beofere flashing the firmware you need to build it first, there are a few ways you can do it depending on the platform:
-### Building directly on Linux
+## Building directly on Linux
 To build directly on linux you need the arm-none-eabi toolchain, you can install it from your package manager depending on the linux distro.
 For example, on Debian it will look like this:
 ```bash
@@ -95,6 +95,6 @@ After succesful building you should see a memoy usage table like this:
 
 ![alt text](https://github.com/sq2ips/m20-custom-firmware/blob/main/img/memory.png?raw=true)
 
-### Building with Docker on Linux
-### Building with Docker on Windows
-### Building with WSL on Windows (TODO)
+## Building with Docker on Linux
+## Building with Docker on Windows
+## Building with WSL on Windows (TODO)
