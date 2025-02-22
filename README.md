@@ -16,6 +16,13 @@ In this state the code works to the point where it gets GPS data and sends it us
 - LPS22 barometer + temp sensor: :x: (to be done soon)
 - humidity sensor: :x:
 
+# Authors
+- Paweł SQ2IPS
+- Jędrzej SQ2DK
+
+# License
+See LICENSE
+
 # Images
 
 ![alt text](https://github.com/sq2ips/m20-custom-firmware/blob/main/img/side.jpg?raw=true)
@@ -35,13 +42,16 @@ Great pcb reverse enginering work was made by [joyel24](https://github.com/joyel
 There are 2 variants of GPS modules, both of them are supported.
 ## New GPS (NMEA)
 In newer M20 sondes u-blox MAX-M10M that uses NMEA protocol.
+
 ![alt text](https://github.com/sq2ips/m20-custom-firmware/blob/main/img/gps_new.jpg?raw=true)
 
 ## Old GPS (XM1110)
 In older M20 sondes XM1110 GPS module was used. It transmits data over UART but with custom firmware that transmits only binary protocol data.
+
 ![alt text](https://github.com/sq2ips/m20-custom-firmware/blob/main/img/gps_old.jpg?raw=true)
 Data format:
-![alt text](https://github.com/sq2ips/m20-custom-firmware/blob/main/img/GPS.jpg?raw=true)
+
+![alt text](https://github.com/sq2ips/m20-custom-firmware/blob/main/img/GPS.png?raw=true)
 
 # Barometer and temp sensor
 LPS22HB sensor is used with SPI interface. File lps22hb.c and lps22hb.c are a library for this sensor.
@@ -50,17 +60,28 @@ LPS22HB sensor is used with SPI interface. File lps22hb.c and lps22hb.c are a li
 TODO
 
 # Running the firmware
+## What you will need
+Hardware requirements:
+- A working M20 radiosonde :)
+- A ST-Link v2 programmer USB dongle that looks like this:
+
+![alt text](https://cdn-shop.adafruit.com/970x728/2548-01.jpg)
+
+- 5 male to female goldpin jumper wires
+- A computer with Windows or Linux
+
 First you need to obtain the code, you can do it with `git`:
 ```bash
 git clone https://github.com/sq2ips/m20-custom-firmware.git
 ```
-Or directly from github.
-## Configuration
+From github website "code" button.
+Or directly from [here](https://github.com/sq2ips/m20-custom-firmware/archive/refs/heads/main.zip), and the unzip the file.
+# Configuration
 Before building the firmware you fist need to configure parameters located in the [`config.h`](https://github.com/sq2ips/m20-custom-firmware/blob/main/m20/Core/Inc/config.h) file.
 TODO description
-## Building the firmware
+# Building the firmware
 Beofere flashing the firmware you need to build it first, there are a few ways you can do it depending on the platform:
-### Building directly on Linux
+## Building directly on Linux
 To build directly on linux you need the arm-none-eabi toolchain, you can install it from your package manager depending on the linux distro.
 For example, on Debian it will look like this:
 ```bash
@@ -89,8 +110,74 @@ And now you can `make` the firmware:
 make
 ```
 After succesful building you should see a memoy usage table like this:
-![alt text](https://github.com/sq2ips/m20-custom-firmware/blob/main/img/memory.jpg?raw=true)
 
-### Building with Docker on Linux
-### Building with Docker on Windows
-### Building with WSL on Windows (TODO)
+![alt text](https://github.com/sq2ips/m20-custom-firmware/blob/main/img/memory.png?raw=true)
+
+## Building with Docker on Linux
+First you need to get Docker, you can install it from your package manager depending on the linux distro.
+For example, on Debian it will look like this:
+```bash
+sudo apt install docker
+```
+Then you need to add your user into the docker group like so:
+```bash
+sudo groupadd docker && sudo usermod -aG docker $USER
+```
+Now you need to start the docker daemon:
+```bash
+sudo systemctl start docker
+```
+But you will need to do it again after reboot of your computer, you can set it to autostart:
+```bash
+sudo systemctl enable docker
+```
+Now you should into the directory of the downloaded code, then:
+```bash
+cd m20
+```
+And now build the Docker image:
+```bash
+docker build -t m20 .
+```
+It will need some time to download an install the packages, after it finishes run:
+```bash
+docker run --rm -v .:/opt/m20 m20:latest
+```
+It will build the code and after finishing you should see a memory usage table just like in the previous method.
+## Building with Docker on Windows
+## Building with WSL on Windows (TODO)
+# Flashing the firmware
+# Connecting
+Before flashing you first need to connect the sonde to your computer through the ST-LINK programmer.
+You can do it using 5 goldpin cables. This is the sonde pinout:
+
+![alt text](https://github.com/sq2ips/m20-custom-firmware/blob/main/img/pinout.jpg?raw=true)
+
+Follow it and the pinout of the programmer printed on the case.
+After connecting it and the programmer to your USB port you are now ready to flash the firmware.
+
+## Flashing on Linux
+For flashing you will need the OpenOCD you can install it from your package manager depending on the linux distro.
+For example, on Debian it will look like this:
+```bash
+sudo apt install openocd
+```
+After installing it and ensuring that you are in the `m20` directory you first need to remove the write protection (only before the first flash):
+```bash
+make protection
+```
+or if you don't have `make` or want to run it directly:
+```bash
+openocd -f ./openocd_m20.cfg -c "init; halt; flash protect 0 0 7 reset; exit"
+```
+After it finishes you can flash the build firmware:
+```bash
+make flash
+```
+or directly
+```bash
+openocd -f ./openocd_m20.cfg -c "program build/m20.elf verify reset exit"
+```
+After it finishes your sonde should now work with the new firmware.
+
+# Debuging (TODO)
