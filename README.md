@@ -156,6 +156,8 @@ docker run --rm -v .:/opt/m20 m20:latest
 ```
 It will build the code and after finishing you should see a memory usage table just like in the previous method.
 ## Building with Docker on Windows
+First [download Docker Desktop](https://www.docker.com/products/docker-desktop/) and install it.
+
 ## Building with WSL on Windows (TODO)
 # Flashing the firmware
 # Connecting
@@ -174,7 +176,7 @@ For example, on Debian it will look like this:
 ```bash
 sudo apt install openocd
 ```
-After installing it and ensuring that you are in the `m20` directory you first need to remove the write protection (only before the first flash):
+After installing it and ensuring that you are in the `m20` directory. Ensure that ST-Link is connected and then remove the write protection (only before the first flash):
 ```bash
 make protection
 ```
@@ -191,5 +193,9 @@ or directly
 openocd -f ./openocd_m20.cfg -c "program build/m20.elf verify reset exit"
 ```
 After it finishes your sonde should now work with the new firmware.
+
+## Flashing on Windows
+First [download OpenOCD](https://github.com/xpack-dev-tools/openocd-xpack/releases/latest) select the one with ending `win32-x64.zip`, then extract it.
+
 
 # Debuging (TODO)
