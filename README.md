@@ -1,19 +1,19 @@
 # m20-custom-firmware
 The goal of the project is to reverse engineer the Meteomodem M20 radiosonde and build custom firmware for it for use in ham radio baloons and the [Horus Binary](https://github.com/projecthorus/horusdemodlib/wiki) V2 radio protocol. 
 
-## Current code development is done on a modified M20 sonde with replaced uC
-Stm32CubeIDE + HAL libraries are not fitting in the very small memory of the original STM32L051R6T6, currently a pin compatible STM32L431RCT6 is resoldered on the original board and the code is written for it.
-There is a plan to write this code using CMSIS libraries to fit into the original chip.
+# Code
+The code is writen in c using STM32CubeMX and Low Layer (LL) libraries and compiled using arm-none-eabi toolchain. Now fits into the original STM32L051R6T6 chip.
 
 # Stage
-In this state the code works to the point where it gets GPS and all the sensors data and sends it using Horus Binary over radio. However this code is currently highly experimental and will probably not yet work correctly in the intended application.
+In this state the code works to the point where it gets GPS data and sends it using Horus Binary over radio. However this code is currently highly experimental and will probably not yet work correctly in the intended application.
 
 # What works
 - GPS (NMEA): :heavy_check_mark:
+- GPS (XM1110) :heavy_check_mark:
 - Radio: :heavy_check_mark:
 - Uart: :heavy_check_mark:
 - Outside temperature sensor: :x:
-- LPS22 barometer + temp sensor: :heavy_check_mark:
+- LPS22 barometer + temp sensor: :x: (to be done soon)
 - humidity sensor: :x:
 
 # Images
@@ -35,11 +35,14 @@ Code is writen in C using stm32CubeIDE and HAL libraries.
 - Radio modules implementation based on https://github.com/adamgreig/wombat
 - Horus Binary encoder based on https://github.com/whallmann/RS41HUP_V2/blob/master/horus_l2.c
 
-# GPS (NMEA)
+# GPS
+There are 2 variants of GPS modules, both of them are supported.
+
+## GPS (NMEA)
 In newer M20 sondes u-blox MAX-M10M that uses NMEA protocol.
 ![alt text](https://github.com/sq2ips/m20-custom-firmware/blob/main/img/gps_new.png?raw=true)
 
-# GPS (old)
+## GPS (old)
 In older M20 sondes xm1110 GPS module was used. It transmits data over UART but with custom firmware that transmits only binary protocol data.
 Data format:
 ![alt text](https://github.com/sq2ips/m20-custom-firmware/blob/main/img/GPS.png?raw=true)
@@ -49,3 +52,6 @@ LPS22HB sensor is used with SPI interface. File lps22hb.c and lps22hb.c are a li
 
 # Radio
 TODO
+
+# Build and Flash instruction
+TODO (Soon)
