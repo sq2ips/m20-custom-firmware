@@ -35,13 +35,13 @@ Great pcb reverse enginering work was made by [joyel24](https://github.com/joyel
 There are 2 variants of GPS modules, both of them are supported.
 ## New GPS (NMEA)
 In newer M20 sondes u-blox MAX-M10M that uses NMEA protocol.
-![alt text](https://github.com/sq2ips/m20-custom-firmware/blob/main/img/gps_new.png?raw=true)
+![alt text](https://github.com/sq2ips/m20-custom-firmware/blob/main/img/gps_new.jpg?raw=true)
 
 ## Old GPS (XM1110)
 In older M20 sondes XM1110 GPS module was used. It transmits data over UART but with custom firmware that transmits only binary protocol data.
-![alt text](https://github.com/sq2ips/m20-custom-firmware/blob/main/img/gps_old.png?raw=true)
+![alt text](https://github.com/sq2ips/m20-custom-firmware/blob/main/img/gps_old.jpg?raw=true)
 Data format:
-![alt text](https://github.com/sq2ips/m20-custom-firmware/blob/main/img/GPS.png?raw=true)
+![alt text](https://github.com/sq2ips/m20-custom-firmware/blob/main/img/GPS.jpg?raw=true)
 
 # Barometer and temp sensor
 LPS22HB sensor is used with SPI interface. File lps22hb.c and lps22hb.c are a library for this sensor.
