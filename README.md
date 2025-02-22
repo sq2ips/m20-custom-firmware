@@ -169,3 +169,5 @@ or directly
 openocd -f ./openocd_m20.cfg -c "program build/m20.elf verify reset exit"
 ```
 After it finishes your sonde should now work with the new firmware.
+
+# Debuging (TODO)
