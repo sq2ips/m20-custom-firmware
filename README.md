@@ -16,6 +16,15 @@ In this state the code works to the point where it gets GPS data and sends it us
 - LPS22 barometer + temp sensor: :x: (to be done soon)
 - humidity sensor: :x:
 
+# Features list
+TODO
+
+# Planned work
+- making the LPS22 sensor work
+- making use of STM32 energy saving states
+- rewriting nmea.c to use less memory
+- implementing outside temperature and humidity sensors
+
 # Authors
 - Paweł SQ2IPS
 - Jędrzej SQ2DK
@@ -156,6 +165,7 @@ You can do it using 5 goldpin cables. This is the sonde pinout:
 
 Follow it and the pinout of the programmer printed on the case.
 After connecting it and the programmer to your USB port you are now ready to flash the firmware.
+You don't need to solder the wires, instead you can just put them into the connector, it should make enough contact for the firmware to flash.
 
 ## Flashing on Linux
 For flashing you will need the OpenOCD you can install it from your package manager depending on the linux distro.
