@@ -96,5 +96,35 @@ After succesful building you should see a memoy usage table like this:
 ![alt text](https://github.com/sq2ips/m20-custom-firmware/blob/main/img/memory.png?raw=true)
 
 ## Building with Docker on Linux
+First you need to get Docker, you can install it from your package manager depending on the linux distro.
+For example, on Debian it will look like this:
+```bash
+sudo apt install docker
+```
+Then you need to add your user into the docker group like so:
+```bash
+sudo groupadd docker && sudo usermod -aG docker $USER
+```
+Now you need to start the docker daemon:
+```bash
+sudo systemctl start docker
+```
+But you will need to do it again after reboot of your computer, you can set it to autostart:
+```bash
+sudo systemctl enable docker
+```
+Now you should into the directory of the downloaded code, then:
+```bash
+cd m20
+```
+And now build the Docker image:
+```bash
+docker build -t m20 .
+```
+It will need some time to download an install the packages, after it finishes run:
+```bash
+docker run --rm -v .:/opt/m20 m20:latest
+```
+It will build the code and after finishing you should see a memory usage table just like in the previous method.
 ## Building with Docker on Windows
 ## Building with WSL on Windows (TODO)
