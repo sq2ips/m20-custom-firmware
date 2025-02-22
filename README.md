@@ -58,6 +58,7 @@ In newer M20 sondes u-blox MAX-M10M that uses NMEA protocol.
 In older M20 sondes XM1110 GPS module was used. It transmits data over UART but with custom firmware that transmits only binary protocol data.
 
 ![alt text](https://github.com/sq2ips/m20-custom-firmware/blob/main/img/gps_old.jpg?raw=true)
+
 Data format:
 
 ![alt text](https://github.com/sq2ips/m20-custom-firmware/blob/main/img/GPS.png?raw=true)
@@ -90,15 +91,15 @@ Or directly from [here](https://github.com/sq2ips/m20-custom-firmware/archive/re
 Before building the firmware you fist need to configure parameters located in the [`config.h`](https://github.com/sq2ips/m20-custom-firmware/blob/main/m20/Core/Inc/config.h) file.
 TODO description
 # Building the firmware
-Beofere flashing the firmware you need to build it first, there are a few ways you can do it depending on the platform:
+Before flashing the firmware you need to build it first, there are a few ways you can do it depending on the platform:
 ## Building directly on Linux
 To build directly on linux you need the arm-none-eabi toolchain, you can install it from your package manager depending on the linux distro.
 For example, on Debian it will look like this:
 ```bash
 sudo apt install gcc-arm-none-eabi
 ```
-### WARNING: in difrent distros version of the toolchain can varry and result in a too big result file
-Another way that avoids this problem is downloading the toolchain from [here](https://developer.arm.com/-/media/Files/downloads/gnu/14.2.rel1/binrel/arm-gnu-toolchain-14.2.rel1-x86_64-arm-none-eabi.tar.xz).
+### WARNING: in different distros version of the toolchain can varry and result in a too big result file
+A way to avoids this problem is downloading the toolchain from [here](https://developer.arm.com/-/media/Files/downloads/gnu/14.2.rel1/binrel/arm-gnu-toolchain-14.2.rel1-x86_64-arm-none-eabi.tar.xz).
 After downloading you need to extract it:
 ```bash
 tar -xvf arm-gnu-toolchain-14.2.rel1-x86_64-arm-none-eabi.tar.xz
