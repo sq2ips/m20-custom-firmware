@@ -1,7 +1,0 @@
-../Core/Src/nmea.c:19:9:checksum	4
-../Core/Src/nmea.c:42:5:getValues	2
-../Core/Src/nmea.c:53:5:nmea_GGA	24
-../Core/Src/nmea.c:131:5:nmea_GSA	4
-../Core/Src/nmea.c:151:5:nmea_GLL	19
-../Core/Src/nmea.c:192:5:nmea_VTG	2
-../Core/Src/nmea.c:204:6:ParseNMEA	12

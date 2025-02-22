@@ -2,23 +2,19 @@
   "version": "0.2.0",
   "configurations": [
     {
-      "name": "C/C++ Runner: Debug Session",
-      "type": "cppdbg",
+      "type": "cortex-debug",
       "request": "launch",
-      "args": [],
-      "stopAtEntry": false,
-      "externalConsole": false,
-      "cwd": "/home/pawel/Pobrane",
-      "program": "/home/pawel/Pobrane/build/Debug/outDebug",
-      "MIMode": "gdb",
-      "miDebuggerPath": "gdb",
-      "setupCommands": [
-        {
-          "description": "Enable pretty-printing for gdb",
-          "text": "-enable-pretty-printing",
-          "ignoreFailures": true
-        }
-      ]
-    }
+      "name": "Debug (OpenOCD)",
+      "servertype": "openocd",
+      "cwd": "${workspaceFolder}",
+      "runToEntryPoint": "main",
+      "executable": "./build/m20.elf",
+      "device": "STM32L051R6T6",
+      "configFiles": [
+        "debug/stlink.cfg",
+        "debug/stm32l0.cfg"
+      ],
+      "showDevDebugOutput": "raw"
+    }, 
   ]
 }

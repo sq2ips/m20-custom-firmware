@@ -1,7 +1,0 @@
-../Core/Src/nmea.c:19:9:checksum	32	static
-../Core/Src/nmea.c:42:5:getValues	32	static
-../Core/Src/nmea.c:53:5:nmea_GGA	232	static
-../Core/Src/nmea.c:131:5:nmea_GSA	136	static
-../Core/Src/nmea.c:151:5:nmea_GLL	216	static
-../Core/Src/nmea.c:192:5:nmea_VTG	128	static
-../Core/Src/nmea.c:204:6:ParseNMEA	32	static

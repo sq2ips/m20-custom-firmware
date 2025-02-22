@@ -1,7 +1,0 @@
-../Core/Src/horus.c:25:10:crc16	24	static
-../Core/Src/horus.c:55:6:interleave	104	dynamic
-../Core/Src/horus.c:122:6:scramble	56	static
-../Core/Src/horus.c:166:9:get_syndrome	24	static
-../Core/Src/horus.c:188:5:horus_l2_get_num_tx_data_bytes	32	static
-../Core/Src/horus.c:212:5:horus_l2_encode_tx_packet	80	static
-../Core/Src/horus.c:368:6:print_hex	32	static
