@@ -86,7 +86,7 @@ First you need to obtain the code, you can do it with `git`:
 git clone https://github.com/sq2ips/m20-custom-firmware.git
 ```
 From github website "code" button.
-Or directly from [here](https://github.com/sq2ips/m20-custom-firmware/archive/refs/heads/main.zip), and the unzip the file.
+Or directly from [here](https://github.com/sq2ips/m20-custom-firmware/archive/refs/heads/main.zip), and then unzip the file.
 # Configuration
 Before building the firmware you fist need to configure parameters located in the [`config.h`](https://github.com/sq2ips/m20-custom-firmware/blob/main/m20/Core/Inc/config.h) file.
 TODO description
@@ -157,7 +157,7 @@ docker run --rm -v .:/opt/m20 m20:latest
 It will build the code and after finishing you should see a memory usage table just like in the previous method.
 ## Building with Docker on Windows
 First [download Docker Desktop](https://www.docker.com/products/docker-desktop/) and install it.
-
+TODO
 ## Building with WSL on Windows (TODO)
 # Flashing the firmware
 # Connecting
@@ -196,6 +196,6 @@ After it finishes your sonde should now work with the new firmware.
 
 ## Flashing on Windows
 First [download OpenOCD](https://github.com/xpack-dev-tools/openocd-xpack/releases/latest) select the one with ending `win32-x64.zip`, then extract it.
-
+TODO
 
 # Debuging (TODO)
