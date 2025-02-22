@@ -26,9 +26,6 @@ In this state the code works to the point where it gets GPS data and sends it us
 # Schematics
 Great pcb reverse enginering work was made by [joyel24](https://github.com/joyel24/M20-radiosonde-firmware-alt), [PDF link](https://www.egimoto.com/dwld/17528ed1858138.pdf) (although there are some errors in it)
 
-# Code
-Code is writen in C using stm32CubeIDE and HAL libraries.
-
 # Used libraries
 - NMEA parsed based on https://github.com/sztvka/stm32-nmea-gps-hal
 - LPS22 implementation based on https://github.com/KitSprout/KSDK/tree/master/firmwareSTM32/KSSTM_Module_LPS22HB/Program/modules
