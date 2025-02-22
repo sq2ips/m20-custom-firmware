@@ -136,3 +136,36 @@ docker run --rm -v .:/opt/m20 m20:latest
 It will build the code and after finishing you should see a memory usage table just like in the previous method.
 ## Building with Docker on Windows
 ## Building with WSL on Windows (TODO)
+# Flashing the firmware
+# Connecting
+Before flashing you first need to connect the sonde to your computer through the ST-LINK programmer.
+You can do it using 5 goldpin cables. This is the sonde pinout:
+
+![alt text](https://github.com/sq2ips/m20-custom-firmware/blob/main/img/pinout.jpg?raw=true)
+
+Follow it and the pinout of the programmer printed on the case.
+After connecting it and the programmer to your USB port you are now ready to flash the firmware.
+
+## Flashing on Linux
+For flashing you will need the OpenOCD you can install it from your package manager depending on the linux distro.
+For example, on Debian it will look like this:
+```bash
+sudo apt install openocd
+```
+After installing it and ensuring that you are in the `m20` directory you first need to remove the write protection (only before the first flash):
+```bash
+make protection
+```
+or if you don't have `make` or want to run it directly:
+```bash
+openocd -f ./openocd_m20.cfg -c "init; halt; flash protect 0 0 7 reset; exit"
+```
+After it finishes you can flash the build firmware:
+```bash
+make flash
+```
+or directly
+```bash
+openocd -f ./openocd_m20.cfg -c "program build/m20.elf verify reset exit"
+```
+After it finishes your sonde should now work with the new firmware.
