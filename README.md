@@ -16,6 +16,13 @@ In this state the code works to the point where it gets GPS data and sends it us
 - LPS22 barometer + temp sensor: :x: (to be done soon)
 - humidity sensor: :x:
 
+# Authors
+- Paweł SQ2IPS
+- Jędrzej SQ2DK
+
+# License
+See LICENSE.md
+
 # Images
 
 ![alt text](https://github.com/sq2ips/m20-custom-firmware/blob/main/img/side.jpg?raw=true)
