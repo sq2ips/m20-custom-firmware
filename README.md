@@ -57,7 +57,8 @@ First you need to obtain the code, you can do it with `git`:
 ```bash
 git clone https://github.com/sq2ips/m20-custom-firmware.git
 ```
-Or directly from github.
+From github website "code" button.
+Or directly from [here](https://github.com/sq2ips/m20-custom-firmware/archive/refs/heads/main.zip), and the unzip the file.
 # Configuration
 Before building the firmware you fist need to configure parameters located in the [`config.h`](https://github.com/sq2ips/m20-custom-firmware/blob/main/m20/Core/Inc/config.h) file.
 TODO description
