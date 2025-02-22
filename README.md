@@ -43,6 +43,7 @@ In older M20 sondes XM1110 GPS module was used. It transmits data over UART but 
 
 ![alt text](https://github.com/sq2ips/m20-custom-firmware/blob/main/img/gps_old.jpg?raw=true)
 Data format:
+
 ![alt text](https://github.com/sq2ips/m20-custom-firmware/blob/main/img/GPS.png?raw=true)
 
 # Barometer and temp sensor
