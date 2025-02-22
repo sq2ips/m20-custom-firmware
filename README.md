@@ -70,6 +70,7 @@ Hardware requirements:
 - 5 male to female goldpin jumper wires
 - A computer with Windows or Linux
 
+## Downloading code
 First you need to obtain the code, you can do it with `git`:
 ```bash
 git clone https://github.com/sq2ips/m20-custom-firmware.git
