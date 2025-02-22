@@ -60,6 +60,16 @@ LPS22HB sensor is used with SPI interface. File lps22hb.c and lps22hb.c are a li
 TODO
 
 # Running the firmware
+## What you will need
+Hardware requirements:
+- A working M20 radiosonde :)
+- A ST-Link v2 programmer USB dongle that looks like this:
+
+![alt text](https://cdn-shop.adafruit.com/970x728/2548-01.jpg)
+
+- 5 male to female goldpin jumper wires
+- A computer with Windows or Linux
+
 First you need to obtain the code, you can do it with `git`:
 ```bash
 git clone https://github.com/sq2ips/m20-custom-firmware.git
