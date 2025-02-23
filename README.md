@@ -179,7 +179,7 @@ make protection
 ```
 or if you don't have `make` or want to run it directly:
 ```bash
-openocd -f ./openocd_m20.cfg -c "init; halt; flash protect 0 0 7 reset; exit"
+openocd -s ./openocd/ -f ./openocd/openocd_m20.cfg -c "init; halt; flash protect 0 0 7 reset; exit"
 ```
 After it finishes you can flash the build firmware:
 ```bash
@@ -187,7 +187,7 @@ make flash
 ```
 or directly
 ```bash
-openocd -f ./openocd_m20.cfg -c "program build/m20.elf verify reset exit"
+openocd -s ./openocd/ -f ./openocd/openocd_m20.cfg -c "program build/m20.elf verify reset exit"
 ```
 After it finishes your sonde should now work with the new firmware.
 
