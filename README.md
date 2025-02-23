@@ -203,6 +203,15 @@ After it finishes your sonde should now work with the new firmware.
 
 ## Flashing on Windows
 First [download OpenOCD](https://github.com/xpack-dev-tools/openocd-xpack/releases/latest) select the one with ending `win32-x64.zip`, then extract it.
-TODO
+Go to the path of the project then to `m20/`. Ensure that ST-Link is connected and then remove the write protection (only before the first flash):
+```cmd
+<path\to\openocd>\bin\openocd.exe -s openocd -f openocd\openocd_m20.cfg -c "init; halt; flash protect 0 0 7 reset; exit"
+```
+replace `<path\to\openocd>` with the path of the extracted the program.
+After it finishes you can flash the build firmware:
+```cmd
+<path\to\openocd>\bin\openocd.exe -s ./openocd/ -f openocd\openocd_m20.cfg -c "program build\m20.elf verify reset exit"
+```
+After it finishes your sonde should now work with the new firmware.
 
 # Debuging (TODO)
