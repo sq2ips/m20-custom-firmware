@@ -207,8 +207,8 @@ Go to the path of the project then to `m20/`. Ensure that ST-Link is connected a
 ```cmd
 <path\to\openocd>\bin\openocd.exe -s openocd -f openocd\openocd_m20.cfg -c "init; halt; flash protect 0 0 7 reset; exit"
 ```
-replace `<path\to\openocd>` with the path of the extracted the program.
-After it finishes you can flash the build firmware:
+replace `<path\to\openocd>` with the path of the extracted program.
+After it finishes you can flash the built firmware:
 ```cmd
 <path\to\openocd>\bin\openocd.exe -s ./openocd/ -f openocd\openocd_m20.cfg -c "program build\m20.elf verify reset exit"
 ```
