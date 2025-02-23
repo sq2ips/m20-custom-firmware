@@ -157,11 +157,12 @@ docker run --rm -v .:/opt/m20 m20:latest
 It will build the code and after finishing you should see a memory usage table just like in the previous method.
 ## Building with MinGW on Windows
 First [download MSYS2](https://www.msys2.org/), then install it, after finishing the setup you should now see a terminal.
-Now install the toolchain and `make`:
+Now install `make`:
 ```bash
-pacman -Sy mingw-w64-x86_64-arm-none-eabi-gcc mingw-w64-x86_64-arm-none-eabi-binutils mingw-w64-x86_64-arm-none-eabi-newlib make
+pacman -Sy make
 ```
 Confirm the instalation and wait for the packages to download and install.
+TODO
 ## Building with Docker on Windows
 First [download Docker Desktop](https://www.docker.com/products/docker-desktop/) and install it.
 TODO
