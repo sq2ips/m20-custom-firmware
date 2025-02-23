@@ -155,10 +155,11 @@ It will need some time to download an install the packages, after it finishes ru
 docker run --rm -v .:/opt/m20 m20:latest
 ```
 It will build the code and after finishing you should see a memory usage table just like in the previous method.
+## Building with MinGW on Windows
+First [download MSYS2](https://www.msys2.org/), then install it, after finishing the setup you should now see a terminal.
 ## Building with Docker on Windows
 First [download Docker Desktop](https://www.docker.com/products/docker-desktop/) and install it.
 TODO
-## Building with WSL on Windows (TODO)
 # Flashing the firmware
 # Connecting
 Before flashing you first need to connect the sonde to your computer through the ST-LINK programmer.
