@@ -161,6 +161,7 @@ Now install the toolchain and `make`:
 ```bash
 pacman -Sy mingw-w64-x86_64-arm-none-eabi-gcc mingw-w64-x86_64-arm-none-eabi-binutils mingw-w64-x86_64-arm-none-eabi-newlib make
 ```
+Confirm the instalation and wait for the packages to download and install.
 ## Building with Docker on Windows
 First [download Docker Desktop](https://www.docker.com/products/docker-desktop/) and install it.
 TODO
