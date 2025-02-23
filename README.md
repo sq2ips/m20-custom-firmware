@@ -58,6 +58,7 @@ In newer M20 sondes u-blox MAX-M10M that uses NMEA protocol.
 In older M20 sondes XM1110 GPS module was used. It transmits data over UART but with custom firmware that transmits only binary protocol data.
 
 ![alt text](https://github.com/sq2ips/m20-custom-firmware/blob/main/img/gps_old.jpg?raw=true)
+
 Data format:
 
 ![alt text](https://github.com/sq2ips/m20-custom-firmware/blob/main/img/GPS.png?raw=true)
@@ -85,20 +86,20 @@ First you need to obtain the code, you can do it with `git`:
 git clone https://github.com/sq2ips/m20-custom-firmware.git
 ```
 From github website "code" button.
-Or directly from [here](https://github.com/sq2ips/m20-custom-firmware/archive/refs/heads/main.zip), and the unzip the file.
+Or directly from [here](https://github.com/sq2ips/m20-custom-firmware/archive/refs/heads/main.zip), and then unzip the file.
 # Configuration
 Before building the firmware you fist need to configure parameters located in the [`config.h`](https://github.com/sq2ips/m20-custom-firmware/blob/main/m20/Core/Inc/config.h) file.
 TODO description
 # Building the firmware
-Beofere flashing the firmware you need to build it first, there are a few ways you can do it depending on the platform:
+Before flashing the firmware you need to build it first, there are a few ways you can do it depending on the platform:
 ## Building directly on Linux
 To build directly on linux you need the arm-none-eabi toolchain, you can install it from your package manager depending on the linux distro.
 For example, on Debian it will look like this:
 ```bash
 sudo apt install gcc-arm-none-eabi
 ```
-### WARNING: in difrent distros version of the toolchain can varry and result in a too big result file
-Another way that avoids this problem is downloading the toolchain from [here](https://developer.arm.com/-/media/Files/downloads/gnu/14.2.rel1/binrel/arm-gnu-toolchain-14.2.rel1-x86_64-arm-none-eabi.tar.xz).
+### WARNING: in different distros version of the toolchain can varry and result in a too big result file
+A way to avoids this problem is downloading the toolchain from [here](https://developer.arm.com/-/media/Files/downloads/gnu/14.2.rel1/binrel/arm-gnu-toolchain-14.2.rel1-x86_64-arm-none-eabi.tar.xz).
 After downloading you need to extract it:
 ```bash
 tar -xvf arm-gnu-toolchain-14.2.rel1-x86_64-arm-none-eabi.tar.xz
@@ -154,8 +155,17 @@ It will need some time to download an install the packages, after it finishes ru
 docker run --rm -v .:/opt/m20 m20:latest
 ```
 It will build the code and after finishing you should see a memory usage table just like in the previous method.
+## Building with MinGW on Windows
+First [download MSYS2](https://www.msys2.org/), then install it, after finishing the setup you should now see a terminal.
+Now install `make`:
+```bash
+pacman -Sy make
+```
+Confirm the instalation and wait for the packages to download and install.
+TODO
 ## Building with Docker on Windows
-## Building with WSL on Windows (TODO)
+First [download Docker Desktop](https://www.docker.com/products/docker-desktop/) and install it.
+TODO
 # Flashing the firmware
 # Connecting
 Before flashing you first need to connect the sonde to your computer through the ST-LINK programmer.
@@ -173,7 +183,7 @@ For example, on Debian it will look like this:
 ```bash
 sudo apt install openocd
 ```
-After installing it and ensuring that you are in the `m20` directory you first need to remove the write protection (only before the first flash):
+After installing it and ensuring that you are in the `m20` directory. Ensure that ST-Link is connected and then remove the write protection (only before the first flash):
 ```bash
 make protection
 ```
@@ -190,5 +200,9 @@ or directly
 openocd -s ./openocd/ -f ./openocd/openocd_m20.cfg -c "program build/m20.elf verify reset exit"
 ```
 After it finishes your sonde should now work with the new firmware.
+
+## Flashing on Windows
+First [download OpenOCD](https://github.com/xpack-dev-tools/openocd-xpack/releases/latest) select the one with ending `win32-x64.zip`, then extract it.
+TODO
 
 # Debuging (TODO)
