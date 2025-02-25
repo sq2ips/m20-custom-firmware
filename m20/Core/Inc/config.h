@@ -8,16 +8,16 @@
 /*-----------------------------------------------------------------*/
 //  Sonde configuration, parameters that should be changed
 
-#define PAYLOAD_ID 256      // Sonde payload ID 256 - for 4FSKTEST-V2
+#define PAYLOAD_ID 256          // Sonde payload ID 256 - for 4FSKTEST-V2
 
-#define TIME_PERIOD 6       // Time betwen starts of transmissions (in seconds) (must be more than 3)
+#define TIME_PERIOD 6           // Time betwen starts of transmissions (in seconds) (must be more than 3)
 
-#define GPS_TYPE 1          // Type of GPS module: 1 - u-blox | 2 - XM1110
+#define GPS_TYPE 1              // Type of GPS module: 1 - u-blox | 2 - XM1110
 
-#define QRG_FSK4 435100000  // Frequency fo horus modulation (in Hz)
+#define QRG_FSK4 435100000      // Frequency fo horus modulation (in Hz)
 
-#define PA_FSK4 10           // RF power setting for horus transmission values 0-63
-#define RF_BOOST_ACTIVE 1   // RF booster enabled for transmissions about 15dB gain, but more power consumed - normally should be ON(1).
+#define PA_FSK4 10              // RF power setting for horus transmission values 0-63
+#define RF_BOOST_ACTIVE 0       // RF booster enabled for transmissions about 15dB gain, but more power consumed - normally should be ON(1).
 
 #define ADF_FREQ_CORRECTION 19  // correction of frequency from crystal inaccuracy in 270Hz steps. To be individually set for each sonde.
 
@@ -40,7 +40,10 @@
 #define AscentRateTime 10       // Time of ascent rate mesure
 
 // type 1
-#define DATA_SIZE 35            // Max number of NMEA sentences in one parsing
+#define DATA_SIZE               35 // Max number of NMEA sentences in one parsing
+#define SENTENCE_SIZE           82+1 // Max lenght of a NMEA sentence is 82 characters
+#define MAX_SENTENCE_ELEMENTS   10 // Max number of NMEA sentence elements (no element with number bigger than 9 is used)
+#define SENTENCE_ELEMENT_LEN    12 // Max lenght of a sentence element
 
 // type 2
 #define FrameLen 62             // Length of XM1110 frame

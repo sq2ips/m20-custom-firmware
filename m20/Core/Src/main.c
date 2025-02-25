@@ -109,7 +109,7 @@ void main_loop(void){
     // LED
     LL_GPIO_TogglePin(LED_GPIO_Port, LED_Pin);
     #ifdef DEBUG
-    //printf("%s", GpsDataBuffer);
+    printf("Frame: %d\r\n", HorusPacket.PacketCount);
     #endif
     while(GpsBufferReady){}
 
@@ -131,13 +131,13 @@ void main_loop(void){
 	  HorusPacket.Seconds = NmeaData.Seconds;
 	  HorusPacket.Lat = NmeaData.Lat;
 	  HorusPacket.Lon = NmeaData.Lon;
-	  HorusPacket.Speed = (uint8_t)round(NmeaData.Speed);
+	  HorusPacket.Speed = (uint8_t)NmeaData.Speed;
     HorusPacket.AscentRate = (int16_t)round(NmeaData.AscentRate*100);
-	  HorusPacket.Alt = (uint16_t)round(NmeaData.Alt);
+	  HorusPacket.Alt = NmeaData.Alt;
     HorusPacket.Sats = NmeaData.Sats;
     #ifdef DEBUG
-    printf("\r\nFix: %d, Lat: %d, Lon: %d, Alt: %d m, Speed: %d km/h, Ascent rate: %d m/s Satellites: %d HDOP: %d, Time: %d:%d:%d, correct frames: %d\r\n",
-	    NmeaData.Fix, (uint32_t)(NmeaData.Lat*10e6), (uint32_t)(NmeaData.Lon*10e6), (uint16_t)(NmeaData.Alt*10), (uint16_t)(NmeaData.Speed*10e3), (int16_t)round(NmeaData.AscentRate), NmeaData.Sats, (uint16_t)round(NmeaData.HDOP*1e2), NmeaData.Hours, NmeaData.Minutes, NmeaData.Seconds, NmeaData.Corr);
+    printf("\r\nFix: %d, Lat: %d, Lon: %d, Alt: %d m, Speed: %d km/h, Ascent rate: %d m/s Satellites: %d, Time: %d:%d:%d, correct frames: %d\r\n",
+	    NmeaData.Fix, (uint32_t)(NmeaData.Lat*10e6), (uint32_t)(NmeaData.Lon*10e6), NmeaData.Alt, NmeaData.Speed, (int16_t)round(NmeaData.AscentRate*100), NmeaData.Sats, NmeaData.Hours, NmeaData.Minutes, NmeaData.Seconds, NmeaData.Corr);
     #endif
     
     // GPS type 2 data
@@ -255,7 +255,7 @@ int main(void)
       }
       GpsBufferReady = false;
     }
-    LL_mDelay(20);
+    LL_mDelay(10);
   }
   /* USER CODE END 3 */
 }
@@ -409,7 +409,7 @@ static void MX_IWDG_Init(void)
   /* USER CODE END IWDG_Init 1 */
   LL_IWDG_Enable(IWDG);
   LL_IWDG_EnableWriteAccess(IWDG);
-  LL_IWDG_SetPrescaler(IWDG, LL_IWDG_PRESCALER_4);
+  LL_IWDG_SetPrescaler(IWDG, LL_IWDG_PRESCALER_8);
   LL_IWDG_SetReloadCounter(IWDG, 4095);
   while (LL_IWDG_IsReady(IWDG) != 1)
   {
