@@ -10,7 +10,7 @@ In this state the code works to the point where it gets GPS data and sends it us
 # What works
 - GPS (NMEA): :heavy_check_mark:
 - GPS (XM1110) :heavy_check_mark:
-- Radio: :heavy_check_mark:
+- Radio (Horus): :heavy_check_mark:
 - Uart: :heavy_check_mark:
 - Outside temperature sensor: :x:
 - LPS22 barometer + temp sensor: :x: (to be done soon)
@@ -26,8 +26,15 @@ The currently implemented features are:
 # Planned work
 - making the LPS22 sensor work
 - making use of STM32 energy saving states
+- Implementing XM1110 GPS speed data
 - implementing outside temperature and humidity sensors
 - implementing APRS
+
+# Horus 4FSK tone spacing
+Due to hardware limitations (system clock PLL setting options) it is not possible to generate a clock signal for the radio module whose frequency is divisible by 9. That results in no possibility of having a 270Hz tone spacing standardized by the RS41ng project. The tone spacing is set to 244Hz acquired by an 8MHz clock signal. The limitation is directly connected with the method of implementing FSK and there seems to be no way to overcome it without hardware intervention. The effect is that receiving stations must set a different from standard tone spacing or the SNR will be very low, for comparison:
+
+![alt text](https://github.com/sq2ips/m20-custom-firmware/blob/main/img/snr270.png?raw=true)
+![alt text](https://github.com/sq2ips/m20-custom-firmware/blob/main/img/snr244.png?raw=true)
 
 # Authors
 - Paweł SQ2IPS
