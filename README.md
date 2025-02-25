@@ -26,7 +26,6 @@ The currently implemented features are:
 # Planned work
 - making the LPS22 sensor work
 - making use of STM32 energy saving states
-- rewriting nmea.c
 - implementing outside temperature and humidity sensors
 - implementing APRS
 
