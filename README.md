@@ -1,8 +1,8 @@
 # m20-custom-firmware
-The goal of the project is to reverse engineer the Meteomodem M20 radiosonde and build custom firmware for it for use in ham radio baloons and the [Horus Binary](https://github.com/projecthorus/horusdemodlib/wiki) V2 radio protocol. 
+The goal of this project is to reverse engineer the Meteomodem M20 radiosonde and build custom firmware for its usage in ham radio baloons based on the [Horus Binary V2](https://github.com/projecthorus/horusdemodlib/wiki) radio protocol.
 
 # Code
-The code is writen in C using STM32CubeMX and Low Layer (LL) libraries and compiled using arm-none-eabi toolchain. Now fits into the original STM32L051R6T6 chip.
+The code is writen in C using STM32CubeMX and Low Layer (LL) libraries and compiled using arm-none-eabi toolchain. Now it fits into the original STM32L051R6T6 chip.
 
 # Stage
 In this state the code works to the point where it gets GPS data and sends it using Horus Binary over radio. However this code is currently highly experimental and will probably not yet work correctly in the intended application.
@@ -17,13 +17,18 @@ In this state the code works to the point where it gets GPS data and sends it us
 - humidity sensor: :x:
 
 # Features list
-TODO
+The currently implemented features are:
+- GPS time, position, altitude, speed, ascent rate and number of satellites (NMEA and XM1110)
+- Sending data over radio using Horus Binary V2 protocol
+- Getting battery voltage
+- Watchdog timer
 
 # Planned work
 - making the LPS22 sensor work
 - making use of STM32 energy saving states
-- rewriting nmea.c to use less memory
+- rewriting nmea.c
 - implementing outside temperature and humidity sensors
+- implementing APRS
 
 # Authors
 - Paweł SQ2IPS
@@ -50,12 +55,12 @@ Great pcb reverse enginering work was made by [joyel24](https://github.com/joyel
 # GPS
 There are 2 variants of GPS modules, both of them are supported.
 ## New GPS (NMEA)
-In newer M20 sondes u-blox MAX-M10M that uses NMEA protocol.
+In newer M20 sondes u-blox MAX-M10M that uses NMEA protocol is used.
 
 ![alt text](https://github.com/sq2ips/m20-custom-firmware/blob/main/img/gps_new.jpg?raw=true)
 
 ## Old GPS (XM1110)
-In older M20 sondes XM1110 GPS module was used. It transmits data over UART but with custom firmware that transmits only binary protocol data.
+In older M20 sondes XM1110 GPS module is used. It transmits data over UART but with custom firmware that transmits only binary protocol data.
 
 ![alt text](https://github.com/sq2ips/m20-custom-firmware/blob/main/img/gps_old.jpg?raw=true)
 
@@ -64,7 +69,7 @@ Data format:
 ![alt text](https://github.com/sq2ips/m20-custom-firmware/blob/main/img/GPS.png?raw=true)
 
 # Barometer and temp sensor
-LPS22HB sensor is used with SPI interface. File lps22hb.c and lps22hb.c are a library for this sensor.
+LPS22HB sensor is used with SPI interface.
 
 # Radio
 TODO
@@ -78,15 +83,14 @@ Hardware requirements:
 ![alt text](https://cdn-shop.adafruit.com/970x728/2548-01.jpg)
 
 - 5 male to female goldpin jumper wires
-- A computer with Windows or Linux
+- A computer with Linux or Windows
 
 ## Downloading code
 First you need to obtain the code, you can do it with `git`:
 ```bash
 git clone https://github.com/sq2ips/m20-custom-firmware.git
 ```
-From github website "code" button.
-Or directly from [here](https://github.com/sq2ips/m20-custom-firmware/archive/refs/heads/main.zip), and then unzip the file.
+From github website "code" button, or directly from [here](https://github.com/sq2ips/m20-custom-firmware/archive/refs/heads/main.zip), and then unzip the file.
 # Configuration
 Before building the firmware you fist need to configure parameters located in the [`config.h`](https://github.com/sq2ips/m20-custom-firmware/blob/main/m20/Core/Inc/config.h) file.
 TODO description
@@ -167,7 +171,7 @@ TODO
 First [download Docker Desktop](https://www.docker.com/products/docker-desktop/) and install it.
 TODO
 # Flashing the firmware
-# Connecting
+## Connecting
 Before flashing you first need to connect the sonde to your computer through the ST-LINK programmer.
 You can do it using 5 goldpin cables. This is the sonde pinout:
 
@@ -183,7 +187,7 @@ For example, on Debian it will look like this:
 ```bash
 sudo apt install openocd
 ```
-After installing it and ensuring that you are in the `m20` directory. Ensure that ST-Link is connected and then remove the write protection (only before the first flash):
+After installing it and ensuring that you are in the `m20` directory. Then check if ST-Link is connected and then you can remove the write protection (only before the first flash):
 ```bash
 make protection
 ```
@@ -191,7 +195,7 @@ or if you don't have `make` or want to run it directly:
 ```bash
 openocd -s ./openocd/ -f ./openocd/openocd_m20.cfg -c "init; halt; flash protect 0 0 7 reset; exit"
 ```
-After it finishes you can flash the build firmware:
+After it finishes you can flash the built firmware:
 ```bash
 make flash
 ```
@@ -202,12 +206,12 @@ openocd -s ./openocd/ -f ./openocd/openocd_m20.cfg -c "program build/m20.elf ver
 After it finishes your sonde should now work with the new firmware.
 
 ## Flashing on Windows
-First [download OpenOCD](https://github.com/xpack-dev-tools/openocd-xpack/releases/latest) select the one with ending `win32-x64.zip`, then extract it.
+First [download OpenOCD](https://github.com/xpack-dev-tools/openocd-xpack/releases/latest) select the file with ending `win32-x64.zip`, then extract it.
 Go to the path of the project then to `m20/`. Ensure that ST-Link is connected and then remove the write protection (only before the first flash):
 ```cmd
 <path\to\openocd>\bin\openocd.exe -s openocd -f openocd\openocd_m20.cfg -c "init; halt; flash protect 0 0 7 reset; exit"
 ```
-replace `<path\to\openocd>` with the path of the extracted program.
+replace `<path\to\openocd>` with path of the extracted program.
 After it finishes you can flash the built firmware:
 ```cmd
 <path\to\openocd>\bin\openocd.exe -s ./openocd/ -f openocd\openocd_m20.cfg -c "program build\m20.elf verify reset exit"
