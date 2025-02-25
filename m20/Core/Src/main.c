@@ -132,7 +132,7 @@ void main_loop(void){
 	  HorusPacket.Lat = NmeaData.Lat;
 	  HorusPacket.Lon = NmeaData.Lon;
 	  HorusPacket.Speed = (uint8_t)NmeaData.Speed;
-    HorusPacket.AscentRate = (int16_t)round(NmeaData.AscentRate*100);
+    HorusPacket.AscentRate = (int16_t)round(NmeaData.AscentRate*100.0);
 	  HorusPacket.Alt = NmeaData.Alt;
     HorusPacket.Sats = NmeaData.Sats;
     #ifdef DEBUG
@@ -150,7 +150,7 @@ void main_loop(void){
     HorusPacket.Speed = (uint16_t)GpsData.GroundSpeed; // Doesn't work
     HorusPacket.Alt = (uint16_t)GpsData.Alt;
     HorusPacket.Sats = GpsData.Sats;
-    HorusPacket.AscentRate = (uint16_t)round(GpsData.AscentRate*100);
+    HorusPacket.AscentRate = (uint16_t)round(GpsData.AscentRate*100.0);
     #ifdef DEBUG
     printf("Fix: %d, Lat: %d, Lon: %d, Alt: %d, Ascent Rate: %d, Ground Speed: %f, Sats: %d, Time: %d: %d:%d:%d\r\n", GpsData.Fix, (int32_t)(GpsData.Lat*1e6), (int32_t)(GpsData.Lon*1e6), (uint32_t)(GpsData.Alt*1e6), (int32_t)(GpsData.AscentRate*1e6), GpsData.GroundSpeed, GpsData.Sats, GpsData.Time, GpsData.Hours, GpsData.Minutes, GpsData.Seconds);
     #endif
@@ -463,7 +463,7 @@ static void MX_LPUART1_UART_Init(void)
   LL_GPIO_Init(GPIOC, &GPIO_InitStruct);
 
   /* LPUART1 interrupt Init */
-  NVIC_SetPriority(LPUART1_IRQn, 0);
+  NVIC_SetPriority(LPUART1_IRQn, 1);
   NVIC_EnableIRQ(LPUART1_IRQn);
 
   /* USER CODE BEGIN LPUART1_Init 1 */
@@ -633,7 +633,7 @@ static void MX_TIM2_Init(void)
   LL_APB1_GRP1_EnableClock(LL_APB1_GRP1_PERIPH_TIM2);
 
   /* TIM2 interrupt Init */
-  NVIC_SetPriority(TIM2_IRQn, 1);
+  NVIC_SetPriority(TIM2_IRQn, 0);
   NVIC_EnableIRQ(TIM2_IRQn);
 
   /* USER CODE BEGIN TIM2_Init 1 */
@@ -861,6 +861,26 @@ void GPS_Handler(void){
     GpsRxBuffer[GpsBufferCounter] = LL_LPUART_ReceiveData8(LPUART1);
     GpsBufferCounter++;
     //LL_GPIO_ResetOutputPin(LED_GPIO_Port, LED_Pin);
+  }else if(LL_LPUART_IsActiveFlag_ORE(LPUART1)){
+    #ifdef DEBUG
+    printf("ORE\r\n");
+    #endif
+    LL_LPUART_ClearFlag_ORE(LPUART1);
+  }else if(LL_LPUART_IsActiveFlag_NE(LPUART1)){
+    #ifdef DEBUG
+    printf("NE\r\n");
+    #endif
+    LL_LPUART_ClearFlag_NE(LPUART1);
+  }else if(LL_LPUART_IsActiveFlag_FE(LPUART1)){
+    #ifdef DEBUG
+    printf("FE\r\n");
+    #endif
+    LL_LPUART_ClearFlag_FE(LPUART1);
+  }else if(LL_LPUART_IsActiveFlag_PE(LPUART1)){
+    #ifdef DEBUG
+    printf("PE\r\n");
+    #endif
+    LL_LPUART_ClearFlag_PE(LPUART1);
   }
 }
 /* USER CODE END 4 */

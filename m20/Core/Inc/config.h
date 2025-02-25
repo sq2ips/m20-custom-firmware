@@ -3,7 +3,7 @@
 #ifndef INC_CONFIG_H_
 #define INC_CONFIG_H_
 
-#define DEBUG
+//#define DEBUG
 
 /*-----------------------------------------------------------------*/
 //  Sonde configuration, parameters that should be changed
