@@ -220,7 +220,7 @@ Go to the path of the project then to `m20/`. Ensure that ST-Link is connected a
 replace `<path\to\openocd>` with path of the extracted program.
 After it finishes you can flash the built firmware:
 ```cmd
-<path\to\openocd>\bin\openocd.exe -s ./openocd/ -f openocd\openocd_m20.cfg -c "program build\m20.elf verify reset exit"
+<path\to\openocd>\bin\openocd.exe -s openocd -f openocd\openocd_m20.cfg -c "program build\m20.elf verify reset exit"
 ```
 After it finishes your sonde should now work with the new firmware.
 
