@@ -237,8 +237,9 @@ int main(void)
   
   LL_SPI_Enable(SPI1);
 	LL_GPIO_SetOutputPin(LPS_CS_GPIO_Port, LPS_CS_Pin);    // LOW ENABLE
+  uint8_t lps_init = LPS22_Init();
   #ifdef DEBUG
-  printf("LPS init: %d\r\n", LPS22_Init());
+  printf("LPS init: %d\r\n", lps_init);
   #endif
 
   LL_ADC_ClearFlag_ADRDY(ADC1);
