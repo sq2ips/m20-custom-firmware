@@ -11,9 +11,9 @@ In this state the code works to the point where it gets GPS data and sends it us
 - GPS (NMEA): :heavy_check_mark:
 - GPS (XM1110) :heavy_check_mark:
 - Radio (Horus): :heavy_check_mark:
+- LPS22 barometer + temp sensor: :heavy_check_mark:
 - Uart: :heavy_check_mark:
 - Outside temperature sensor: :x:
-- LPS22 barometer + temp sensor: :x: (to be done soon)
 - humidity sensor: :x:
 
 # Features list
@@ -21,10 +21,10 @@ The currently implemented features are:
 - GPS time, position, altitude, speed, ascent rate and number of satellites (NMEA and XM1110)
 - Sending data over radio using Horus Binary V2 protocol
 - Getting battery voltage
+- Getting temperature and pressure
 - Watchdog timer
 
 # Planned work
-- making the LPS22 sensor work
 - making use of STM32 energy saving states
 - Implementing XM1110 GPS speed data
 - implementing outside temperature and humidity sensors
