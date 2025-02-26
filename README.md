@@ -223,5 +223,7 @@ After it finishes you can flash the built firmware:
 <path\to\openocd>\bin\openocd.exe -s openocd -f openocd\openocd_m20.cfg -c "program build\m20.elf verify reset exit"
 ```
 After it finishes your sonde should now work with the new firmware.
-
+## Flashing on Windows with ST-Link utility
+Fisrt [download the utility](https://www.st.com/en/development-tools/stsw-link004.html#get-software), extract, install and run it.
+TODO
 # Debuging (TODO)
