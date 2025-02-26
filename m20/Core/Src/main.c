@@ -140,14 +140,18 @@ void main_loop(void){
     HorusPacket.Speed = (uint16_t)GpsData.GroundSpeed; // Doesn't work
     HorusPacket.Alt = (uint16_t)GpsData.Alt;
     HorusPacket.Sats = GpsData.Sats;
-    HorusPacket.AscentRate = (uint16_t)round(GpsData.AscentRate*100.0);
+    HorusPacket.AscentRate = (int16_t)round(GpsData.AscentRate*100.0);
     #ifdef DEBUG
-    printf("Fix: %d, Lat: %d, Lon: %d, Alt: %d, Ascent Rate: %d, Ground Speed: %f, Sats: %d, Time: %d: %d:%d:%d\r\n", GpsData.Fix, (int32_t)(GpsData.Lat*1e6), (int32_t)(GpsData.Lon*1e6), (uint32_t)(GpsData.Alt*1e6), (int32_t)(GpsData.AscentRate*1e6), GpsData.GroundSpeed, GpsData.Sats, GpsData.Time, GpsData.Hours, GpsData.Minutes, GpsData.Seconds);
+    printf("Fix: %d, Lat: %d, Lon: %d, Alt: %d, Ascent Rate: %d, Ground Speed: %f, Sats: %d, Time: %d: %d:%d:%d\r\n", GpsData.Fix, (int32_t)(GpsData.Lat*1e6), (int32_t)(GpsData.Lon*1e6), (uint32_t)(GpsData.Alt*1e6), (int16_t)(GpsData.AscentRate*100.0), GpsData.GroundSpeed, GpsData.Sats, GpsData.Time, GpsData.Hours, GpsData.Minutes, GpsData.Seconds);
     #endif
     #endif
 
-    HorusPacket.Temp = (int8_t)round(LPS22_GetTemperature()); // Doesn't work
-    HorusPacket.Press = (uint16_t)round(LPS22_GetPressure()*10.0); // Doesn't work
+    HorusPacket.Temp = (int8_t)round(LPS22_GetTemperature());
+    HorusPacket.Press = (uint16_t)round(LPS22_GetPressure()*10.0);
+
+    #ifdef DEBUG
+    printf("temp: %d, press: %d\r\n", HorusPacket.Temp, HorusPacket.Press);
+    #endif
 
     LL_ADC_REG_StartConversion(ADC1);
     while (LL_ADC_IsActiveFlag_EOC(ADC1) == 0){}
@@ -227,13 +231,15 @@ int main(void)
   /* USER CODE BEGIN 2 */
   LL_GPIO_SetOutputPin(POWER_ON_GPIO_Port, POWER_ON_Pin);
   LL_GPIO_SetOutputPin(GPS_ON_GPIO_Port, GPS_ON_Pin);
-
+  LL_GPIO_SetOutputPin(RADIO_EN_GPIO_Port, RADIO_EN_Pin);
+  
   adf_setup();
-
+  
   LL_SPI_Enable(SPI1);
-  LL_GPIO_SetOutputPin(RADIO_EN_GPIO_Port, RADIO_EN_Pin);  //switching on power for radio and sensor
 	LL_GPIO_SetOutputPin(LPS_CS_GPIO_Port, LPS_CS_Pin);    // LOW ENABLE
-  LPS22_Init();
+  #ifdef DEBUG
+  printf("LPS init: %d\r\n", LPS22_Init());
+  #endif
 
   LL_ADC_ClearFlag_ADRDY(ADC1);
   LL_ADC_Enable(ADC1);

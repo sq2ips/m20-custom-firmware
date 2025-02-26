@@ -155,7 +155,7 @@ int nmea_GGA(NMEA *nmea_data, char *inputString){
                     olddTime = currentTime;
                 }
                 if((currentTime-olddTime)>=AscentRateTime){
-                    nmea_data->AscentRate = (nmea_data->Alt-olddAlt)/(currentTime-olddTime);
+                    nmea_data->AscentRate = (float)(nmea_data->Alt-olddAlt)/(currentTime-olddTime);
                     olddAlt = nmea_data->Alt;
                     olddTime = currentTime;
                 }

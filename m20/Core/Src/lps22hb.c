@@ -7,7 +7,7 @@
 // This file is specifically made for M20 radiosondes. Uses specific hardware connections.
 // file is basically customized KitSprout library  https://github.com/KitSprout/KSDK
 
-#include "stdint.h"
+#include <stdint.h>
 #include "lps22hb.h"
 //#include "math.h"   //only for calculating altitude
 
@@ -16,11 +16,21 @@
   */
 uint8_t SPI_RW(uint8_t sendByte )
 {
+  // Check if the SPI is enabled
+  if((SPI1->CR1 & SPI_CR1_SPE) != SPI_CR1_SPE)
+  {
+      // If disabled, I enable it
+      SET_BIT(SPI1->CR1, SPI_CR1_SPE);
+  }
+  
 	while(((SPI1->SR) & SPI_SR_TXE) != SPI_SR_TXE); // wait while tx-flag not empty
 	*(uint8_t *)&(SPI1->DR) = sendByte; // write data to be transmitted to the SPI data register
 	while ((SPI1->SR & SPI_SR_RXNE) != SPI_SR_RXNE); // wait while rx-buffer not empty
 	/* Wait until the bus is ready before releasing Chip select */
 	while(((SPI1->SR) & SPI_SR_BSY) == SPI_SR_BSY);
+
+  CLEAR_BIT(SPI1->CR1, SPI_CR1_SPE);
+
 	return *(uint8_t *)&(SPI1->DR); // return received data from SPI data register
 
 }
