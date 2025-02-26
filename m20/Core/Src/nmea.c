@@ -282,9 +282,6 @@ void ParseNMEA(NMEA *nmea_data, uint8_t *buffer){
     	    	if (nmea_VTG(nmea_data, data[i])) correct++;
     	    }
     	}
-    	nmea_data->Corr = correct;
-        if(correct == 0){
-            nmea_data->Fix = 0;
-        }
+    	nmea_data->Corr = correct; 
     }
 }

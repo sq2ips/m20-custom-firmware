@@ -45,7 +45,6 @@
 
 /* USER CODE BEGIN PV */
 uint8_t GpsRxBuffer[GpsRxBuffer_SIZE];
-uint8_t GpsDataBuffer[GpsRxBuffer_SIZE];
 uint16_t GpsBufferCounter = 0;
 bool GpsBufferReady = false;
 
@@ -111,15 +110,6 @@ void main_loop(void){
     #ifdef DEBUG
     printf("Frame: %d\r\n", HorusPacket.PacketCount);
     #endif
-    while(GpsBufferReady){}
-
-    // Parsing GPS depending on type set
-    #if GPS_TYPE == 1
-    ParseNMEA(&NmeaData, GpsDataBuffer);
-    #elif GPS_TYPE == 2
-    parseXMframe(&GpsData, GpsDataBuffer);
-    #endif
-    
 
     // Payload ID
     HorusPacket.PayloadID = PAYLOAD_ID;
@@ -136,8 +126,8 @@ void main_loop(void){
 	  HorusPacket.Alt = NmeaData.Alt;
     HorusPacket.Sats = NmeaData.Sats;
     #ifdef DEBUG
-    printf("\r\nFix: %d, Lat: %d, Lon: %d, Alt: %d m, Speed: %d km/h, Ascent rate: %d m/s Satellites: %d, Time: %d:%d:%d, correct frames: %d\r\n",
-	    NmeaData.Fix, (uint32_t)(NmeaData.Lat*10e6), (uint32_t)(NmeaData.Lon*10e6), NmeaData.Alt, NmeaData.Speed, (int16_t)round(NmeaData.AscentRate*100), NmeaData.Sats, NmeaData.Hours, NmeaData.Minutes, NmeaData.Seconds, NmeaData.Corr);
+    printf("\r\nFix: %d, Lat: %d, Lon: %d, Alt: %d m, Speed: %d km/h, Ascent rate: %d m/s Satellites: %d, Time: %d:%d:%d\r\n",
+	    NmeaData.Fix, (uint32_t)(NmeaData.Lat*10e6), (uint32_t)(NmeaData.Lon*10e6), NmeaData.Alt, NmeaData.Speed, (int16_t)round(NmeaData.AscentRate*100), NmeaData.Sats, NmeaData.Hours, NmeaData.Minutes, NmeaData.Seconds);
     #endif
     
     // GPS type 2 data
@@ -176,6 +166,21 @@ void main_loop(void){
 
     HorusPacket.PacketCount++;
     LL_GPIO_TogglePin(LED_GPIO_Port, LED_Pin);
+}
+void GPS_Handler(void){	
+  if(LL_LPUART_IsEnabledIT_RXNE(LPUART1) && LL_LPUART_IsActiveFlag_RXNE(LPUART1)){
+    if (GpsBufferCounter >= GpsRxBuffer_SIZE){
+      GpsBufferCounter = 0;
+      GpsBufferReady = true;
+    }
+    GpsRxBuffer[GpsBufferCounter] = LL_LPUART_ReceiveData8(LPUART1);
+    GpsBufferCounter++;
+  }else if(LL_LPUART_IsActiveFlag_ORE(LPUART1)){
+    LL_LPUART_ClearFlag_ORE(LPUART1);
+    #ifdef DEBUG
+    printf("ORE!\r\n");
+    #endif
+  }
 }
 /* USER CODE END 0 */
 
@@ -250,9 +255,14 @@ int main(void)
     /* USER CODE BEGIN 3 */
     LL_IWDG_ReloadCounter(IWDG);
     if(GpsBufferReady){
-      for(uint16_t cnt = 0; cnt<GpsRxBuffer_SIZE; cnt++){
-          GpsDataBuffer[cnt] = GpsRxBuffer[cnt];
-      }
+      #if GPS_TYPE == 1
+      ParseNMEA(&NmeaData, GpsRxBuffer);
+      #elif GPS_TYPE == 2
+      parseXMframe(&GpsData, GpsRxBuffer);
+      #endif
+      #ifdef DEBUG
+      printf("Correct gps frames: %d\r\n", NmeaData.Corr);
+      #endif
       GpsBufferReady = false;
     }
     LL_mDelay(10);
@@ -850,39 +860,6 @@ static void MX_GPIO_Init(void)
 }
 
 /* USER CODE BEGIN 4 */
-void GPS_Handler(void){	
-	if(LL_LPUART_IsEnabledIT_RXNE(LPUART1)  && LL_LPUART_IsActiveFlag_RXNE(LPUART1)){
-	  //LL_GPIO_SetOutputPin(LED_GPIO_Port, LED_Pin);
-    if (GpsBufferCounter >= GpsRxBuffer_SIZE){
-      GpsBufferCounter = 0;
-      GpsBufferReady = true;
-      //LL_GPIO_SetOutputPin(LED_GPIO_Port, LED_Pin);
-    }
-    GpsRxBuffer[GpsBufferCounter] = LL_LPUART_ReceiveData8(LPUART1);
-    GpsBufferCounter++;
-    //LL_GPIO_ResetOutputPin(LED_GPIO_Port, LED_Pin);
-  }else if(LL_LPUART_IsActiveFlag_ORE(LPUART1)){
-    #ifdef DEBUG
-    printf("ORE\r\n");
-    #endif
-    LL_LPUART_ClearFlag_ORE(LPUART1);
-  }else if(LL_LPUART_IsActiveFlag_NE(LPUART1)){
-    #ifdef DEBUG
-    printf("NE\r\n");
-    #endif
-    LL_LPUART_ClearFlag_NE(LPUART1);
-  }else if(LL_LPUART_IsActiveFlag_FE(LPUART1)){
-    #ifdef DEBUG
-    printf("FE\r\n");
-    #endif
-    LL_LPUART_ClearFlag_FE(LPUART1);
-  }else if(LL_LPUART_IsActiveFlag_PE(LPUART1)){
-    #ifdef DEBUG
-    printf("PE\r\n");
-    #endif
-    LL_LPUART_ClearFlag_PE(LPUART1);
-  }
-}
 /* USER CODE END 4 */
 
 /**
