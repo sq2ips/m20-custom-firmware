@@ -91,6 +91,19 @@ Hardware requirements:
 - 5 male to female goldpin jumper wires
 - A computer with Linux or Windows
 
+## Recomended hardware modifications
+## Load resistor
+If you have a sonde with new GPS module, there is a additional parallel 62 Ohm resistor added at the output of the voltage converter, all it does it drawing ~53mA from the line and converting it to heat. I have no idea why it was added, removing it does not make the power supply unstable or anything like that, maybe it was added for draining the battery quicker. You can safely remove this resistor to save some energy from the battery.
+This is the resistor:
+
+![alt text](https://github.com/sq2ips/m20-custom-firmware/blob/main/img/rezystor.jpg?raw=true)
+
+Thermal camera image:
+
+![alt text](https://github.com/sq2ips/m20-custom-firmware/blob/main/img/termo.jpg?raw=true)
+
+(Image from SP9AOB)
+
 ## Downloading code
 First you need to obtain the code, you can do it with `git`:
 ```bash
