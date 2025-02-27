@@ -16,23 +16,15 @@
   */
 uint8_t SPI_RW(uint8_t sendByte )
 {
-  // Check if the SPI is enabled
-  if((SPI1->CR1 & SPI_CR1_SPE) != SPI_CR1_SPE)
-  {
-      // If disabled, I enable it
-      SET_BIT(SPI1->CR1, SPI_CR1_SPE);
-  }
-  
+  SET_BIT(SPI1->CR1, SPI_CR1_SPE); 
 	while(((SPI1->SR) & SPI_SR_TXE) != SPI_SR_TXE); // wait while tx-flag not empty
 	*(uint8_t *)&(SPI1->DR) = sendByte; // write data to be transmitted to the SPI data register
 	while ((SPI1->SR & SPI_SR_RXNE) != SPI_SR_RXNE); // wait while rx-buffer not empty
 	/* Wait until the bus is ready before releasing Chip select */
-	while(((SPI1->SR) & SPI_SR_BSY) == SPI_SR_BSY);
-
+	while(((SPI1->SR) & SPI_SR_BSY) == SPI_SR_BSY); 
   CLEAR_BIT(SPI1->CR1, SPI_CR1_SPE);
 
 	return *(uint8_t *)&(SPI1->DR); // return received data from SPI data register
-
 }
 
 void LPS22_WriteReg( uint8_t writeAddr, uint8_t writeData )
@@ -40,20 +32,6 @@ void LPS22_WriteReg( uint8_t writeAddr, uint8_t writeData )
   LL_GPIO_ResetOutputPin(LPS_CS_GPIO_Port, LPS_CS_Pin);
   SPI_RW(writeAddr);
   SPI_RW(writeData);
-  LL_GPIO_SetOutputPin(LPS_CS_GPIO_Port, LPS_CS_Pin);
-}
-
-/**
- *  @brief  LPS22_WriteRegs
- */
-void LPS22_WriteRegs( uint8_t writeAddr, uint8_t *writeData, uint8_t lens )
-{
-
-  LL_GPIO_ResetOutputPin(LPS_CS_GPIO_Port, LPS_CS_Pin);
-  SPI_RW(writeAddr);
-  for (uint32_t i = 0; i < lens; i++) {
-    SPI_RW(writeData[i]);
-  }
   LL_GPIO_SetOutputPin(LPS_CS_GPIO_Port, LPS_CS_Pin);
 }
 
@@ -70,19 +48,6 @@ uint8_t LPS22_ReadReg( uint8_t readAddr )
   LL_GPIO_SetOutputPin(LPS_CS_GPIO_Port, LPS_CS_Pin);
 
   return readData;
-}
-
-/**
- *  @brief  LPS22_ReadRegs
- */
-void LPS22_ReadRegs( uint8_t readAddr, uint8_t *readData, uint8_t lens )
-{
-  LL_GPIO_ResetOutputPin(LPS_CS_GPIO_Port, LPS_CS_Pin);
-  SPI_RW(0x80 | readAddr);
-  for (uint32_t i = 0; i < lens; i++) {
-    readData[i] = SPI_RW(0x00);
-  }
-  LL_GPIO_SetOutputPin(LPS_CS_GPIO_Port, LPS_CS_Pin);
 }
 
 //#define LPS22HB_InitRegNum    5
@@ -149,69 +114,27 @@ uint8_t LPS22_DeviceCheck( void )
 }
 
 /**
- *  @brief  LPS22_GetRawData
- */
-uint32_t LPS22_GetRawData( int32_t *raw )
-{
-  uint8_t buff[3];
-  uint32_t tmp = 0;
-
-  LPS22_ReadRegs(LPS22HB_PRESS_OUT_XL, buff, 3);
-
-  for (uint32_t i = 0; i < 3; i++) {
-    tmp |= (((uint32_t)buff[i]) << (i << 3));
-  }
-
-  /* convert the 2's complement 24 bit to 2's complement 32 bit */
-  if (tmp & 0x00800000) {
-    tmp |= 0xFF000000;
-  }
-
-  raw[0] = (int32_t)tmp;
-
-  LPS22_ReadRegs(LPS22HB_TEMP_OUT_L, buff, 2);
-  tmp = (((uint16_t)buff[1]) << 8) + (uint16_t)buff[0];
-
-  raw[1] = (int16_t)tmp;
-
-  return SUCCESS;
-}
-
-/**
  *  @brief  LPS22_GetData
  */
-uint32_t LPS22_GetData( uint32_t *raw )
+float LPS22_GetPress( void )
 {
-  int32_t buff[2] = {0};
-  LPS22_GetRawData(buff);
+  uint8_t buff[3];
+  buff[0] = LPS22_ReadReg(LPS22HB_PRESS_OUT_XL);
+  buff[1] = LPS22_ReadReg(LPS22HB_PRESS_OUT_L);
+  buff[2] = LPS22_ReadReg(LPS22HB_PRESS_OUT_H);
 
-  raw[0] = buff[0] * LPS22HB_SENS_HPA;  // hPa
-  raw[1] = buff[1] * LPS22HB_SENS_DEGC; // degC
-
-  return SUCCESS;
-}
-
-float LPS22_GetPressure()
-{
-  int32_t buff[2] = {0};
-  float press = 0;
-
-  if (LPS22_GetRawData(buff)!=1)  {  press = buff[0] * LPS22HB_SENS_HPA;  // hPa
-  }
-  else { press=-1; }
+  float press = (uint32_t)(((buff[2] & 0x7F)<<16 | buff[1]<<8 | buff[0]))/LPS22HB_SENS_HPA;
   return press;
 }
-
-float LPS22_GetTemperature()
-{
-  int32_t buff[2] = {0};
-  float   temperature = 0;
-
-  LPS22_GetRawData(buff);
-  temperature = buff[1] * LPS22HB_SENS_DEGC; // degC
-
-  return temperature;
+float LPS22_GetTemp( void ){
+  uint8_t buff[2];
+    buff[0] = LPS22_ReadReg(LPS22HB_TEMP_OUT_L);
+    buff[1] = LPS22_ReadReg(LPS22HB_TEMP_OUT_H);
+    float temp = (int32_t)(buff[1]<<8 | buff[0])/LPS22HB_SENS_DEGC;
+    return temp;
 }
+
+
 /**
  *  @brief  LPS22_GetAltitude
  */

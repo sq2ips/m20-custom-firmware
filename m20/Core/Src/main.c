@@ -54,6 +54,8 @@ NMEA NmeaData;
 XMDATA GpsData;
 #endif
 
+uint8_t lps_init;
+
 HorusBinaryPacket HorusPacket;
 
 char HorusCodedBuffer[100];
@@ -146,8 +148,10 @@ void main_loop(void){
     #endif
     #endif
 
-    HorusPacket.Temp = (int8_t)round(LPS22_GetTemperature());
-    HorusPacket.Press = (uint16_t)round(LPS22_GetPressure()*10.0);
+    if(lps_init == 0){
+      HorusPacket.Temp = (int8_t)round(LPS22_GetTemp());
+      HorusPacket.Press = (uint16_t)round(LPS22_GetPress()*10.0);
+    }
 
     #ifdef DEBUG
     printf("temp: %d, press: %d\r\n", HorusPacket.Temp, HorusPacket.Press);
@@ -235,9 +239,12 @@ int main(void)
   
   adf_setup();
   
-  LL_SPI_Enable(SPI1);
+  
 	LL_GPIO_SetOutputPin(LPS_CS_GPIO_Port, LPS_CS_Pin);    // LOW ENABLE
-  uint8_t lps_init = LPS22_Init();
+  for(uint8_t i = 0; i<5; i++){
+    lps_init = LPS22_Init();
+    if(lps_init == 0) break;
+  }
   #ifdef DEBUG
   printf("LPS init: %d\r\n", lps_init);
   #endif

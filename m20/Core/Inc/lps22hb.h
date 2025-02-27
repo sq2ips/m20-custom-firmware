@@ -123,22 +123,18 @@ typedef struct {
 #define LPS22HB_TEMP_OUT_H    ((uint8_t)0x2C)
 #define LPS22HB_LPFP_RES      ((uint8_t)0x33)
 
-#define LPS22HB_SENS_HPA      (0.000244140625f)
-#define LPS22HB_SENS_DEGC     (0.01f)
+#define LPS22HB_SENS_HPA      (4096.0f)
+#define LPS22HB_SENS_DEGC     (100.0f)
 
 /* Exported functions ----------------------------------------------------------------------*/
 uint8_t  SPI_RW( uint8_t sendByte );
 void      LPS22_WriteReg( uint8_t writeAddr, uint8_t writeData );
-void      LPS22_WriteRegs( uint8_t writeAddr, uint8_t *writeData, uint8_t lens );
 uint8_t   LPS22_ReadReg( uint8_t readAddr );
-void      LPS22_ReadRegs( uint8_t readAddr, uint8_t *readData, uint8_t lens );
 
 uint8_t   LPS22_Init( void );
 uint8_t   LPS22_DeviceCheck( void );
-uint32_t  LPS22_GetRawData( int32_t *raw );
-uint32_t  LPS22_GetData( uint32_t *raw );
-float     LPS22_GetPressure();
-float     LPS22_GetTemperature();
+float     LPS22_GetPress( void );
+float     LPS22_GetTemp( void );
 //float     LPS22_GetAltitude( float pressure );
 
 /*
