@@ -246,6 +246,6 @@ After it finishes you can flash the built firmware:
 ```
 After it finishes your sonde should now work with the new firmware.
 ## Flashing on Windows with ST-Link utility
-Fisrt [download the utility](https://www.st.com/en/development-tools/stsw-link004.html#get-software), extract, install and run it.
+Fisrt [download the utility](https://www.st.com/en/development-tools/stsw-link004.html#get-software), extract, install and run it. Connect to the ST-Link and open the binary compiled file with .bin extension. Then go to Target -> Flash & Verify, check that the adress is set to 0x80000000 and the flash.
 
 # Debuging (TODO)
