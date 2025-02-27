@@ -164,7 +164,7 @@ It will need some time to download an install the packages, after it finishes ru
 ```bash
 docker run --rm -v .:/opt/m20 m20:latest
 ```
-It will build the code and after finishing you should see a memory usage table just like in the previous method.
+It will build the code and after finishing you should see a memory usage table, the compiled binaries should be in the `build/` directory.
 ## Building with MinGW on Windows
 First [download MSYS2](https://www.msys2.org/), then install it, after finishing the setup you should now see a terminal.
 Now install `make`:
@@ -174,8 +174,17 @@ pacman -Sy make
 Confirm the instalation and wait for the packages to download and install.
 TODO
 ## Building with Docker on Windows
-First [download Docker Desktop](https://www.docker.com/products/docker-desktop/) and install it.
-TODO
+First [download Docker Desktop](https://www.docker.com/products/docker-desktop/) and install it, then run the Docker engine.
+Open Windows PowerShell and go into the directory of the project then `m20/`, next run:
+```bash
+docker build -t m20 .
+```
+It will need some time to download an install the packages, after it finishes run:
+```bash
+docker run --rm -v .:/opt/m20 m20:latest
+```
+It will build the code and after finishing you should see a memory usage table, the compiled binaries should be in the `build/` directory. 
+
 # Flashing the firmware
 ## Connecting
 Before flashing you first need to connect the sonde to your computer through the ST-LINK programmer.
@@ -225,5 +234,5 @@ After it finishes you can flash the built firmware:
 After it finishes your sonde should now work with the new firmware.
 ## Flashing on Windows with ST-Link utility
 Fisrt [download the utility](https://www.st.com/en/development-tools/stsw-link004.html#get-software), extract, install and run it.
-TODO
+
 # Debuging (TODO)
