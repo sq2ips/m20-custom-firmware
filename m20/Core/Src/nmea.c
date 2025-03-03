@@ -250,7 +250,7 @@ int nmea_VTG(NMEA *nmea_data, char*inputString) {
 	uint8_t len = getValues(inputString, values);
     if(len<5) return 0;
 
-    nmea_data->Speed = a_strtof(values[5]); // 5 for kph, 3 for knots 
+    nmea_data->Speed = a_strtof(values[7]); // 5 for knots, 7 for km/h 
     return 1;
 }
 
