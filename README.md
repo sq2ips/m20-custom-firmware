@@ -25,6 +25,7 @@ The currently implemented features are:
 - Watchdog timer
 
 # Planned work
+- Fixing LPS22 negative temperature reading error
 - making use of STM32 energy saving states
 - Implementing XM1110 GPS speed data
 - implementing outside temperature and humidity sensors
