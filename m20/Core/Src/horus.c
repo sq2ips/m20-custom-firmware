@@ -1,6 +1,6 @@
 /*
  *  horus.c
- *  Based onhttps://github.com/whallmann/RS41HUP_V2/blob/master/horus_l2.c
+ *  Based on https://github.com/whallmann/RS41HUP_V2/blob/master/horus_l2.c
  *  Adapted by SQ2IPS
  */
 
@@ -60,7 +60,6 @@ void interleave(unsigned char *inout, int nbytes, int dir)
        nearest prime to nbits.  It also uses storage, is run on every call,
        and has an upper limit.  Oh Well, still seems to interleave OK. */
     i = 1;
-    uint16_t imax = sizeof(primes)/sizeof(uint16_t);
     while ((primes[i] < nbits) && (i < 77))
         i++;
     b = primes[i-1];

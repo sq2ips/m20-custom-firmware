@@ -17,7 +17,7 @@
 #define QRG_FSK4 435100000      // Frequency fo horus modulation (in Hz)
 
 #define PA_FSK4 10              // RF power setting for horus transmission values 0-63
-#define RF_BOOST_ACTIVE 0       // RF booster enabled for transmissions about 15dB gain, but more power consumed - normally should be ON(1).
+#define RF_BOOST_ACTIVE 1       // RF booster enabled for transmissions about 15dB gain, but more power consumed - normally should be ON(1).
 
 #define ADF_FREQ_CORRECTION 19  // correction of frequency from crystal inaccuracy in 270Hz steps. To be individually set for each sonde.
 
@@ -35,6 +35,11 @@
 #define INTERLEAVER
 #define SCRAMBLER
 /*-----------------------*/
+
+/* NTC settings */
+#define NTC_GPIO_Port NTC_36K_GPIO_Port // resistor select
+#define NTC_Pin NTC_36K_Pin
+/*--------------*/
 
 /* GPS configuration */
 #define AscentRateTime 10       // Time of ascent rate mesure
