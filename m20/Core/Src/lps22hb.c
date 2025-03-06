@@ -130,7 +130,8 @@ float LPS22_GetTemp( void ){
   uint8_t buff[2];
     buff[0] = LPS22_ReadReg(LPS22HB_TEMP_OUT_L);
     buff[1] = LPS22_ReadReg(LPS22HB_TEMP_OUT_H);
-    float temp = (int32_t)(buff[1]<<8 | buff[0])/LPS22HB_SENS_DEGC;
+    int16_t raw_temp = (int16_t)(buff[1]<<8 | buff[0]);
+    float temp = raw_temp/LPS22HB_SENS_DEGC;
     return temp;
 }
 
