@@ -78,6 +78,11 @@ Data format:
 # Barometer and temp sensor
 LPS22HB sensor is used with SPI interface.
 
+# External temperature sensor
+A NTC is used for external temperature measuring with addable resistors, the schematic looks like this:
+
+![alt text](https://github.com/sq2ips/m20-custom-firmware/blob/main/img/NTC.png?raw=true)
+
 # Radio
 TODO
 
