@@ -164,7 +164,10 @@ Then you need to add your user into the docker group like so:
 ```bash
 sudo groupadd docker && sudo usermod -aG docker $USER
 ```
-Now restart.
+Now restart:
+```bash
+sudo reboot
+```
 
 Now you need to start the docker daemon:
 ```bash
