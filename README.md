@@ -164,6 +164,8 @@ Then you need to add your user into the docker group like so:
 ```bash
 sudo groupadd docker && sudo usermod -aG docker $USER
 ```
+Now restart.
+
 Now you need to start the docker daemon:
 ```bash
 sudo systemctl start docker
@@ -185,6 +187,7 @@ It will need some time to download an install the packages, after it finishes ru
 docker run --rm -v .:/opt/m20 m20:latest
 ```
 It will build the code and after finishing you should see a memory usage table, the compiled binaries should be in the `build/` directory.
+If you did the steps next time building you will need to only run the last command.
 ## Building with MinGW on Windows
 First [download MSYS2](https://www.msys2.org/), then install it, after finishing the setup you should now see a terminal.
 Now install `make`:
