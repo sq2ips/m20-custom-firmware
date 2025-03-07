@@ -50,6 +50,8 @@ bool GpsBufferReady = false;
 
 #if GPS_TYPE == 1
 NMEA NmeaData;
+static uint8_t GPS_fix_ublox[19] = {0xB5, 0x62, 0x06, 0x8A, 0x09, 0x00, 0x01, 0x01, 0x00, 0x00, 0x11, 0x00, 0x11, 0x20, 0x02, 0xDF, 0x04,0x0D, 0x0A};
+static uint8_t GPS_airborn[19] = {0xB5, 0x62, 0x06, 0x8A, 0x09, 0x00, 0x01, 0x01, 0x00, 0x00, 0x21, 0x00, 0x11, 0x20, 0x07, 0xF4, 0x59, 0x0D, 0x0A};
 #elif GPS_TYPE == 2
 XMDATA GpsData;
 #endif
@@ -288,6 +290,22 @@ int main(void)
 
   LL_LPUART_EnableIT_RXNE(LPUART1);
   LL_LPUART_Enable(LPUART1);
+
+  #if GPS_TYPE == 1 
+  LL_mDelay(100);
+  for (uint8_t ig = 0; ig < 19; ig++){
+    while (!LL_LPUART_IsActiveFlag_TXE(LPUART1)){}
+    LL_LPUART_TransmitData8(LPUART1, GPS_airborn[ig]);
+  }
+  while (!LL_LPUART_IsActiveFlag_TC(LPUART1)){}
+  LL_mDelay(100);
+  
+  for (uint8_t ig = 0; ig < 19; ig++){
+    while (!LL_LPUART_IsActiveFlag_TXE(LPUART1)){}
+    LL_LPUART_TransmitData8(LPUART1, GPS_fix_ublox[ig]);
+  }
+  while (!LL_LPUART_IsActiveFlag_TC(LPUART1)){}
+  #endif
 
   LL_TIM_EnableCounter(TIM22);
   LL_TIM_EnableIT_UPDATE(TIM22);

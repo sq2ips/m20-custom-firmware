@@ -52,7 +52,6 @@
 
 // type 2
 #define FrameLen 62             // Length of XM1110 frame
-/*-------------------*/
 
 #if GPS_TYPE == 1
 #define GpsRxBuffer_SIZE 512
@@ -60,5 +59,6 @@
 #elif GPS_TYPE == 2
 #define GpsRxBuffer_SIZE FrameLen * 2
 #endif
+/*-------------------*/
 
 #endif /* INC_CONFIG_H_ */
