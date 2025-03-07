@@ -1,7 +1,8 @@
 #MicroXplorer Configuration settings - do not modify
 ADC.ContinuousConvMode=DISABLE
-ADC.IPParameters=ContinuousConvMode,Overrun
+ADC.IPParameters=ContinuousConvMode,Overrun,SamplingTime
 ADC.Overrun=ADC_OVR_DATA_OVERWRITTEN
+ADC.SamplingTime=ADC_SAMPLETIME_3CYCLES_5
 CAD.formats=[]
 CAD.pinconfig=Dual
 CAD.provider=
@@ -14,7 +15,7 @@ IWDG.Window=4095
 KeepUserPlacement=false
 LPUART1.BaudRate=9600
 LPUART1.IPParameters=BaudRate,WordLength,Mode,OverrunDisableParam
-LPUART1.Mode=UART_MODE_RX
+LPUART1.Mode=UART_MODE_TX_RX
 LPUART1.OverrunDisableParam=UART_ADVFEATURE_OVERRUN_ENABLE
 LPUART1.WordLength=UART_WORDLENGTH_8B
 Mcu.CPN=STM32L051R6T6

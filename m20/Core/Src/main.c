@@ -158,25 +158,28 @@ void main_loop(void)
   printf("temp: %d, press: %d\r\n", HorusPacket.Temp, HorusPacket.Press);
   #endif
   
-  // ADC reading
-
-  // NTC PWR ON
-  LL_GPIO_SetOutputPin(NTC_GPIO_Port, NTC_Pin);
-  LL_mDelay(1);
-
+  // Bat voltage
+  LL_ADC_REG_SetSequencerChannels(ADC1, LL_ADC_CHANNEL_8);
   LL_ADC_REG_StartConversion(ADC1);
-
   while (LL_ADC_IsActiveFlag_EOC(ADC1) == 0){}  
   HorusPacket.BatVoltage = (LL_ADC_REG_ReadConversionData12(ADC1) * 187) / 4549;
-
-    while (LL_ADC_IsActiveFlag_EOC(ADC1) == 0){}
-  uint16_t temp_adc_raw = LL_ADC_REG_ReadConversionData12(ADC1);
-
-  LL_GPIO_ResetOutputPin(NTC_GPIO_Port, NTC_Pin);
+  LL_ADC_ClearFlag_EOS(ADC1);
 
   #ifdef DEBUG
   printf("Bat voltage: %d\r\n", HorusPacket.BatVoltage);
   #endif
+
+  // NTC temp reading
+  LL_GPIO_SetOutputPin(NTC_GPIO_Port, NTC_Pin);
+  LL_mDelay(2);
+  
+  LL_ADC_REG_SetSequencerChannels(ADC1, LL_ADC_CHANNEL_14);
+  LL_ADC_REG_StartConversion(ADC1);
+  while (LL_ADC_IsActiveFlag_EOC(ADC1) == 0){}
+  uint16_t temp_adc_raw = LL_ADC_REG_ReadConversionData12(ADC1);
+  LL_ADC_ClearFlag_EOS(ADC1);
+
+  LL_GPIO_ResetOutputPin(NTC_GPIO_Port, NTC_Pin);
 
   // External temp calculating
   // Rntc = Vout * R1 /  Vin - Vout
@@ -426,7 +429,7 @@ static void MX_ADC_Init(void)
   ADC_REG_InitStruct.DMATransfer = LL_ADC_REG_DMA_TRANSFER_NONE;
   ADC_REG_InitStruct.Overrun = LL_ADC_REG_OVR_DATA_OVERWRITTEN;
   LL_ADC_REG_Init(ADC1, &ADC_REG_InitStruct);
-  LL_ADC_SetSamplingTimeCommonChannels(ADC1, LL_ADC_SAMPLINGTIME_1CYCLE_5);
+  LL_ADC_SetSamplingTimeCommonChannels(ADC1, LL_ADC_SAMPLINGTIME_3CYCLES_5);
   LL_ADC_SetOverSamplingScope(ADC1, LL_ADC_OVS_DISABLE);
   LL_ADC_REG_SetSequencerScanDirection(ADC1, LL_ADC_REG_SEQ_SCAN_DIR_FORWARD);
   LL_ADC_SetCommonFrequencyMode(__LL_ADC_COMMON_INSTANCE(ADC1), LL_ADC_CLOCK_FREQ_MODE_HIGH);
@@ -542,7 +545,7 @@ static void MX_LPUART1_UART_Init(void)
   LPUART_InitStruct.DataWidth = LL_LPUART_DATAWIDTH_8B;
   LPUART_InitStruct.StopBits = LL_LPUART_STOPBITS_1;
   LPUART_InitStruct.Parity = LL_LPUART_PARITY_NONE;
-  LPUART_InitStruct.TransferDirection = LL_LPUART_DIRECTION_RX;
+  LPUART_InitStruct.TransferDirection = LL_LPUART_DIRECTION_TX_RX;
   LPUART_InitStruct.HardwareFlowControl = LL_LPUART_HWCONTROL_NONE;
   LL_LPUART_Init(LPUART1, &LPUART_InitStruct);
   /* USER CODE BEGIN LPUART1_Init 2 */
