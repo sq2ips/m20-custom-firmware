@@ -13,7 +13,7 @@ In this state the code works to the point where it gets GPS data and sends it us
 - Radio (Horus): :heavy_check_mark:
 - LPS22 barometer + temp sensor: :heavy_check_mark:
 - Uart: :heavy_check_mark:
-- Outside temperature sensor: :x:
+- Outside temperature sensor: :heavy_check_mark:
 - humidity sensor: :x:
 
 # Features list
@@ -22,13 +22,14 @@ The currently implemented features are:
 - Sending data over radio using Horus Binary V2 protocol
 - Getting battery voltage
 - Getting temperature and pressure
+- Getting external temperature
 - Watchdog timer
 
 # Planned work
 - Fixing LPS22 negative temperature reading error
 - making use of STM32 energy saving states
 - Implementing XM1110 GPS speed data
-- implementing outside temperature and humidity sensors
+- implementing humidity sensors
 - implementing APRS
 
 # Horus 4FSK tone spacing
