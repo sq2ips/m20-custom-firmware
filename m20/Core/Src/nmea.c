@@ -115,6 +115,8 @@ int nmea_GGA(NMEA *nmea_data, char *inputString){
         nmea_data->Minutes = m;
         nmea_data->Seconds = s;
     }
+
+    nmea_data->Sats = (values[7][0]-'0')*10 + (values[7][1]-'0');
     
     uint8_t lonSide = values[5][0];
     uint8_t latSide = values[3][0];
@@ -160,8 +162,6 @@ int nmea_GGA(NMEA *nmea_data, char *inputString){
                     olddTime = currentTime;
                 }
             }
-            
-            nmea_data->Sats = (values[7][0]-'0')*10 + (values[7][1]-'0');
 
             //nmea_data->Fix = values[6][0]-'0';
 
@@ -248,7 +248,7 @@ int nmea_VTG(NMEA *nmea_data, char*inputString) {
 	char values[MAX_SENTENCE_ELEMENTS][SENTENCE_ELEMENT_LEN];
     memset(values, 0, sizeof(values));
 	uint8_t len = getValues(inputString, values);
-    if(len<5) return 0;
+    if(len<7) return 0;
 
     nmea_data->Speed = a_strtof(values[7]); // 5 for knots, 7 for km/h 
     return 1;
