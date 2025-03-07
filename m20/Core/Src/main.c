@@ -185,9 +185,9 @@ void main_loop(void)
 
   // External temp calculating
   // Rntc = Vout * R1 /  Vin - Vout
-  int32_t R = ((temp_adc_raw * 36500) / (4096 - temp_adc_raw));
-  double T = 1 / (-0.000400644 + (0.000490078 * log(R)) + (-0.000000720 * pow(log(R), 3))) - 273.15;
-  HorusPacket.ExtTemp = (int16_t)round(T * 10.0);
+  float NTC_R = ((temp_adc_raw * 36500) / (4096 - temp_adc_raw));
+  float NTC_T = 1 / (-0.000400644 + (0.000490078 * log(NTC_R)) + (-0.000000720 * pow(log(NTC_R), 3))) - 273.15;
+  HorusPacket.ExtTemp = (int16_t)round(NTC_T * 10.0);
   #ifdef DEBUG
   printf("NTC: raw: %d, R: %ld, Temp: %d\r\n", temp_adc_raw, R, HorusPacket.ExtTemp);
   #endif
