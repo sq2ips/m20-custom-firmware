@@ -189,7 +189,7 @@ void main_loop(void)
   float NTC_T = 1 / (-0.000400644 + (0.000490078 * log(NTC_R)) + (-0.000000720 * pow(log(NTC_R), 3))) - 273.15;
   HorusPacket.ExtTemp = (int16_t)round(NTC_T * 10.0);
   #ifdef DEBUG
-  printf("NTC: raw: %d, R: %ld, Temp: %d\r\n", temp_adc_raw, R, HorusPacket.ExtTemp);
+  printf("NTC: raw: %d, Temp: %d\r\n", temp_adc_raw, HorusPacket.ExtTemp);
   #endif
 
   // Horus checksum
