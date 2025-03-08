@@ -74,8 +74,10 @@ static void MX_TIM2_Init(void);
 static void MX_TIM22_Init(void);
 static void MX_ADC_Init(void);
 static void MX_IWDG_Init(void);
+static void MX_TIM6_Init(void);
 /* USER CODE BEGIN PFP */
 void GPS_Handler(void);
+void LED_Handler(void);
 void main_loop(void);
 
 #ifdef DEBUG
@@ -110,7 +112,9 @@ PUTCHAR_PROTOTYPE
 void main_loop(void)
 {
   // LED
+  #if LED_MODE == 1
   LL_GPIO_TogglePin(LED_GPIO_Port, LED_Pin);
+  #endif
   #ifdef DEBUG
   printf("\r\nFrame: %d\r\n", HorusPacket.PacketCount);
   #endif
@@ -203,7 +207,9 @@ void main_loop(void)
   HorusPacket.PacketCount++;
   
   // LED
+  #if LED_MODE == 1
   LL_GPIO_TogglePin(LED_GPIO_Port, LED_Pin);
+  #endif
 }
 void GPS_Handler(void)
 {
@@ -224,6 +230,33 @@ void GPS_Handler(void)
     printf("ORE!\r\n");
 #endif
   }
+}
+void LED_Handler(void){
+  #if LED_MODE == 2
+  #if GPS_TYPE == 1
+  uint8_t fix = NmeaData.Fix;
+  if(LED_DISABLE_ALT != 0){
+    if(NmeaData.Alt >= LED_DISABLE_ALT){
+      LL_TIM_DisableCounter(TIM6);
+      LL_TIM_DisableIT_UPDATE(TIM6);
+    }
+  }
+  #elif GPS_TYPE == 2
+  uint8_t fix = GpsData.Fix;
+  if(LED_DISABLE_ALT != 0){
+    if(GpsData.Alt >= LED_DISABLE_ALT){
+      LL_TIM_DisableCounter(TIM6);
+      LL_TIM_DisableIT_UPDATE(TIM6);
+    }
+  }
+  #endif
+  for(; fix>0; fix--){
+    LL_GPIO_SetOutputPin(LED_GPIO_Port, LED_Pin);
+    LL_mDelay(50);
+    LL_GPIO_ResetOutputPin(LED_GPIO_Port, LED_Pin);
+    LL_mDelay(100);
+  }
+  #endif
 }
 /* USER CODE END 0 */
 
@@ -267,6 +300,7 @@ int main(void)
   MX_TIM22_Init();
   MX_ADC_Init();
   MX_IWDG_Init();
+  MX_TIM6_Init();
   /* USER CODE BEGIN 2 */
   LL_GPIO_SetOutputPin(POWER_ON_GPIO_Port, POWER_ON_Pin);
   LL_GPIO_SetOutputPin(GPS_ON_GPIO_Port, GPS_ON_Pin);
@@ -307,8 +341,13 @@ int main(void)
   while (!LL_LPUART_IsActiveFlag_TC(LPUART1)){}
   #endif
 
+  // main loop timer
   LL_TIM_EnableCounter(TIM22);
   LL_TIM_EnableIT_UPDATE(TIM22);
+
+  // LED timer
+  LL_TIM_EnableCounter(TIM6);
+  LL_TIM_EnableIT_UPDATE(TIM6);
   /* USER CODE END 2 */
 
   /* Infinite loop */
@@ -327,7 +366,9 @@ int main(void)
       parseXMframe(&GpsData, GpsRxBuffer);
 #endif
 #ifdef DEBUG
+#if GPS_TYPE == 1
       printf("Correct gps frames: %d\r\n", NmeaData.Corr);
+#endif
 #endif
       GpsBufferReady = false;
     }
@@ -741,6 +782,43 @@ static void MX_TIM2_Init(void)
 }
 
 /**
+  * @brief TIM6 Initialization Function
+  * @param None
+  * @retval None
+  */
+static void MX_TIM6_Init(void)
+{
+
+  /* USER CODE BEGIN TIM6_Init 0 */
+
+  /* USER CODE END TIM6_Init 0 */
+
+  LL_TIM_InitTypeDef TIM_InitStruct = {0};
+
+  /* Peripheral clock enable */
+  LL_APB1_GRP1_EnableClock(LL_APB1_GRP1_PERIPH_TIM6);
+
+  /* TIM6 interrupt Init */
+  NVIC_SetPriority(TIM6_DAC_IRQn, 2);
+  NVIC_EnableIRQ(TIM6_DAC_IRQn);
+
+  /* USER CODE BEGIN TIM6_Init 1 */
+  TIM_InitStruct.Autoreload = ((LED_PERIOD * 1000) / 5) - 1;
+  /* USER CODE END TIM6_Init 1 */
+  TIM_InitStruct.Prescaler = 60000;
+  TIM_InitStruct.CounterMode = LL_TIM_COUNTERMODE_UP;
+  //TIM_InitStruct.Autoreload = 65535;
+  LL_TIM_Init(TIM6, &TIM_InitStruct);
+  LL_TIM_DisableARRPreload(TIM6);
+  LL_TIM_SetTriggerOutput(TIM6, LL_TIM_TRGO_RESET);
+  LL_TIM_DisableMasterSlaveMode(TIM6);
+  /* USER CODE BEGIN TIM6_Init 2 */
+
+  /* USER CODE END TIM6_Init 2 */
+
+}
+
+/**
   * @brief TIM22 Initialization Function
   * @param None
   * @retval None
@@ -761,7 +839,7 @@ static void MX_TIM22_Init(void)
   NVIC_EnableIRQ(TIM22_IRQn);
 
   /* USER CODE BEGIN TIM22_Init 1 */
-  TIM_InitStruct.Autoreload = (TIME_PERIOD * 1000) / 5;
+  TIM_InitStruct.Autoreload = ((TIME_PERIOD * 1000) / 5) - 1;
   /* USER CODE END TIM22_Init 1 */
   TIM_InitStruct.Prescaler = 60000;
   TIM_InitStruct.CounterMode = LL_TIM_COUNTERMODE_UP;

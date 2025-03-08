@@ -74,6 +74,7 @@ void Error_Handler(void);
 
 /* USER CODE BEGIN EFP */
 void GPS_Handler(void);
+void LED_Handler(void);
 void main_loop(void);
 /* USER CODE END EFP */
 

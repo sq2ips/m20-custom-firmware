@@ -21,6 +21,10 @@
 
 #define ADF_FREQ_CORRECTION 19  // correction of frequency from crystal inaccuracy in 270Hz steps. To be individually set for each sonde.
 
+#define LED_MODE 2              // 0 - disabled, 1 - flashes when prepairing tx data before transmit, 2 - GPS fix indication
+#define LED_PERIOD 5            // time between LED lighting
+#define LED_DISABLE_ALT 1000    // disable led when certain altitude is reached, 0 for always enable
+
 /*-----------------------------------------------------------------*/
 //  the rest of parameters should not be changed normally
 

@@ -159,6 +159,22 @@ void TIM2_IRQHandler(void)
 }
 
 /**
+  * @brief This function handles TIM6 global interrupt and DAC1/DAC2 underrun error interrupts.
+  */
+void TIM6_DAC_IRQHandler(void)
+{
+  /* USER CODE BEGIN TIM6_DAC_IRQn 0 */
+  if(LL_TIM_IsActiveFlag_UPDATE(TIM6) == 1){
+    LL_TIM_ClearFlag_UPDATE(TIM6);
+    LED_Handler();
+  }
+  /* USER CODE END TIM6_DAC_IRQn 0 */
+  /* USER CODE BEGIN TIM6_DAC_IRQn 1 */
+
+  /* USER CODE END TIM6_DAC_IRQn 1 */
+}
+
+/**
   * @brief This function handles TIM22 global interrupt.
   */
 void TIM22_IRQHandler(void)
