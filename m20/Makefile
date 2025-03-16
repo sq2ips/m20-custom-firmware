@@ -47,6 +47,8 @@ Drivers/STM32L0xx_HAL_Driver/Src/stm32l0xx_ll_exti.c \
 Drivers/STM32L0xx_HAL_Driver/Src/stm32l0xx_ll_usart.c \
 Drivers/STM32L0xx_HAL_Driver/Src/stm32l0xx_ll_spi.c \
 Drivers/STM32L0xx_HAL_Driver/Src/stm32l0xx_ll_tim.c \
+Drivers/STM32L0xx_HAL_Driver/Src/stm32l0xx_ll_adc.c \
+Drivers/STM32L0xx_HAL_Driver/Src/stm32l0xx_ll_pwr.c \
 Core/Src/system_stm32l0xx.c \
 Core/Src/sysmem.c \
 Core/Src/syscalls.c \
@@ -56,8 +58,7 @@ Core/Src/horus.c \
 Core/Src/lps22hb.c \
 Core/Src/nmea.c \
 Core/Src/xm_gps.c \
-Drivers/STM32L0xx_HAL_Driver/Src/stm32l0xx_ll_adc.c \
-Drivers/STM32L0xx_HAL_Driver/Src/stm32l0xx_ll_pwr.c
+Core/Src/morse.c
 
 # ASM sources
 ASM_SOURCES =  \
@@ -137,7 +138,7 @@ C_INCLUDES =  \
 # compile gcc flags
 ASFLAGS = $(MCU) $(AS_DEFS) $(AS_INCLUDES) $(OPT) -Wall -fdata-sections -ffunction-sections 
 
-CFLAGS += $(MCU) $(C_DEFS) $(C_INCLUDES) $(OPT) -Wall -fdata-sections -ffunction-sections# -DNDEBUG -flto
+CFLAGS += $(MCU) $(C_DEFS) $(C_INCLUDES) $(OPT) -Wall -fdata-sections -ffunction-sections -DNDEBUG -flto
 
 ifeq ($(DEBUG), 1)
 CFLAGS += -g -gdwarf-2

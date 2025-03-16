@@ -14,14 +14,24 @@
 #elif GPS_TYPE == 2
 #include "xm_gps.h"
 #endif
-#include "horus.h"
+
 #include "adf.h"
+
+#if HORUS_EN == 1
+#include "horus.h"
 #include "fsk4.h"
+#endif
+
+#if CW_EN == 1
+#include "morse.h"
+#endif
+
 #include "lps22hb.h"
 
 #include <math.h>
-#ifdef DEBUG
 #include <string.h>
+
+#ifdef DEBUG
 #include <stdio.h>
 #endif
 /* USER CODE END Includes */
@@ -50,7 +60,7 @@ bool GpsBufferReady = false;
 
 #if GPS_TYPE == 1
 NMEA NmeaData;
-static uint8_t GPS_fix_ublox[19] = {0xB5, 0x62, 0x06, 0x8A, 0x09, 0x00, 0x01, 0x01, 0x00, 0x00, 0x11, 0x00, 0x11, 0x20, 0x02, 0xDF, 0x04,0x0D, 0x0A};
+static uint8_t GPS_fix_ublox[19] = {0xB5, 0x62, 0x06, 0x8A, 0x09, 0x00, 0x01, 0x01, 0x00, 0x00, 0x11, 0x00, 0x11, 0x20, 0x02, 0xDF, 0x04, 0x0D, 0x0A};
 static uint8_t GPS_airborn[19] = {0xB5, 0x62, 0x06, 0x8A, 0x09, 0x00, 0x01, 0x01, 0x00, 0x00, 0x21, 0x00, 0x11, 0x20, 0x07, 0xF4, 0x59, 0x0D, 0x0A};
 #elif GPS_TYPE == 2
 XMDATA GpsData;
@@ -58,10 +68,18 @@ XMDATA GpsData;
 
 uint8_t lps_init;
 
+#if HORUS_EN == 1
 HorusBinaryPacket HorusPacket;
+#endif
 
-char HorusCodedBuffer[100];
-uint16_t HorusCodedLen;
+char PacketCodedBuffer[100];
+uint16_t PacketCodedLen;
+
+uint16_t BatVoltageRaw = 0;
+
+float LpsTemp = 0;
+float LpsPress = 0;
+float NTC_Temp = 0;
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
@@ -115,13 +133,53 @@ void main_loop(void)
   #if LED_MODE == 1
   LL_GPIO_TogglePin(LED_GPIO_Port, LED_Pin);
   #endif
+  #if HORUS_EN == 1
   #ifdef DEBUG
   printf("\r\nFrame: %d\r\n", HorusPacket.PacketCount);
   #endif
+  #endif
 
-  // Payload ID
-  HorusPacket.PayloadID = PAYLOAD_ID;
+  // LPS22HB sensor
+  if (lps_init == 0)
+  {
+    LpsTemp = LPS22_GetTemp();
+    LpsPress = LPS22_GetPress();
+    #ifdef DEBUG
+    printf("temp: %d, press: %d\r\n", (int8_t)round(LPS22_GetTemp()), (uint16_t)round(LPS22_GetPress()));
+    #endif
+  }
+  
+  // Bat voltage
+  LL_ADC_REG_SetSequencerChannels(ADC1, LL_ADC_CHANNEL_8);
+  LL_ADC_REG_StartConversion(ADC1);
+  while (LL_ADC_IsActiveFlag_EOC(ADC1) == 0){}
+  BatVoltageRaw = LL_ADC_REG_ReadConversionData12(ADC1);
+  LL_ADC_ClearFlag_EOS(ADC1);
+  #ifdef DEBUG
+  printf("Bat voltage: %d\r\n", BatVoltageRaw);
+  #endif
 
+  // NTC temp reading
+  LL_GPIO_SetOutputPin(NTC_GPIO_Port, NTC_Pin);
+  LL_mDelay(2);
+  
+  LL_ADC_REG_SetSequencerChannels(ADC1, LL_ADC_CHANNEL_14);
+  LL_ADC_REG_StartConversion(ADC1);
+  while (LL_ADC_IsActiveFlag_EOC(ADC1) == 0){}
+  uint16_t temp_adc_raw = LL_ADC_REG_ReadConversionData12(ADC1);
+  LL_ADC_ClearFlag_EOS(ADC1);
+
+  LL_GPIO_ResetOutputPin(NTC_GPIO_Port, NTC_Pin);
+
+  // External temp calculating
+  // Rntc = Vout * R1 /  Vin - Vout
+  float NTC_R = ((temp_adc_raw * 36500) / (4096 - temp_adc_raw));
+  NTC_Temp = 1 / (-0.000400644 + (0.000490078 * log(NTC_R)) + (-0.000000720 * pow(log(NTC_R), 3))) - 273.15;
+  #ifdef DEBUG
+  printf("NTC: raw: %d, Temp: %d\r\n", temp_adc_raw, (int16_t)round(NTC_Temp * 10.0));
+  #endif
+
+  #if HORUS_EN == 1
   // GPS type 1 data
   #if GPS_TYPE == 1
   HorusPacket.Hours = NmeaData.Hours;
@@ -154,58 +212,41 @@ void main_loop(void)
   #endif
   #endif
 
-  // LPS22HB sensor
-  if (lps_init == 0)
-  {
+  HorusPacket.BatVoltage = (BatVoltageRaw * 187) / 4549;
+  HorusPacket.ExtTemp = (int16_t)round(NTC_Temp * 10.0);
+
+  if(lps_init == 0){
     HorusPacket.Temp = (int8_t)round(LPS22_GetTemp()); 
     HorusPacket.Press = (uint16_t)round(LPS22_GetPress() * 10.0);
   }
-  #ifdef DEBUG
-  printf("temp: %d, press: %d\r\n", HorusPacket.Temp, HorusPacket.Press);
-  #endif
-  
-  // Bat voltage
-  LL_ADC_REG_SetSequencerChannels(ADC1, LL_ADC_CHANNEL_8);
-  LL_ADC_REG_StartConversion(ADC1);
-  while (LL_ADC_IsActiveFlag_EOC(ADC1) == 0){}  
-  HorusPacket.BatVoltage = (LL_ADC_REG_ReadConversionData12(ADC1) * 187) / 4549;
-  LL_ADC_ClearFlag_EOS(ADC1);
-
-  #ifdef DEBUG
-  printf("Bat voltage: %d\r\n", HorusPacket.BatVoltage);
-  #endif
-
-  // NTC temp reading
-  LL_GPIO_SetOutputPin(NTC_GPIO_Port, NTC_Pin);
-  LL_mDelay(2);
-  
-  LL_ADC_REG_SetSequencerChannels(ADC1, LL_ADC_CHANNEL_14);
-  LL_ADC_REG_StartConversion(ADC1);
-  while (LL_ADC_IsActiveFlag_EOC(ADC1) == 0){}
-  uint16_t temp_adc_raw = LL_ADC_REG_ReadConversionData12(ADC1);
-  LL_ADC_ClearFlag_EOS(ADC1);
-
-  LL_GPIO_ResetOutputPin(NTC_GPIO_Port, NTC_Pin);
-
-  // External temp calculating
-  // Rntc = Vout * R1 /  Vin - Vout
-  float NTC_R = ((temp_adc_raw * 36500) / (4096 - temp_adc_raw));
-  float NTC_T = 1 / (-0.000400644 + (0.000490078 * log(NTC_R)) + (-0.000000720 * pow(log(NTC_R), 3))) - 273.15;
-  HorusPacket.ExtTemp = (int16_t)round(NTC_T * 10.0);
-  #ifdef DEBUG
-  printf("NTC: raw: %d, Temp: %d\r\n", temp_adc_raw, HorusPacket.ExtTemp);
-  #endif
-
   // Horus checksum
   HorusPacket.Checksum = (uint16_t)crc16((char *)&HorusPacket, sizeof(HorusPacket) - 2);
-  HorusCodedLen = horus_l2_encode_tx_packet((unsigned char *)HorusCodedBuffer, (unsigned char *)&HorusPacket, sizeof(HorusPacket));
+  PacketCodedLen = horus_l2_encode_tx_packet((unsigned char *)PacketCodedBuffer, (unsigned char *)&HorusPacket, sizeof(HorusPacket));
 
   // Transmit
-  FSK4_start_TX(HorusCodedBuffer, HorusCodedLen);
+  FSK4_start_TX(PacketCodedBuffer, PacketCodedLen);
+  #endif
+
+  #if CW_EN == 1
+  PacketCodedLen = 0;
+  PacketCodedLen+=strlen(CALLSIGN);
+  strncpy(PacketCodedBuffer, CALLSIGN, PacketCodedLen);
+  PacketCodedBuffer[PacketCodedLen] = 32;
+  PacketCodedLen++;
+  #if GPS_TYPE == 1
+  PacketCodedLen += get_mh(NmeaData.Lat, NmeaData.Lon, MORSE_GRID_SIZE, PacketCodedBuffer+PacketCodedLen);
+  #elif GPS_TYPE == 2
+  PacketCodedLen = get_mh(GpsData.Lat, GpsData.Lon, MORSE_GRID_SIZE, PacketCodedBuffer);
+  #endif
+
+  CW_start_TX(PacketCodedBuffer, PacketCodedLen);
+  #endif
 
   // Packet counter
+  #if HORUS_EN == 1
   HorusPacket.PacketCount++;
-  
+  #endif
+
   // LED
   #if LED_MODE == 1
   LL_GPIO_TogglePin(LED_GPIO_Port, LED_Pin);
@@ -302,6 +343,11 @@ int main(void)
   MX_IWDG_Init();
   MX_TIM6_Init();
   /* USER CODE BEGIN 2 */
+  // Payload ID
+  #if HORUS_EN == 1
+  HorusPacket.PayloadID = PAYLOAD_ID;
+  #endif
+
   LL_GPIO_SetOutputPin(POWER_ON_GPIO_Port, POWER_ON_Pin);
   LL_GPIO_SetOutputPin(GPS_ON_GPIO_Port, GPS_ON_Pin);
   LL_GPIO_SetOutputPin(RADIO_EN_GPIO_Port, RADIO_EN_Pin);
@@ -325,7 +371,7 @@ int main(void)
   LL_LPUART_EnableIT_RXNE(LPUART1);
   LL_LPUART_Enable(LPUART1);
 
-  #if GPS_TYPE == 1 
+  #if GPS_TYPE == 1
   LL_mDelay(100);
   for (uint8_t ig = 0; ig < 19; ig++){
     while (!LL_LPUART_IsActiveFlag_TXE(LPUART1)){}

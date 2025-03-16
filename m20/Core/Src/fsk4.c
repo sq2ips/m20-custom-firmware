@@ -5,7 +5,6 @@
 
 #include "fsk4.h"
 #include "adf.h"
-#include "main.h"
 #include "config.h"
 
 // In this file i will try to prepare procedure for transmitting earlier prepared message using 4fsk
@@ -86,11 +85,11 @@ void FSK4_start_TX(char* buff, uint8_t len) {
 	    adf_RF_on(QRG_FSK4, PA_FSK4);                                   //turn on radio TX
 	    FSK_Active = 1;                                                    //change status
 	    TIM2->CR1 &= (uint16_t)(~((uint16_t)TIM_CR1_CEN));                 // Disable the TIM Counter
-	  	uint16_t timer2StartValue = (100000 / FSK4_BAUD) - 1;              //timer value calculated according to baud rate 999 for 100bd
-	    TIM2->ARR = timer2StartValue;                           //set timer counter max value to pre-set value for baudrate (auto-reload register)
+	  	uint16_t timer2ReloadValue = (100000 / FSK4_BAUD) - 1;              //timer value calculated according to baud rate 999 for 100bd
+	    TIM2->ARR = timer2ReloadValue;                           //set timer counter max value to pre-set value for baudrate (auto-reload register)
 	  	TIM2->CR1 |= TIM_CR1_CEN;                               //enable timer again
 	    TIM2->DIER |= TIM_DIER_UIE;                             //Enable the interrupt
-	    FSK4_timer_handler(buff);                           //force execution of procedure responsible for interrupt handling
+	    FSK4_timer_handler();                           //force execution of procedure responsible for interrupt handling
 }
 
 
