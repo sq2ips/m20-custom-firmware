@@ -17,13 +17,21 @@
 #define RF_BOOST_ACTIVE 0       // RF booster enabled for transmissions about 15dB gain, but more power consumed - normally should be ON(1).
 
 /* Horus 4FSK settings */
-#define HORUS_EN 0               // Horus 4FSK enable
+#define HORUS_EN 1               // Horus 4FSK enable
 #define QRG_FSK4 435100000      // Frequency fo horus modulation (in Hz)
 #define PA_FSK4 10              // RF power setting for horus transmission values 0-63
 /*---------------------*/
 
+#define QRG_AFSK 435300000
+#define PA_AFSK 10
+
+#define AFSK_TONE_A 2200
+#define AFSK_TONE_B 1200
+
+#define ADF_DEVIATION 5
+
 /* CW morse settings */
-#define CW_EN 1                 // Morse enable
+#define CW_EN 0                 // Morse enable
 #define QRG_CW   435200000      // Frequency fo CW morse modulation (in Hz)
 #define PA_CW 10                // RF power setting for CW morse transmission values 0-63
 

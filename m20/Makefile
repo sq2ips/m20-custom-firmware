@@ -58,7 +58,8 @@ Core/Src/horus.c \
 Core/Src/lps22hb.c \
 Core/Src/nmea.c \
 Core/Src/xm_gps.c \
-Core/Src/morse.c
+Core/Src/morse.c \
+Core/Src/afsk.c
 
 # ASM sources
 ASM_SOURCES =  \

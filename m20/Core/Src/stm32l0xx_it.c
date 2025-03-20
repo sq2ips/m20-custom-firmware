@@ -146,20 +146,23 @@ void SysTick_Handler(void)
 void TIM2_IRQHandler(void)
 {
   /* USER CODE BEGIN TIM2_IRQn 0 */
-  	if(LL_TIM_IsActiveFlag_UPDATE(TIM2) == 1)
-	{
-		LL_TIM_ClearFlag_UPDATE(TIM2);
-    #if HORUS_EN == 1
-    if (FSK4_is_active()) {     //check if we are transmitting in 4FSK mode
-      FSK4_timer_handler();
-    }
-    #endif
-    #if CW_EN == 1
-    if (CW_is_active()){
-      CW_timer_handler();
-    }
-    #endif
-	}
+    if(LL_TIM_IsActiveFlag_UPDATE(TIM2) == 1){
+		  LL_TIM_ClearFlag_UPDATE(TIM2);
+      #if HORUS_EN == 1
+      if (FSK4_is_active()) {     //check if we are transmitting in 4FSK mode
+        FSK4_timer_handler();
+      }
+      #endif
+      #if CW_EN == 1
+      if (CW_is_active()){
+        CW_timer_handler();
+      }
+      #endif
+      if(AFSK_is_active()){
+        AFSK_timer_handler();
+      }
+	
+  }
   /* USER CODE END TIM2_IRQn 0 */
   /* USER CODE BEGIN TIM2_IRQn 1 */
 

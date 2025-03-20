@@ -52,9 +52,12 @@ extern "C" {
 /* USER CODE BEGIN Includes */
 #include "stm32l0xx_it.h"
 #include "fsk4.h"
+#include "afsk.h"
+
 #include "morse.h"
 
 #include <stdbool.h>
+#include <stdint.h>
 /* USER CODE END Includes */
 
 /* Exported types ------------------------------------------------------------*/

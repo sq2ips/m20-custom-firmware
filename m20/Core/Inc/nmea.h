@@ -8,7 +8,7 @@
 #ifndef INC_NMEA_H_
 #define INC_NMEA_H_
 
-#include <stdint.h>
+#include "main.h"
 
 typedef struct NMEA_DATA {
     float Lat; //latitude in degrees with decimal places + for N - for S

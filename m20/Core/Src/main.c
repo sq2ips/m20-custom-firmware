@@ -26,6 +26,8 @@
 #include "morse.h"
 #endif
 
+#include "afsk.h"
+
 #include "lps22hb.h"
 
 #include <math.h>
@@ -388,12 +390,14 @@ int main(void)
   #endif
 
   // main loop timer
-  LL_TIM_EnableCounter(TIM22);
-  LL_TIM_EnableIT_UPDATE(TIM22);
+  //LL_TIM_EnableCounter(TIM22);
+  //LL_TIM_EnableIT_UPDATE(TIM22);
 
   // LED timer
   LL_TIM_EnableCounter(TIM6);
   LL_TIM_EnableIT_UPDATE(TIM6);
+
+  AFSK_start_TX(0, 0);
   /* USER CODE END 2 */
 
   /* Infinite loop */
