@@ -235,7 +235,7 @@ sudo apt install openocd
 ```
 After installing it and ensuring that you are in the `m20` directory. Then check if ST-Link is connected and then you can remove the write protection (only before the first flash):
 ```bash
-make protection
+make protect
 ```
 or if you don't have `make` or want to run it directly:
 ```bash
