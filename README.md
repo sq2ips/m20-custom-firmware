@@ -5,7 +5,7 @@ The goal of this project is to reverse engineer the Meteomodem M20 radiosonde an
 The code is writen in C using STM32CubeMX and Low Layer (LL) libraries and compiled using arm-none-eabi toolchain. Now it fits into the original STM32L051R6T6 chip.
 
 # Stage
-In this state the code works to the point where it gets GPS data and sends it using Horus Binary over radio. However this code is currently highly experimental and will probably not yet work correctly in the intended application.
+In this stage the code works to the point where it gets GPS and sensors data, then sends it using Horus Binary V2 protocol over radio. However this code is currently in the experimental/testing phase and there are some problems with it. Keeping that in mind, making flights with it is possible. Thanks to SP9AOB and SP6MPL for conducting test flights. If you are making a flight with this firmware let me know, it really helps with finding bugs and testing the code.
 
 # What works
 - GPS (NMEA): :heavy_check_mark:
@@ -26,11 +26,16 @@ The currently implemented features are:
 - Watchdog timer
 
 # Planned work
-- Fixing LPS22 negative temperature reading error
 - making use of STM32 energy saving states
 - Implementing XM1110 GPS speed data
 - implementing humidity sensors
 - implementing APRS
+
+# Known issues
+- Problems with ascent rate calculation
+- Wrong external temperature sensors readings 
+- High frequency instability (no TCXO)
+- Transmitted frequency "jumps"
 
 # Horus 4FSK tone spacing
 Due to hardware limitations (system clock PLL setting options) it is not possible to generate a clock signal for the radio module whose frequency is divisible by 9. That results in no possibility of having a 270Hz tone spacing standardized by the RS41ng project. The tone spacing is set to 244Hz acquired by an 8MHz clock signal. The limitation is directly connected with the method of implementing FSK and there seems to be no way to overcome it without hardware intervention. The effect is that receiving stations must set a different from standard tone spacing or the SNR will be very low, for comparison:
