@@ -182,7 +182,7 @@ But you will need to do it again after reboot of your computer, you can set it t
 ```bash
 sudo systemctl enable docker
 ```
-Now you should into the directory of the downloaded code, then:
+Now you should cd into the directory of the downloaded code, then:
 ```bash
 cd m20
 ```
@@ -192,7 +192,7 @@ docker build -t m20 .
 ```
 It will need some time to download an install the packages, after it finishes run:
 ```bash
-docker run --rm -v .:/opt/m20 m20:latest
+docker run --rm -v ${pwd}:/opt/m20 m20:latest
 ```
 It will build the code and after finishing you should see a memory usage table, the compiled binaries should be in the `build/` directory.
 If you did the steps next time building you will need to only run the last command.
