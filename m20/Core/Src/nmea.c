@@ -12,11 +12,16 @@
 #endif
 #include <string.h>
 
+uint16_t TimeCounter = 0;
+
 char data[DATA_SIZE][SENTENCE_SIZE];
 
 uint8_t correct = 0;
-uint16_t olddTime = 0;
 uint16_t olddAlt = 0;
+
+void incTimeCount(){
+    TimeCounter++;
+}
 
 uint16_t a_strtof(char *buffer){
     uint8_t d_pos = 0;
@@ -151,16 +156,16 @@ int nmea_GGA(NMEA *nmea_data, char *inputString){
 
             if(altitude != 0){
                 nmea_data->Alt = altitude;
-                uint16_t currentTime = h*3600+m*60+s;
-                if(olddTime==0 || currentTime == 0){
+                if(olddAlt == 0){
                     olddAlt = nmea_data->Alt;
-                    olddTime = currentTime;
-                }
-                if((currentTime-olddTime)>=AscentRateTime){
-                    nmea_data->AscentRate = (float)(nmea_data->Alt-olddAlt)/(currentTime-olddTime);
+                    TimeCounter = 0;
+                }else if(TimeCounter>=AscentRateTime){
+                    nmea_data->AscentRate = (float)(nmea_data->Alt-olddAlt)/TimeCounter;
                     olddAlt = nmea_data->Alt;
-                    olddTime = currentTime;
+                    TimeCounter = 0;
                 }
+            }else{
+                olddAlt = 0;
             }
 
             //nmea_data->Fix = values[6][0]-'0';
