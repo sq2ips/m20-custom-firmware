@@ -41,8 +41,8 @@
 /*-----------------------*/
 
 /* NTC settings */
-#define NTC_GPIO_Port NTC_36K_GPIO_Port // resistor select
-#define NTC_Pin NTC_36K_Pin
+#define NTC_GPIO_Port NTC_330K_GPIO_Port // resistor select
+#define NTC_Pin NTC_330K_Pin
 /*--------------*/
 
 /* GPS configuration */
