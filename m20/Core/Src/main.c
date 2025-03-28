@@ -50,8 +50,7 @@ bool GpsBufferReady = false;
 
 #if GPS_TYPE == 1
 NMEA NmeaData;
-static uint8_t GPS_fix_ublox[19] = {0xB5, 0x62, 0x06, 0x8A, 0x09, 0x00, 0x01, 0x01, 0x00, 0x00, 0x11, 0x00, 0x11, 0x20, 0x02, 0xDF, 0x04,0x0D, 0x0A};
-static uint8_t GPS_airborn[19] = {0xB5, 0x62, 0x06, 0x8A, 0x09, 0x00, 0x01, 0x01, 0x00, 0x00, 0x21, 0x00, 0x11, 0x20, 0x07, 0xF4, 0x59, 0x0D, 0x0A};
+static uint8_t GPS_airborne[44] = {0xB5, 0x62, 0x06, 0x24, 0x24, 0x00, 0x01, 0x00, 0x07, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x56, 0xD6};
 #elif GPS_TYPE == 2
 XMDATA GpsData;
 #endif
@@ -112,18 +111,17 @@ PUTCHAR_PROTOTYPE
 void main_loop(void)
 {
   // LED
-  #if LED_MODE == 1
+#if LED_MODE == 1
   LL_GPIO_TogglePin(LED_GPIO_Port, LED_Pin);
-  #endif
-  #ifdef DEBUG
+#endif
+
+#ifdef DEBUG
+  // Frame number
   printf("\r\nFrame: %d\r\n", HorusPacket.PacketCount);
-  #endif
+#endif
 
-  // Payload ID
-  HorusPacket.PayloadID = PAYLOAD_ID;
-
-  // GPS type 1 data
-  #if GPS_TYPE == 1
+// GPS type 1 data
+#if GPS_TYPE == 1
   HorusPacket.Hours = NmeaData.Hours;
   HorusPacket.Minutes = NmeaData.Minutes;
   HorusPacket.Seconds = NmeaData.Seconds;
@@ -133,13 +131,13 @@ void main_loop(void)
   HorusPacket.AscentRate = (int16_t)round(NmeaData.AscentRate * 100.0);
   HorusPacket.Alt = NmeaData.Alt;
   HorusPacket.Sats = NmeaData.Sats;
-  #ifdef DEBUG
+#ifdef DEBUG
   printf("Fix: %d, Lat: %ld, Lon: %ld, Alt: %d m, Speed: %d km/h, Ascent rate: %d m/s Satellites: %d, Time: %d:%d:%d\r\n",
          NmeaData.Fix, (uint32_t)(NmeaData.Lat * 10e6), (uint32_t)(NmeaData.Lon * 10e6), NmeaData.Alt, NmeaData.Speed, (int16_t)round(NmeaData.AscentRate * 100), NmeaData.Sats, NmeaData.Hours, NmeaData.Minutes, NmeaData.Seconds);
-  #endif
+#endif
 
-  // GPS type 2 data
-  #elif GPS_TYPE == 2
+// GPS type 2 data
+#elif GPS_TYPE == 2
   HorusPacket.Hours = GpsData.Hours;
   HorusPacket.Minutes = GpsData.Minutes;
   HorusPacket.Seconds = GpsData.Seconds;
@@ -149,52 +147,54 @@ void main_loop(void)
   HorusPacket.Alt = (uint16_t)GpsData.Alt;
   HorusPacket.Sats = GpsData.Sats;
   HorusPacket.AscentRate = (int16_t)round(GpsData.AscentRate * 100.0);
-  #ifdef DEBUG
+#ifdef DEBUG
   printf("Fix: %d, Lat: %d, Lon: %d, Alt: %d, Ascent Rate: %d, Ground Speed: %f, Sats: %d, Time: %d: %d:%d:%d\r\n", GpsData.Fix, (int32_t)(GpsData.Lat * 1e6), (int32_t)(GpsData.Lon * 1e6), (uint32_t)(GpsData.Alt * 1e6), (int16_t)(GpsData.AscentRate * 100.0), GpsData.GroundSpeed, GpsData.Sats, GpsData.Time, GpsData.Hours, GpsData.Minutes, GpsData.Seconds);
-  #endif
-  #endif
+#endif
+#endif
 
   // LPS22HB sensor
   if (lps_init == 0)
   {
-    HorusPacket.Temp = (int8_t)round(LPS22_GetTemp()); 
+    HorusPacket.Temp = (int8_t)round(LPS22_GetTemp());
     HorusPacket.Press = (uint16_t)round(LPS22_GetPress() * 10.0);
   }
-  #ifdef DEBUG
+#ifdef DEBUG
   printf("temp: %d, press: %d\r\n", HorusPacket.Temp, HorusPacket.Press);
-  #endif
-  
+#endif
+
   // Bat voltage
   LL_ADC_REG_SetSequencerChannels(ADC1, LL_ADC_CHANNEL_8);
   LL_ADC_REG_StartConversion(ADC1);
-  while (LL_ADC_IsActiveFlag_EOC(ADC1) == 0){}  
+  while (LL_ADC_IsActiveFlag_EOC(ADC1) == 0){}
   HorusPacket.BatVoltage = (LL_ADC_REG_ReadConversionData12(ADC1) * 187) / 4549;
   LL_ADC_ClearFlag_EOS(ADC1);
 
-  #ifdef DEBUG
+#ifdef DEBUG
   printf("Bat voltage: %d\r\n", HorusPacket.BatVoltage);
-  #endif
+#endif
 
   // NTC temp reading
-  LL_GPIO_SetOutputPin(NTC_GPIO_Port, NTC_Pin);
-  LL_mDelay(2);
-  
+  LL_GPIO_SetOutputPin(NTC_36K_GPIO_Port, NTC_36K_Pin);
+  LL_mDelay(5);
+
   LL_ADC_REG_SetSequencerChannels(ADC1, LL_ADC_CHANNEL_14);
   LL_ADC_REG_StartConversion(ADC1);
-  while (LL_ADC_IsActiveFlag_EOC(ADC1) == 0){}
+  while (LL_ADC_IsActiveFlag_EOC(ADC1) == 0)
+  {
+  }
   uint16_t temp_adc_raw = LL_ADC_REG_ReadConversionData12(ADC1);
   LL_ADC_ClearFlag_EOS(ADC1);
 
-  LL_GPIO_ResetOutputPin(NTC_GPIO_Port, NTC_Pin);
+  LL_GPIO_ResetOutputPin(NTC_36K_GPIO_Port, NTC_36K_Pin);
 
   // External temp calculating
   // Rntc = Vout * R1 /  Vin - Vout
-  float NTC_R = ((temp_adc_raw * 330000) / (4096 - temp_adc_raw));
+  float NTC_R = ((temp_adc_raw * 36500) / (4096 - temp_adc_raw));
   float NTC_T = 1 / (-0.000400644 + (0.000490078 * log(NTC_R)) + (-0.000000720 * pow(log(NTC_R), 3))) - 273.15;
   HorusPacket.ExtTemp = (int16_t)round(NTC_T * 10.0);
-  #ifdef DEBUG
+#ifdef DEBUG
   printf("NTC: raw: %d, Temp: %d\r\n", temp_adc_raw, HorusPacket.ExtTemp);
-  #endif
+#endif
 
   // Horus checksum
   HorusPacket.Checksum = (uint16_t)crc16((char *)&HorusPacket, sizeof(HorusPacket) - 2);
@@ -205,11 +205,11 @@ void main_loop(void)
 
   // Packet counter
   HorusPacket.PacketCount++;
-  
-  // LED
-  #if LED_MODE == 1
+
+// LED
+#if LED_MODE == 1
   LL_GPIO_TogglePin(LED_GPIO_Port, LED_Pin);
-  #endif
+#endif
 }
 void GPS_Handler(void)
 {
@@ -231,39 +231,45 @@ void GPS_Handler(void)
 #endif
   }
 }
-void LED_Handler(void){
-  #if LED_MODE == 2
-  #if GPS_TYPE == 1
+void LED_Handler(void)
+{
+#if LED_MODE == 2
+#if GPS_TYPE == 1
   uint8_t fix = NmeaData.Fix;
-  if(LED_DISABLE_ALT != 0){
-    if(NmeaData.Alt >= LED_DISABLE_ALT){
+  if (LED_DISABLE_ALT != 0)
+  {
+    if (NmeaData.Alt >= LED_DISABLE_ALT)
+    {
       LL_TIM_DisableCounter(TIM6);
       LL_TIM_DisableIT_UPDATE(TIM6);
     }
   }
-  #elif GPS_TYPE == 2
+#elif GPS_TYPE == 2
   uint8_t fix = GpsData.Fix;
-  if(LED_DISABLE_ALT != 0){
-    if(GpsData.Alt >= LED_DISABLE_ALT){
+  if (LED_DISABLE_ALT != 0)
+  {
+    if (GpsData.Alt >= LED_DISABLE_ALT)
+    {
       LL_TIM_DisableCounter(TIM6);
       LL_TIM_DisableIT_UPDATE(TIM6);
     }
   }
-  #endif
-  for(; fix>0; fix--){
+#endif
+  for (; fix > 0; fix--)
+  {
     LL_GPIO_SetOutputPin(LED_GPIO_Port, LED_Pin);
     LL_mDelay(50);
     LL_GPIO_ResetOutputPin(LED_GPIO_Port, LED_Pin);
     LL_mDelay(100);
   }
-  #endif
+#endif
 }
 /* USER CODE END 0 */
 
 /**
-  * @brief  The application entry point.
-  * @retval int
-  */
+ * @brief  The application entry point.
+ * @retval int
+ */
 int main(void)
 {
 
@@ -299,47 +305,56 @@ int main(void)
   MX_TIM2_Init();
   MX_TIM22_Init();
   MX_ADC_Init();
-  MX_IWDG_Init();
+  //MX_IWDG_Init();
   MX_TIM6_Init();
   /* USER CODE BEGIN 2 */
+
+  // Power on modules
   LL_GPIO_SetOutputPin(POWER_ON_GPIO_Port, POWER_ON_Pin);
   LL_GPIO_SetOutputPin(GPS_ON_GPIO_Port, GPS_ON_Pin);
   LL_GPIO_SetOutputPin(RADIO_EN_GPIO_Port, RADIO_EN_Pin);
   adf_setup();
 
-  LL_GPIO_SetOutputPin(LPS_CS_GPIO_Port, LPS_CS_Pin); // LOW ENABLE
+
+  LL_GPIO_SetOutputPin(LPS_CS_GPIO_Port, LPS_CS_Pin); // to be removed
   for (uint8_t i = 0; i < 5; i++)
   {
     lps_init = LPS22_Init();
     if (lps_init == 0)
       break;
   }
-  #ifdef DEBUG
+#ifdef DEBUG
   printf("LPS init: %d\r\n", lps_init);
-  #endif
+#endif
 
+  // ADC init
   LL_ADC_ClearFlag_ADRDY(ADC1);
   LL_ADC_Enable(ADC1);
-  while (LL_ADC_IsActiveFlag_ADRDY(ADC1) == 0){} 
+  while (LL_ADC_IsActiveFlag_ADRDY(ADC1) == 0){}
 
+  // GPS UART init
   LL_LPUART_EnableIT_RXNE(LPUART1);
   LL_LPUART_Enable(LPUART1);
 
-  #if GPS_TYPE == 1 
+#if GPS_TYPE == 1
+  // u-blox change mode to airborne
   LL_mDelay(100);
-  for (uint8_t ig = 0; ig < 19; ig++){
-    while (!LL_LPUART_IsActiveFlag_TXE(LPUART1)){}
-    LL_LPUART_TransmitData8(LPUART1, GPS_airborn[ig]);
+  for (uint8_t ig = 0; ig < 44; ig++)
+  {
+    while (!LL_LPUART_IsActiveFlag_TXE(LPUART1))
+    {
+    }
+    LL_LPUART_TransmitData8(LPUART1, GPS_airborne[ig]);
   }
-  while (!LL_LPUART_IsActiveFlag_TC(LPUART1)){}
+  while (!LL_LPUART_IsActiveFlag_TC(LPUART1))
+  {
+  }
   LL_mDelay(100);
-  
-  for (uint8_t ig = 0; ig < 19; ig++){
-    while (!LL_LPUART_IsActiveFlag_TXE(LPUART1)){}
-    LL_LPUART_TransmitData8(LPUART1, GPS_fix_ublox[ig]);
-  }
-  while (!LL_LPUART_IsActiveFlag_TC(LPUART1)){}
-  #endif
+
+#endif
+
+  // watchdog timer
+  MX_IWDG_Init();
 
   // main loop timer
   LL_TIM_EnableCounter(TIM22);
@@ -350,6 +365,9 @@ int main(void)
   LL_TIM_EnableIT_UPDATE(TIM6);
 
   LL_SYSTICK_EnableIT();
+
+  //  Payload ID
+  HorusPacket.PayloadID = PAYLOAD_ID;
   /* USER CODE END 2 */
 
   /* Infinite loop */
@@ -380,13 +398,13 @@ int main(void)
 }
 
 /**
-  * @brief System Clock Configuration
-  * @retval None
-  */
+ * @brief System Clock Configuration
+ * @retval None
+ */
 void SystemClock_Config(void)
 {
   LL_FLASH_SetLatency(LL_FLASH_LATENCY_0);
-  while(LL_FLASH_GetLatency()!= LL_FLASH_LATENCY_0)
+  while (LL_FLASH_GetLatency() != LL_FLASH_LATENCY_0)
   {
   }
   LL_PWR_SetRegulVoltageScaling(LL_PWR_REGU_VOLTAGE_SCALE1);
@@ -395,35 +413,31 @@ void SystemClock_Config(void)
   }
   LL_RCC_HSE_Enable();
 
-   /* Wait till HSE is ready */
-  while(LL_RCC_HSE_IsReady() != 1)
+  /* Wait till HSE is ready */
+  while (LL_RCC_HSE_IsReady() != 1)
   {
-
   }
   LL_RCC_LSI_Enable();
 
-   /* Wait till LSI is ready */
-  while(LL_RCC_LSI_IsReady() != 1)
+  /* Wait till LSI is ready */
+  while (LL_RCC_LSI_IsReady() != 1)
   {
-
   }
   LL_RCC_PLL_ConfigDomain_SYS(LL_RCC_PLLSOURCE_HSE, LL_RCC_PLL_MUL_3, LL_RCC_PLL_DIV_2);
   LL_RCC_PLL_Enable();
 
-   /* Wait till PLL is ready */
-  while(LL_RCC_PLL_IsReady() != 1)
+  /* Wait till PLL is ready */
+  while (LL_RCC_PLL_IsReady() != 1)
   {
-
   }
   LL_RCC_SetAHBPrescaler(LL_RCC_SYSCLK_DIV_1);
   LL_RCC_SetAPB1Prescaler(LL_RCC_APB1_DIV_1);
   LL_RCC_SetAPB2Prescaler(LL_RCC_APB2_DIV_1);
   LL_RCC_SetSysClkSource(LL_RCC_SYS_CLKSOURCE_PLL);
 
-   /* Wait till System clock is ready */
-  while(LL_RCC_GetSysClkSource() != LL_RCC_SYS_CLKSOURCE_STATUS_PLL)
+  /* Wait till System clock is ready */
+  while (LL_RCC_GetSysClkSource() != LL_RCC_SYS_CLKSOURCE_STATUS_PLL)
   {
-
   }
 
   LL_Init1msTick(12000000);
@@ -435,10 +449,10 @@ void SystemClock_Config(void)
 }
 
 /**
-  * @brief ADC Initialization Function
-  * @param None
-  * @retval None
-  */
+ * @brief ADC Initialization Function
+ * @param None
+ * @retval None
+ */
 static void MX_ADC_Init(void)
 {
 
@@ -475,15 +489,15 @@ static void MX_ADC_Init(void)
   /* USER CODE END ADC_Init 1 */
 
   /** Configure Regular Channel
-  */
+   */
   LL_ADC_REG_SetSequencerChAdd(ADC1, LL_ADC_CHANNEL_8);
 
   /** Configure Regular Channel
-  */
+   */
   LL_ADC_REG_SetSequencerChAdd(ADC1, LL_ADC_CHANNEL_14);
 
   /** Common config
-  */
+   */
   ADC_REG_InitStruct.TriggerSource = LL_ADC_REG_TRIG_SOFTWARE;
   ADC_REG_InitStruct.SequencerDiscont = LL_ADC_REG_SEQ_DISCONT_DISABLE;
   ADC_REG_InitStruct.ContinuousMode = LL_ADC_REG_CONV_SINGLE;
@@ -512,20 +526,19 @@ static void MX_ADC_Init(void)
   /* is only a few CPU processing cycles. */
   uint32_t wait_loop_index;
   wait_loop_index = ((LL_ADC_DELAY_INTERNAL_REGUL_STAB_US * (SystemCoreClock / (100000 * 2))) / 10);
-  while(wait_loop_index != 0)
+  while (wait_loop_index != 0)
   {
     wait_loop_index--;
   }
   /* USER CODE BEGIN ADC_Init 2 */
   /* USER CODE END ADC_Init 2 */
-
 }
 
 /**
-  * @brief IWDG Initialization Function
-  * @param None
-  * @retval None
-  */
+ * @brief IWDG Initialization Function
+ * @param None
+ * @retval None
+ */
 static void MX_IWDG_Init(void)
 {
 
@@ -548,14 +561,13 @@ static void MX_IWDG_Init(void)
   /* USER CODE BEGIN IWDG_Init 2 */
 
   /* USER CODE END IWDG_Init 2 */
-
 }
 
 /**
-  * @brief LPUART1 Initialization Function
-  * @param None
-  * @retval None
-  */
+ * @brief LPUART1 Initialization Function
+ * @param None
+ * @retval None
+ */
 static void MX_LPUART1_UART_Init(void)
 {
 
@@ -602,7 +614,7 @@ static void MX_LPUART1_UART_Init(void)
   LPUART_InitStruct.BaudRate = 38400;
 #endif
   /* USER CODE END LPUART1_Init 1 */
-  //LPUART_InitStruct.BaudRate = 9600;
+  // LPUART_InitStruct.BaudRate = 9600;
   LPUART_InitStruct.DataWidth = LL_LPUART_DATAWIDTH_8B;
   LPUART_InitStruct.StopBits = LL_LPUART_STOPBITS_1;
   LPUART_InitStruct.Parity = LL_LPUART_PARITY_NONE;
@@ -612,14 +624,13 @@ static void MX_LPUART1_UART_Init(void)
   /* USER CODE BEGIN LPUART1_Init 2 */
 
   /* USER CODE END LPUART1_Init 2 */
-
 }
 
 /**
-  * @brief USART1 Initialization Function
-  * @param None
-  * @retval None
-  */
+ * @brief USART1 Initialization Function
+ * @param None
+ * @retval None
+ */
 static void MX_USART1_UART_Init(void)
 {
 
@@ -671,14 +682,13 @@ static void MX_USART1_UART_Init(void)
   /* USER CODE BEGIN USART1_Init 2 */
 
   /* USER CODE END USART1_Init 2 */
-
 }
 
 /**
-  * @brief SPI1 Initialization Function
-  * @param None
-  * @retval None
-  */
+ * @brief SPI1 Initialization Function
+ * @param None
+ * @retval None
+ */
 static void MX_SPI1_Init(void)
 {
 
@@ -742,14 +752,13 @@ static void MX_SPI1_Init(void)
   /* USER CODE BEGIN SPI1_Init 2 */
 
   /* USER CODE END SPI1_Init 2 */
-
 }
 
 /**
-  * @brief TIM2 Initialization Function
-  * @param None
-  * @retval None
-  */
+ * @brief TIM2 Initialization Function
+ * @param None
+ * @retval None
+ */
 static void MX_TIM2_Init(void)
 {
 
@@ -780,14 +789,13 @@ static void MX_TIM2_Init(void)
   /* USER CODE BEGIN TIM2_Init 2 */
 
   /* USER CODE END TIM2_Init 2 */
-
 }
 
 /**
-  * @brief TIM6 Initialization Function
-  * @param None
-  * @retval None
-  */
+ * @brief TIM6 Initialization Function
+ * @param None
+ * @retval None
+ */
 static void MX_TIM6_Init(void)
 {
 
@@ -809,7 +817,7 @@ static void MX_TIM6_Init(void)
   /* USER CODE END TIM6_Init 1 */
   TIM_InitStruct.Prescaler = 60000;
   TIM_InitStruct.CounterMode = LL_TIM_COUNTERMODE_UP;
-  //TIM_InitStruct.Autoreload = 65535;
+  // TIM_InitStruct.Autoreload = 65535;
   LL_TIM_Init(TIM6, &TIM_InitStruct);
   LL_TIM_DisableARRPreload(TIM6);
   LL_TIM_SetTriggerOutput(TIM6, LL_TIM_TRGO_RESET);
@@ -817,14 +825,13 @@ static void MX_TIM6_Init(void)
   /* USER CODE BEGIN TIM6_Init 2 */
 
   /* USER CODE END TIM6_Init 2 */
-
 }
 
 /**
-  * @brief TIM22 Initialization Function
-  * @param None
-  * @retval None
-  */
+ * @brief TIM22 Initialization Function
+ * @param None
+ * @retval None
+ */
 static void MX_TIM22_Init(void)
 {
 
@@ -845,7 +852,7 @@ static void MX_TIM22_Init(void)
   /* USER CODE END TIM22_Init 1 */
   TIM_InitStruct.Prescaler = 60000;
   TIM_InitStruct.CounterMode = LL_TIM_COUNTERMODE_UP;
-  //TIM_InitStruct.Autoreload = 2400;
+  // TIM_InitStruct.Autoreload = 2400;
   TIM_InitStruct.ClockDivision = LL_TIM_CLOCKDIVISION_DIV1;
   LL_TIM_Init(TIM22, &TIM_InitStruct);
   LL_TIM_DisableARRPreload(TIM22);
@@ -855,19 +862,18 @@ static void MX_TIM22_Init(void)
   /* USER CODE BEGIN TIM22_Init 2 */
 
   /* USER CODE END TIM22_Init 2 */
-
 }
 
 /**
-  * @brief GPIO Initialization Function
-  * @param None
-  * @retval None
-  */
+ * @brief GPIO Initialization Function
+ * @param None
+ * @retval None
+ */
 static void MX_GPIO_Init(void)
 {
   LL_GPIO_InitTypeDef GPIO_InitStruct = {0};
-/* USER CODE BEGIN MX_GPIO_Init_1 */
-/* USER CODE END MX_GPIO_Init_1 */
+  /* USER CODE BEGIN MX_GPIO_Init_1 */
+  /* USER CODE END MX_GPIO_Init_1 */
 
   /* GPIO Ports Clock Enable */
   LL_IOP_GRP1_EnableClock(LL_IOP_GRP1_PERIPH_GPIOC);
@@ -909,16 +915,19 @@ static void MX_GPIO_Init(void)
   LL_GPIO_ResetOutputPin(ADF_CE_GPIO_Port, ADF_CE_Pin);
 
   /**/
-  LL_GPIO_ResetOutputPin(NTC_475K_GPIO_Port, NTC_475K_Pin);
+  LL_GPIO_SetOutputPin(NTC_475K_GPIO_Port, NTC_475K_Pin);
 
   /**/
   LL_GPIO_ResetOutputPin(NTC_36K_GPIO_Port, NTC_36K_Pin);
 
   /**/
-  LL_GPIO_ResetOutputPin(NTC_12K_GPIO_Port, NTC_12K_Pin);
+  LL_GPIO_SetOutputPin(NTC_12K_GPIO_Port, NTC_12K_Pin);
 
   /**/
-  LL_GPIO_ResetOutputPin(NTC_330K_GPIO_Port, NTC_330K_Pin);
+  LL_GPIO_SetOutputPin(NTC_330K_GPIO_Port, NTC_330K_Pin);
+
+  /**/
+  LL_GPIO_SetOutputPin(NTC_1M5_GPIO_Port, NTC_1M5_Pin);
 
   /**/
   GPIO_InitStruct.Pin = BUTTON_Pin;
@@ -1023,49 +1032,57 @@ static void MX_GPIO_Init(void)
   GPIO_InitStruct.Pull = LL_GPIO_PULL_NO;
   LL_GPIO_Init(ADF_CE_GPIO_Port, &GPIO_InitStruct);
 
-  /**/
-  GPIO_InitStruct.Pin = NTC_475K_Pin;
-  GPIO_InitStruct.Mode = LL_GPIO_MODE_OUTPUT;
-  GPIO_InitStruct.Speed = LL_GPIO_SPEED_FREQ_LOW;
-  GPIO_InitStruct.OutputType = LL_GPIO_OUTPUT_PUSHPULL;
-  GPIO_InitStruct.Pull = LL_GPIO_PULL_NO;
-  LL_GPIO_Init(NTC_475K_GPIO_Port, &GPIO_InitStruct);
+   /**/
+   GPIO_InitStruct.Pin = NTC_475K_Pin;
+   GPIO_InitStruct.Mode = LL_GPIO_MODE_OUTPUT;
+   GPIO_InitStruct.Speed = LL_GPIO_SPEED_FREQ_LOW;
+   GPIO_InitStruct.OutputType = LL_GPIO_OUTPUT_OPENDRAIN;
+   GPIO_InitStruct.Pull = LL_GPIO_PULL_NO;
+   LL_GPIO_Init(NTC_475K_GPIO_Port, &GPIO_InitStruct);
+ 
+   /**/
+   GPIO_InitStruct.Pin = NTC_36K_Pin;
+   GPIO_InitStruct.Mode = LL_GPIO_MODE_OUTPUT;
+   GPIO_InitStruct.Speed = LL_GPIO_SPEED_FREQ_LOW;
+   GPIO_InitStruct.OutputType = LL_GPIO_OUTPUT_PUSHPULL;
+   GPIO_InitStruct.Pull = LL_GPIO_PULL_NO;
+   LL_GPIO_Init(NTC_36K_GPIO_Port, &GPIO_InitStruct);
+ 
+   /**/
+   GPIO_InitStruct.Pin = NTC_12K_Pin;
+   GPIO_InitStruct.Mode = LL_GPIO_MODE_OUTPUT;
+   GPIO_InitStruct.Speed = LL_GPIO_SPEED_FREQ_LOW;
+   GPIO_InitStruct.OutputType = LL_GPIO_OUTPUT_OPENDRAIN;
+   GPIO_InitStruct.Pull = LL_GPIO_PULL_NO;
+   LL_GPIO_Init(NTC_12K_GPIO_Port, &GPIO_InitStruct);
+ 
+   /**/
+   GPIO_InitStruct.Pin = NTC_330K_Pin;
+   GPIO_InitStruct.Mode = LL_GPIO_MODE_OUTPUT;
+   GPIO_InitStruct.Speed = LL_GPIO_SPEED_FREQ_LOW;
+   GPIO_InitStruct.OutputType = LL_GPIO_OUTPUT_OPENDRAIN;
+   GPIO_InitStruct.Pull = LL_GPIO_PULL_NO;
+   LL_GPIO_Init(NTC_330K_GPIO_Port, &GPIO_InitStruct);
+ 
+   /**/
+   GPIO_InitStruct.Pin = NTC_1M5_Pin;
+   GPIO_InitStruct.Mode = LL_GPIO_MODE_OUTPUT;
+   GPIO_InitStruct.Speed = LL_GPIO_SPEED_FREQ_LOW;
+   GPIO_InitStruct.OutputType = LL_GPIO_OUTPUT_OPENDRAIN;
+   GPIO_InitStruct.Pull = LL_GPIO_PULL_NO;
+   LL_GPIO_Init(NTC_1M5_GPIO_Port, &GPIO_InitStruct);
 
-  /**/
-  GPIO_InitStruct.Pin = NTC_36K_Pin;
-  GPIO_InitStruct.Mode = LL_GPIO_MODE_OUTPUT;
-  GPIO_InitStruct.Speed = LL_GPIO_SPEED_FREQ_LOW;
-  GPIO_InitStruct.OutputType = LL_GPIO_OUTPUT_PUSHPULL;
-  GPIO_InitStruct.Pull = LL_GPIO_PULL_NO;
-  LL_GPIO_Init(NTC_36K_GPIO_Port, &GPIO_InitStruct);
-
-  /**/
-  GPIO_InitStruct.Pin = NTC_12K_Pin;
-  GPIO_InitStruct.Mode = LL_GPIO_MODE_OUTPUT;
-  GPIO_InitStruct.Speed = LL_GPIO_SPEED_FREQ_LOW;
-  GPIO_InitStruct.OutputType = LL_GPIO_OUTPUT_PUSHPULL;
-  GPIO_InitStruct.Pull = LL_GPIO_PULL_NO;
-  LL_GPIO_Init(NTC_12K_GPIO_Port, &GPIO_InitStruct);
-
-  /**/
-  GPIO_InitStruct.Pin = NTC_330K_Pin;
-  GPIO_InitStruct.Mode = LL_GPIO_MODE_OUTPUT;
-  GPIO_InitStruct.Speed = LL_GPIO_SPEED_FREQ_LOW;
-  GPIO_InitStruct.OutputType = LL_GPIO_OUTPUT_PUSHPULL;
-  GPIO_InitStruct.Pull = LL_GPIO_PULL_NO;
-  LL_GPIO_Init(NTC_330K_GPIO_Port, &GPIO_InitStruct);
-
-/* USER CODE BEGIN MX_GPIO_Init_2 */
-/* USER CODE END MX_GPIO_Init_2 */
+  /* USER CODE BEGIN MX_GPIO_Init_2 */
+  /* USER CODE END MX_GPIO_Init_2 */
 }
 
 /* USER CODE BEGIN 4 */
 /* USER CODE END 4 */
 
 /**
-  * @brief  This function is executed in case of error occurrence.
-  * @retval None
-  */
+ * @brief  This function is executed in case of error occurrence.
+ * @retval None
+ */
 void Error_Handler(void)
 {
   /* USER CODE BEGIN Error_Handler_Debug */
@@ -1077,14 +1094,14 @@ void Error_Handler(void)
   /* USER CODE END Error_Handler_Debug */
 }
 
-#ifdef  USE_FULL_ASSERT
+#ifdef USE_FULL_ASSERT
 /**
-  * @brief  Reports the name of the source file and the source line number
-  *         where the assert_param error has occurred.
-  * @param  file: pointer to the source file name
-  * @param  line: assert_param error line source number
-  * @retval None
-  */
+ * @brief  Reports the name of the source file and the source line number
+ *         where the assert_param error has occurred.
+ * @param  file: pointer to the source file name
+ * @param  line: assert_param error line source number
+ * @retval None
+ */
 void assert_failed(uint8_t *file, uint32_t line)
 {
   /* USER CODE BEGIN 6 */

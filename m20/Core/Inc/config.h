@@ -40,11 +40,6 @@
 #define SCRAMBLER
 /*-----------------------*/
 
-/* NTC settings */
-#define NTC_GPIO_Port NTC_330K_GPIO_Port // resistor select
-#define NTC_Pin NTC_330K_Pin
-/*--------------*/
-
 /* GPS configuration */
 #define AscentRateTime 10       // Time of ascent rate mesure
 

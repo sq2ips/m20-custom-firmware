@@ -119,6 +119,8 @@ void main_loop(void);
 #define NTC_12K_GPIO_Port GPIOB
 #define NTC_330K_Pin LL_GPIO_PIN_9
 #define NTC_330K_GPIO_Port GPIOB
+#define NTC_1M5_Pin LL_GPIO_PIN_8
+#define NTC_1M5_GPIO_Port GPIOB
 #ifndef NVIC_PRIORITYGROUP_0
 #define NVIC_PRIORITYGROUP_0         ((uint32_t)0x00000007) /*!< 0 bit  for pre-emption priority,
                                                                  4 bits for subpriority */
