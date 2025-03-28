@@ -41,7 +41,7 @@
 /*-----------------------*/
 
 /* GPS configuration */
-#define AscentRateTime 10       // Time of ascent rate mesure
+#define AscentRateTime TIME_PERIOD/2       // Time of ascent rate mesure
 
 // type 1
 #define DATA_SIZE               35 // Max number of NMEA sentences in one parsing
@@ -50,13 +50,13 @@
 #define SENTENCE_ELEMENT_LEN    12 // Max lenght of a sentence element
 
 // type 2
-#define FrameLen 62             // Length of XM1110 frame
+#define GPS_FRAME_LEN 62             // Length of XM1110 frame
 
 #if GPS_TYPE == 1
 #define GpsRxBuffer_SIZE 512
 
 #elif GPS_TYPE == 2
-#define GpsRxBuffer_SIZE FrameLen * 2
+#define GpsRxBuffer_SIZE GPS_FRAME_LEN * 2
 #endif
 /*-------------------*/
 

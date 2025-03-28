@@ -55,6 +55,8 @@ extern "C" {
 #include "config.h"
 #if GPS_TYPE == 1
 #include "nmea.h"
+#elif GPS_TYPE == 2
+#include "xm_gps.h"
 #endif
 /* USER CODE END Includes */
 

@@ -125,9 +125,11 @@ void PendSV_Handler(void)
 void SysTick_Handler(void)
 {
   /* USER CODE BEGIN SysTick_IRQn 0 */
-  if(TickCounter == 999){
+  if(TickCounter >= 999){
     #if GPS_TYPE == 1
-    incTimeCount();
+    incTimeCountNmea();
+    #elif GPS_TYPE == 2
+    incTimeCountGps();
     #endif
     TickCounter = 0;
   }

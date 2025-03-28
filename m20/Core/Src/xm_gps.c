@@ -11,10 +11,13 @@
 
 const uint8_t syncChain[] = {0xAA, 0xAA, 0xAA, 0x03};
 
-uint32_t oldTime = 0;
 float oldAlt = 0;
-float oldLat = 0;
-float oldLon = 0;
+
+uint16_t TimeCounterr = 0;
+
+void incTimeCountGps(){
+    TimeCounterr++;
+}
 
 void ParseXM(XMDATA *GpsData, uint8_t *buffer, uint8_t position){
     GpsData->Fix = *(uint8_t *)(buffer+4+position);
@@ -47,22 +50,17 @@ void ParseXM(XMDATA *GpsData, uint8_t *buffer, uint8_t position){
                 ((GpsData->Time & 0x00FF0000) >> 8) |
                 ((GpsData->Time & 0x0000FF00) << 8);
 
-    if((GpsData->Time - oldTime) >= AscentRateTime){
-        if(oldTime!=0){
-            GpsData->AscentRate = (GpsData->Alt-oldAlt)/(GpsData->Time-oldTime);
-            
-            //float a = pow(sin((fabs(GpsData->Lat - oldLat)*90)/M_PI), 2) + cos(((GpsData->Lat)*180)/M_PI) * cos((oldLat*180)/M_PI) * pow(sin((fabs(GpsData->Lon - oldLon)*90)/M_PI),2);
-            //float d = 2*6371*atan2(sqrt(a), sqrt(1-a));
-            //GpsData->GroundSpeed = d;
-            //GpsData->GroundSpeed = sqrt(pow(d, 2) + pow(GpsData->Alt-oldAlt, 2))/(GpsData->Time-oldTime);
-        }else{
-            GpsData->AscentRate = 0;
-            GpsData->GroundSpeed = 0;
+    if(GpsData->Fix > 1 && GpsData->Alt != 0){
+        if(oldAlt == 0){
+            oldAlt = GpsData->Alt;
+            TimeCounterr = 0;            
+        }else if(oldAlt != 0 && TimeCounterr>=AscentRateTime){
+            GpsData->AscentRate = (float)(GpsData->Alt-oldAlt)/TimeCounterr;
+            oldAlt = GpsData->Alt;
+            TimeCounterr = 0;
         }
-        oldTime = GpsData->Time;
-        oldAlt = GpsData->Alt;
-        oldLat = GpsData->Lat;
-        oldLon = GpsData->Lon;
+    }else{
+        oldAlt = 0;
     }
 
     GpsData->Hours = (GpsData->Time/3600)%24;
@@ -78,7 +76,7 @@ void ParseXM(XMDATA *GpsData, uint8_t *buffer, uint8_t position){
 }
 
 int8_t getPosition(uint8_t *buffer){
-    for(uint8_t pos = 0; pos<=FrameLen+1; pos++){
+    for(uint8_t pos = 0; pos<=GPS_FRAME_LEN+1; pos++){
         bool sync = true;
         for(uint8_t syncCount = 0; syncCount<sizeof(syncChain)/sizeof(syncChain[0]); syncCount++){
             if(buffer[pos+syncCount] != syncChain[syncCount]){

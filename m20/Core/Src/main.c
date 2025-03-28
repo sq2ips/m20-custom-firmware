@@ -315,8 +315,6 @@ int main(void)
   LL_GPIO_SetOutputPin(RADIO_EN_GPIO_Port, RADIO_EN_Pin);
   adf_setup();
 
-
-  LL_GPIO_SetOutputPin(LPS_CS_GPIO_Port, LPS_CS_Pin); // to be removed
   for (uint8_t i = 0; i < 5; i++)
   {
     lps_init = LPS22_Init();

@@ -19,4 +19,6 @@ typedef struct XM_DATA {
 
 void parseXMframe(XMDATA *GpsData, uint8_t *buffer);
 
+void incTimeCountGps();
+
 #endif
