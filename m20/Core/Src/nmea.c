@@ -19,7 +19,7 @@ char data[DATA_SIZE][SENTENCE_SIZE];
 uint8_t correct = 0;
 uint16_t olddAlt = 0;
 
-void incTimeCount(){
+void incTimeCountNmea(){
     TimeCounter++;
 }
 
