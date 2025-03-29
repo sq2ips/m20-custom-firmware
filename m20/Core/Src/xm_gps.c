@@ -13,11 +13,7 @@ const uint8_t syncChain[] = {0xAA, 0xAA, 0xAA, 0x03};
 
 float oldAlt = 0;
 
-uint16_t TimeCounterr = 0;
-
-void incTimeCountGps(){
-    TimeCounterr++;
-}
+uint32_t oldTime = 0;
 
 void ParseXM(XMDATA *GpsData, uint8_t *buffer, uint8_t position){
     GpsData->Fix = *(uint8_t *)(buffer+4+position);
@@ -51,16 +47,25 @@ void ParseXM(XMDATA *GpsData, uint8_t *buffer, uint8_t position){
                 ((GpsData->Time & 0x0000FF00) << 8);
 
     if(GpsData->Fix > 1 && GpsData->Alt != 0){
-        if(oldAlt == 0){
-            oldAlt = GpsData->Alt;
-            TimeCounterr = 0;            
-        }else if(oldAlt != 0 && TimeCounterr>=AscentRateTime){
-            GpsData->AscentRate = (float)(GpsData->Alt-oldAlt)/TimeCounterr;
-            oldAlt = GpsData->Alt;
-            TimeCounterr = 0;
+        if(GpsData->Time != 0){
+            if(oldTime==0){
+                oldAlt = GpsData->Alt;
+                oldTime = GpsData->Time;
+            }
+            if((GpsData->Time-oldTime) < 0){
+                GpsData->Time+=3600*24;
+            }
+            if((GpsData->Time-oldTime)>=AscentRateTime){
+                GpsData->AscentRate = (float)(GpsData->Alt-oldAlt)/(GpsData->Time-oldTime);
+                if((GpsData->Time-oldTime) < 0){
+                    GpsData->Time-=3600*24;
+                }
+                oldAlt = GpsData->Alt;
+                oldTime = GpsData->Time;
+            }
+        }else{
+            oldTime = 0;
         }
-    }else{
-        oldAlt = 0;
     }
 
     GpsData->Hours = (GpsData->Time/3600)%24;

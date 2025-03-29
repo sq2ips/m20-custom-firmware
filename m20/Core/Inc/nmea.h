@@ -27,6 +27,4 @@ typedef struct NMEA_DATA {
 
 void ParseNMEA(NMEA *nmea_data, uint8_t *buffer);
 
-void incTimeCountNmea();
-
 #endif /* INC_NMEA_H_ */

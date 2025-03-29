@@ -53,11 +53,6 @@ extern "C" {
 #include "stm32l0xx_it.h"
 #include "fsk4.h"
 #include "config.h"
-#if GPS_TYPE == 1
-#include "nmea.h"
-#elif GPS_TYPE == 2
-#include "xm_gps.h"
-#endif
 /* USER CODE END Includes */
 
 /* Exported types ------------------------------------------------------------*/

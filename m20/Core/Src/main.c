@@ -364,8 +364,6 @@ int main(void)
   LL_TIM_EnableCounter(TIM6);
   LL_TIM_EnableIT_UPDATE(TIM6);
 
-  LL_SYSTICK_EnableIT();
-
   /* USER CODE END 2 */
 
   /* Infinite loop */
