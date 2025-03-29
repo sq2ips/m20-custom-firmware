@@ -315,6 +315,8 @@ int main(void)
   LL_GPIO_SetOutputPin(RADIO_EN_GPIO_Port, RADIO_EN_Pin);
   adf_setup();
 
+  HorusPacket.PayloadID = PAYLOAD_ID;
+
   for (uint8_t i = 0; i < 5; i++)
   {
     lps_init = LPS22_Init();
@@ -364,8 +366,6 @@ int main(void)
 
   LL_SYSTICK_EnableIT();
 
-  //  Payload ID
-  HorusPacket.PayloadID = PAYLOAD_ID;
   /* USER CODE END 2 */
 
   /* Infinite loop */
