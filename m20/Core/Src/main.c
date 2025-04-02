@@ -315,6 +315,8 @@ int main(void)
   LL_GPIO_SetOutputPin(RADIO_EN_GPIO_Port, RADIO_EN_Pin);
   adf_setup();
 
+  LL_GPIO_SetOutputPin(LED_GPIO_Port, LED_Pin); // LED
+
   HorusPacket.PayloadID = PAYLOAD_ID;
 
   for (uint8_t i = 0; i < 5; i++)
@@ -338,20 +340,25 @@ int main(void)
 
 #if GPS_TYPE == 1
   // u-blox change mode to airborne
-  LL_mDelay(100);
-  for (uint8_t ig = 0; ig < 44; ig++)
-  {
-    while (!LL_LPUART_IsActiveFlag_TXE(LPUART1))
+  LL_mDelay(2000);
+  for(uint8_t ih = 0; ih < 2; ih++){
+    for (uint8_t ig = 0; ig < 44; ig++)
+    {
+      while (!LL_LPUART_IsActiveFlag_TXE(LPUART1))
+      {
+      }
+      LL_LPUART_TransmitData8(LPUART1, GPS_airborne[ig]);
+    }
+    while (!LL_LPUART_IsActiveFlag_TC(LPUART1))
     {
     }
-    LL_LPUART_TransmitData8(LPUART1, GPS_airborne[ig]);
+    if (ih == 0) LL_mDelay(900);
+    LL_mDelay(100);
   }
-  while (!LL_LPUART_IsActiveFlag_TC(LPUART1))
-  {
-  }
-  LL_mDelay(100);
 
 #endif
+
+  LL_GPIO_ResetOutputPin(LED_GPIO_Port, LED_Pin);
 
   // watchdog timer
   MX_IWDG_Init();
