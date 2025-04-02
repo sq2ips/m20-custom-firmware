@@ -342,16 +342,11 @@ int main(void)
   // u-blox change mode to airborne
   LL_mDelay(2000);
   for(uint8_t ih = 0; ih < 2; ih++){
-    for (uint8_t ig = 0; ig < 44; ig++)
-    {
-      while (!LL_LPUART_IsActiveFlag_TXE(LPUART1))
-      {
-      }
+    for (uint8_t ig = 0; ig < 44; ig++){
+      while (!LL_LPUART_IsActiveFlag_TXE(LPUART1)){}
       LL_LPUART_TransmitData8(LPUART1, GPS_airborne[ig]);
     }
-    while (!LL_LPUART_IsActiveFlag_TC(LPUART1))
-    {
-    }
+    while (!LL_LPUART_IsActiveFlag_TC(LPUART1)){}
     if (ih == 0) LL_mDelay(900);
     LL_mDelay(100);
   }
