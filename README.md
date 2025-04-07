@@ -1,5 +1,5 @@
 # m20-custom-firmware
-The goal of this project is to reverse engineer the Meteomodem M20 radiosonde and build custom firmware for its usage in ham radio baloons based on the [Horus Binary V2](https://github.com/projecthorus/horusdemodlib/wiki) radio protocol.
+The goal of this project is to reverse engineer the Meteomodem M20 radiosonde and build custom free and open-source firmware for its usage in ham radio baloons based on the [Horus Binary V2](https://github.com/projecthorus/horusdemodlib/wiki) radio protocol.
 
 # Code
 The code is writen in C using STM32CubeMX (not to be confused with STM32CubeIDE) and Low Layer (LL) libraries and compiled using arm-none-eabi toolchain. Now it fits into the original STM32L051R6T6 chip.
@@ -36,7 +36,6 @@ The currently implemented features are:
 - u-blox GPS module altitude limit to 12km (mode change implementation in progress)
 - High frequency instability (no TCXO)
 - Transmitted frequency "jumps"
-- Problems with ascent rate calculation (solved?)
 
 # Horus 4FSK tone spacing
 Due to hardware limitations (system clock PLL setting options) it is not possible to generate a clock signal for the radio module whose frequency is divisible by 9. That results in no possibility of having a 270Hz tone spacing standardized by the RS41ng project. The tone spacing is set to 244Hz acquired by an 8MHz clock signal. The limitation is directly connected with the method of implementing FSK and there seems to be no way to overcome it without hardware intervention. The effect is that receiving stations must set a different from standard tone spacing or the SNR will be very low, for comparison:
