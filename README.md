@@ -131,12 +131,31 @@ Parameters list:
 | `TIME_PERIOD` | uint (in seconds) | Time between transmition of frames. Should not be lower than 4. |
 | `GPS_TYPE` | uint | Type of GPS module, eather 1 for u-blox MAX-M10M, 2 for XM1110 module. For identifying the module see [GPS](https://github.com/sq2ips/m20-custom-firmware?tab=readme-ov-file#gps) section. |
 | `QRG_FSK4` | uint (in Hz) | Frequency of 4FSK Horus transmition. |
-| `PA_FSK4` | uint | Number from 0 to 63. TODO power levels measurements. |
+| `PA_FSK4` | uint | Number from 0 to 63. See the table bellow. |
 | `RF_BOOST_ACTIVE` | bool | State of RF TX boost, amplifies signal by around 15dB. (In off state the boost cricut is attenuating the signal, when less output power is needed it's better to decrease `PA_FSK4` than turning it off.) |
 | `ADF_FREQ_CORRECTION` | uint (multiples of 244Hz) | Frequency correction for transmitted signal |
 | `LED_MODE` | uint | 0 - disabled, 1 - LED on while getting data before transmission, 2 - Fix type indication (1 flash for no fix, 2 flashes for 2D fix, 3 flashed 3D fix) |
 | `LED_PERIOD` | uint | only for `LED_MODE` 3, time between fix indication |
 | `LED_DISABLE_ALT` | uint (in meters) | only for `LED_MODE` 3, disables LED when prompted altitude is reached. |
+
+## Power setting
+Power setting for `PA_FSK4`.
+| power setting | power |
+| ------------- | ----- |
+| 8  | 0,005W |
+| 10 | 0,008W |
+| 15 | 0,016W |
+| 20 | 0,027W |
+| 25 | 0,038W |
+| 30 | 0,052W |
+| 35 | 0,062W |
+| 40 | 0,075W |
+| 45 | 0,088W |
+| 50 | 0,101W |
+| 55 | 0,112W |
+| 60 | 0,122W |
+| 63 | 0,13W |
+
 # Building the firmware
 Before flashing the firmware you need to build it first, there are a few ways you can do it depending on the platform:
 ## Building directly on Linux
