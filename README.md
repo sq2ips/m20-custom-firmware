@@ -239,7 +239,7 @@ make protect
 ```
 or if you don't have `make` or want to run it directly:
 ```bash
-openocd -s ./openocd/ -f ./openocd/openocd_m20.cfg -c "init; halt; flash protect 0 0 7 reset; exit"
+openocd -s ./openocd/ -f ./openocd/openocd_m20.cfg -c "init; halt; flash protect 0 0 7 off; exit"
 ```
 After it finishes you can flash the built firmware:
 ```bash
@@ -255,7 +255,7 @@ After it finishes your sonde should now work with the new firmware.
 First [download OpenOCD](https://github.com/xpack-dev-tools/openocd-xpack/releases/latest) select the file with ending `win32-x64.zip`, then extract it.
 Go to the path of the project then to `m20/`. Ensure that ST-Link is connected and then remove the write protection (only before the first flash):
 ```cmd
-<path\to\openocd>\bin\openocd.exe -s openocd -f openocd\openocd_m20.cfg -c "init; halt; flash protect 0 0 7 reset; exit"
+<path\to\openocd>\bin\openocd.exe -s openocd -f openocd\openocd_m20.cfg -c "init; halt; flash protect 0 0 7 off; exit"
 ```
 replace `<path\to\openocd>` with path of the extracted program.
 After it finishes you can flash the built firmware:

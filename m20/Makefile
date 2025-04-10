@@ -212,6 +212,6 @@ flash:
 	openocd -s ./openocd/ -f ./openocd/openocd_m20.cfg -c "program build/m20.elf verify reset exit"
 # remove protect
 protect:
-	openocd -s ./openocd/ -f ./openocd/openocd_m20.cfg -c "init; halt; flash protect 0 0 7 reset; exit"
+	openocd -s ./openocd/ -f ./openocd/openocd_m20.cfg -c "init; halt; flash protect 0 0 7 off; exit"
 
 # *** EOF ***
