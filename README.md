@@ -115,12 +115,12 @@ Sent data (implemented in [`horus.h`](https://github.com/sq2ips/m20-custom-firmw
 | 15-16 |	uint16 |	Altitude (m) |
 | 17 |	uint8 |	Speed (kph) |
 | 18 |	uint8 |	Satellites |
-| 19 |	int8 |	Temperature (deg C) from [LPS22HB](https://github.com/sq2ips/m20-custom-firmware/tree/main?tab=readme-ov-file#barometer-and-temperature-sensor) sensor |
-| 20 |	uint8 |	Battery Voltage from [battery ADC](https://github.com/sq2ips/m20-custom-firmware/edit/main/tree/main?tab=readme-ov-file#battery-voltage-reading) |
+| 19 |	int8 |	Temperature (deg C) from [LPS22HB](#barometer-and-temperature-sensor) sensor |
+| 20 |	uint8 |	Battery Voltage from [battery ADC](#battery-voltage-reading) |
 | 21-22 | int16 | Ascent rate (speed of changes in altitude) |
-| 23-24 | int16 | External temperature from [NTC](https://github.com/sq2ips/m20-custom-firmware/tree/main?tab=readme-ov-file#external-temperature-sensor) sensor |
+| 23-24 | int16 | External temperature from [NTC](#external-temperature-sensor) sensor |
 | 25 | uint8 | Humidity, not implemented yet |
-| 26-27 | uint16 | Pressure data from [LPS22HB](https://github.com/sq2ips/m20-custom-firmware/tree/main?tab=readme-ov-file#barometer-and-temperature-sensor) sensor |
+| 26-27 | uint16 | Pressure data from [LPS22HB](#barometer-and-temperature-sensor) sensor |
 | 28-29 | - | not used (yet?) |
 | 30-31 |	uint16 | CRC16-CCITT Checksum |
 
@@ -161,7 +161,7 @@ Parameters list:
 |-----------|------|-------------|
 | `PAYLOAD_ID` | uint16 | Payload ID transmitted in Horus Binary frame, in order to conduct a flight you need to request one for your callsign, more information in the [Protocol documentation](https://github.com/projecthorus/horusdemodlib/wiki#how-do-i-transmit-it). For testing ID 256 is used |
 | `TIME_PERIOD` | uint (in seconds) | Time between transmition of frames. Should not be lower than 4. |
-| `GPS_TYPE` | uint | Type of GPS module, eather 1 for u-blox MAX-M10M, 2 for XM1110 module. For identifying the module see [GPS](https://github.com/sq2ips/m20-custom-firmware?tab=readme-ov-file#gps) section. |
+| `GPS_TYPE` | uint | Type of GPS module, eather 1 for u-blox MAX-M10M, 2 for XM1110 module. For identifying the module see [GPS](#gps) section. |
 | `QRG_FSK4` | uint (in Hz) | Frequency of 4FSK Horus transmition. |
 | `PA_FSK4` | uint | Number from 0 to 63. See the table bellow. |
 | `RF_BOOST_ACTIVE` | bool | State of RF TX boost, amplifies signal by around 15dB. (In off state the boost cricut is attenuating the signal, when less output power is needed it's better to decrease `PA_FSK4` than turning it off.) |
