@@ -1,12 +1,12 @@
 # m20-custom-firmware
-The goal of this project is to reverse engineer the Meteomodem M20 radiosonde and build custom free and open-source firmware for its usage in ham radio baloons based on the [Horus Binary V2](https://github.com/projecthorus/horusdemodlib/wiki) radio protocol.
+The goal of this project is to reverse engineer the [Meteomodem M20](https://www.meteomodem.com/m20) radiosonde and build custom free and open-source firmware for its usage in ham radio baloons based on the [Horus Binary V2](https://github.com/projecthorus/horusdemodlib/wiki) radio protocol.
 
 # Code
 The code is writen in C using STM32CubeMX (not to be confused with STM32CubeIDE) and Low Layer (LL) libraries and compiled using arm-none-eabi toolchain. Now it fits into the original STM32L051R6T6 chip.
 Building and flashing instructions are placed further in this file.
 
 # Stage
-In this stage the code works to the point where it gets GPS and sensors data, then sends it using Horus Binary V2 protocol over radio. However this code is currently in the experimental/testing phase and there are some problems with it. Keeping that in mind, making flights with it is possible. Thanks to SP9AOB and SP6MPL for conducting test flights. If you are making a flight with this firmware let me know, it really helps with finding bugs and testing the code.
+In this stage the code works to the point where it gets GPS and sensors data, then sends them using Horus Binary V2 protocol over radio. However this code is currently in the experimental/testing phase and there are some problems with it. Keeping that in mind, making flights with it is possible. Thanks to SP9AOB and SP6MPL for conducting test flights. If you are making a flight with this firmware let me know, it really helps with finding bugs and testing the code.
 
 # What works
 - GPS (NMEA): :heavy_check_mark:
@@ -20,6 +20,7 @@ In this stage the code works to the point where it gets GPS and sensors data, th
 # Features list
 The currently implemented features are:
 - GPS time, position, altitude, speed, ascent rate and number of satellites (NMEA and XM1110)
+- changing u-blox module mode to airborne to allow higher altitude flights
 - Sending data over radio using Horus Binary V2 protocol
 - Getting battery voltage
 - Getting temperature and pressure
@@ -33,7 +34,6 @@ The currently implemented features are:
 - implementing APRS
 
 # Known issues
-- u-blox GPS module altitude limit to 12km (mode change implementation in progress)
 - High frequency instability (no TCXO)
 - Transmitted frequency "jumps"
 
@@ -68,12 +68,18 @@ Great pcb reverse enginering work was made by [joyel24](https://github.com/joyel
 # GPS
 There are 2 variants of GPS modules, both of them are supported.
 ## New GPS (NMEA)
-In newer M20 sondes u-blox MAX-M10M that uses NMEA protocol is used.
+In newer M20 sondes u-blox [MAX-M10M](https://content.u-blox.com/sites/default/files/documents/MAX-M10M_DataSheet_UBX-22028884.pdf) that uses NMEA protocol is used.
+
+The module has normal altitude limit to 12000m, that's why mode change is needed for stratospheric flights (to around 30000m). After startup a command is sent to the module to change its mode. Then the altitude limit is 80000m in exchange for lower max acceleration that is not needed anyway.
 
 ![alt text](https://github.com/sq2ips/m20-custom-firmware/blob/main/img/gps_new.jpg?raw=true)
 
 ## Old GPS (XM1110)
 In older M20 sondes XM1110 GPS module is used. It transmits data over UART but with custom firmware that transmits only binary protocol data.
+
+The module doesn't seem to have any altitude limit lower than 30000m.
+
+Vertical speed from this module is not implemented yet due to weird frame format.
 
 ![alt text](https://github.com/sq2ips/m20-custom-firmware/blob/main/img/gps_old.jpg?raw=true)
 
@@ -81,16 +87,41 @@ Data format:
 
 ![alt text](https://github.com/sq2ips/m20-custom-firmware/blob/main/img/GPS.png?raw=true)
 
-# Barometer and temp sensor
-LPS22HB sensor is used with SPI interface.
+# Barometer and temperature sensor
+LPS22HB sensor is used with SPI interface, it sends pressure data, and additionaly temperature.
 
 # External temperature sensor
 A NTC is used for external temperature measuring with addable resistors, the schematic looks like this:
 
 ![alt text](https://github.com/sq2ips/m20-custom-firmware/blob/main/img/NTC.jpg?raw=true)
 
+# Battery voltage reading
+Battery is directly connected to one of the ADC pins, without any resistor divider, the voltage reference of ADC is 3.3V so it can't mesure voltages higher than that.
+
 # Radio
-TODO
+The [ADF7012B](https://www.analog.com/media/en/technical-documentation/data-sheets/ADF7012.pdf) radio module is used.
+
+The only supported format for now is [Horus Binary V2](https://github.com/projecthorus/horusdemodlib/wiki/5-Customising-a-Horus-Binary-v2-Packet) with default custom format.
+Sent data (implemented in [`horus.h`](https://github.com/sq2ips/m20-custom-firmware/blob/main/m20/Core/Inc/horus.h)):
+| Byte No. | Data Type | Size (bytes) | Description |
+| 0-1 | uint16 | Payload ID (0-65535) |
+| 2-3 |	uint16 |	Sequence Number |
+| 4 |	uint8 |	Time-of-day (Hours) |
+| 5 |	uint8 |	Time-of-day (Minutes) |
+| 6 |	uint8 |	Time-of-day (Seconds) |
+| 7-10 |	float |	Latitude |
+| 11-14 |	float |	Longitude |
+| 15-16 |	uint16 |	Altitude (m) |
+| 17 |	uint8 |	Speed (kph) |
+| 18 |	uint8 |	Satellites |
+| 19 |	int8 |	Temperature (deg C) from [LPS22HB](https://github.com/sq2ips/m20-custom-firmware/edit/main/README.md#barometer-and-temperature-sensor) sensor |
+| 20 |	uint8 |	Battery Voltage from [battery ADC](https://github.com/sq2ips/m20-custom-firmware/edit/main/README.md#battery-voltage-reading) |
+| 21-22 | int16 | Ascent rate (speed of changes in altitude) |
+| 23-24 | int16 | External temperature from [NTC](https://github.com/sq2ips/m20-custom-firmware/tree/main?tab=readme-ov-file#external-temperature-sensor) sensor |
+| 25 | uint8 | Humidity, not implemented yet |
+| 26-27 | uint16 | Pressure data from [LPS22HB](https://github.com/sq2ips/m20-custom-firmware/edit/main/README.md#barometer-and-temperature-sensor) sensor |
+| 28-29 | - | not used (yet?) |
+| 30-31 |	uint16 | CRC16-CCITT Checksum |
 
 # Running the firmware
 ## What you will need
@@ -105,7 +136,7 @@ Hardware requirements:
 
 ## Recomended hardware modifications
 ## Load resistor
-If you have a sonde with new GPS module, there is a additional parallel 62 Ohm resistor added at the output of the voltage converter, all it does it drawing ~53mA from the line and converting it to heat. I have no idea why it was added, removing it does not make the power supply unstable or anything like that, maybe it was added for draining the battery quicker. You can safely remove this resistor to save some energy from the battery.
+If you have a sonde with new GPS module, there is a additional parallel 62 Ohm resistor added at the output of the voltage converter, all it does it drawing ~53mA from the line and converting it to heat. I have no idea why it was added, removing it does not make the power supply unstable or anything like that, maybe it was added for draining the battery quicker or heating up the board. You can safely remove this resistor to save some energy from the battery.
 This is the resistor:
 
 ![alt text](https://github.com/sq2ips/m20-custom-firmware/blob/main/img/rezystor.jpg?raw=true)
@@ -139,7 +170,7 @@ Parameters list:
 | `LED_DISABLE_ALT` | uint (in meters) | only for `LED_MODE` 3, disables LED when prompted altitude is reached. |
 
 ## Power setting
-Power setting for `PA_FSK4`.
+Power setting for `PA_FSK4`, mesured at 437.600MHz, directly at output.
 | power setting | power |
 | ------------- | ----- |
 | 8  | 0,005W |
@@ -154,7 +185,7 @@ Power setting for `PA_FSK4`.
 | 50 | 0,101W |
 | 55 | 0,112W |
 | 60 | 0,122W |
-| 63 | 0,13W |
+| 63 | 0,130W |
 
 # Building the firmware
 Before flashing the firmware you need to build it first, there are a few ways you can do it depending on the platform:
