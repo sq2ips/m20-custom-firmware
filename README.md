@@ -103,7 +103,8 @@ The [ADF7012B](https://www.analog.com/media/en/technical-documentation/data-shee
 
 The only supported format for now is [Horus Binary V2](https://github.com/projecthorus/horusdemodlib/wiki/5-Customising-a-Horus-Binary-v2-Packet) with default custom format.
 Sent data (implemented in [`horus.h`](https://github.com/sq2ips/m20-custom-firmware/blob/main/m20/Core/Inc/horus.h)):
-| Byte No. | Data Type | Size (bytes) | Description |
+| Byte No. | Data Type | Description |
+|-|-|-|
 | 0-1 | uint16 | Payload ID (0-65535) |
 | 2-3 |	uint16 |	Sequence Number |
 | 4 |	uint8 |	Time-of-day (Hours) |
