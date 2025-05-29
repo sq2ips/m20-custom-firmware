@@ -115,12 +115,12 @@ Sent data (implemented in [`horus.h`](https://github.com/sq2ips/m20-custom-firmw
 | 15-16 |	uint16 |	Altitude (m) |
 | 17 |	uint8 |	Speed (kph) |
 | 18 |	uint8 |	Satellites |
-| 19 |	int8 |	Temperature (deg C) from [LPS22HB](https://github.com/sq2ips/m20-custom-firmware/edit/main/README.md#barometer-and-temperature-sensor) sensor |
-| 20 |	uint8 |	Battery Voltage from [battery ADC](https://github.com/sq2ips/m20-custom-firmware/edit/main/README.md#battery-voltage-reading) |
+| 19 |	int8 |	Temperature (deg C) from [LPS22HB](https://github.com/sq2ips/m20-custom-firmware/tree/main?tab=readme-ov-file#barometer-and-temperature-sensor) sensor |
+| 20 |	uint8 |	Battery Voltage from [battery ADC](https://github.com/sq2ips/m20-custom-firmware/edit/main/tree/main?tab=readme-ov-file#battery-voltage-reading) |
 | 21-22 | int16 | Ascent rate (speed of changes in altitude) |
 | 23-24 | int16 | External temperature from [NTC](https://github.com/sq2ips/m20-custom-firmware/tree/main?tab=readme-ov-file#external-temperature-sensor) sensor |
 | 25 | uint8 | Humidity, not implemented yet |
-| 26-27 | uint16 | Pressure data from [LPS22HB](https://github.com/sq2ips/m20-custom-firmware/edit/main/README.md#barometer-and-temperature-sensor) sensor |
+| 26-27 | uint16 | Pressure data from [LPS22HB](https://github.com/sq2ips/m20-custom-firmware/tree/main?tab=readme-ov-file#barometer-and-temperature-sensor) sensor |
 | 28-29 | - | not used (yet?) |
 | 30-31 |	uint16 | CRC16-CCITT Checksum |
 
