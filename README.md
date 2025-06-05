@@ -63,7 +63,7 @@ Great pcb reverse enginering work was made by [joyel24](https://github.com/joyel
 - NMEA parsed based on https://github.com/sztvka/stm32-nmea-gps-hal
 - LPS22 implementation based on https://github.com/KitSprout/KSDK/tree/master/firmwareSTM32/KSSTM_Module_LPS22HB/Program/modules
 - Radio modules implementation based on https://github.com/adamgreig/wombat
-- Horus Binary encoder based on https://github.com/whallmann/RS41HUP_V2/blob/master/horus_l2.c
+- Horus Binary encoder based on https://github.com/projecthorus/horusdemodlib/blob/master/src%2Fhorus_l2.c
 
 # GPS
 There are 2 variants of GPS modules, both of them are supported.
