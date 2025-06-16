@@ -5,7 +5,7 @@ The goal of this project is to reverse engineer the [Meteomodem M20](https://www
 The code is writen in C using STM32CubeMX (not to be confused with STM32CubeIDE) and Low Layer (LL) libraries and compiled using arm-none-eabi toolchain. Now it fits into the original STM32L051R6T6 chip.
 Building and flashing instructions are placed further in this file.
 
-# Stage
+# Stagecosmic 
 In this stage the code works to the point where it gets GPS and sensors data, then sends them using Horus Binary V2 protocol over radio. However this code is currently in the experimental/testing phase and there are some problems with it. Keeping that in mind, making flights with it is possible. Thanks to SP9AOB and SP6MPL for conducting test flights. If you are making a flight with this firmware let me know, it really helps with finding bugs and testing the code.
 
 # What works
@@ -28,6 +28,8 @@ The currently implemented features are:
 - Watchdog timer
 
 # Planned work
+- implementing transmission frequency switching
+- implementing resistor divider voltage mesurement to overcome [issues with ADC voltage reference](#battery-voltage-reading)
 - making use of STM32 energy saving states
 - Implementing XM1110 GPS speed data
 - implementing humidity sensors
