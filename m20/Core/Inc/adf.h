@@ -1,7 +1,7 @@
 #ifndef ADF_H_
 #define ADF_H_
 
-#include "main.h"
+#include <stdint.h>
 
 void adf_reset_config(void);
 void adf_reset_register_zero(void);

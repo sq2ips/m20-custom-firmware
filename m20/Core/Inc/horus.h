@@ -1,7 +1,7 @@
 #ifndef INC_HORUS_H_
 #define INC_HORUS_H_
 
-#include "main.h"
+#include <stdint.h>
 
 typedef struct TBinaryPacket{
 	uint16_t PayloadID;

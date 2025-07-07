@@ -20,31 +20,28 @@
 // set counter to 1000-1
 
 
-uint16_t current_2_bit = 0;
-uint8_t FSK_Active = 0;
-char* buffer;
-uint8_t buffer_len;
-
+static uint16_t current_2_bit = 0;
+static bool FSK_Active = false;
+static char* buffer;
+static uint8_t buffer_len;
 
 void FSK4_stop_TX() {
-
 	    TIM2->DIER &= ~(TIM_DIER_UIE); /* Disable the interrupt */
 		adf_RF_off();   //turn TX off
-		FSK_Active = 0;
+		FSK_Active = false;
 	}
 
 
-void FSK4_send_2bit(uint8_t bits_to_send) {  //sends 2 bit value
+static void FSK4_send_2bit(uint8_t bits_to_send) {  //sends 2 bit value
 	bits_to_send = (bits_to_send & 3);    //make sure to take only 2 last bites of value - we cannot send more than 2 bits at the same time
 	adf_4fsk_fone(bits_to_send * FSK4_SPACE_MULTIPLIER);
 }
 
-uint8_t FSK4_is_active() {  //returns 1 if transmitter is active for 4FSK
-
-	return  FSK_Active;
+bool FSK4_is_active() {  //returns 1 if transmitter is active for 4FSK
+	return FSK_Active;
 }
 
-void FSK4_write(char* buff, uint16_t address_2bit) {
+static void FSK4_write(char* buff, uint16_t address_2bit) {
 	int full_bytes = address_2bit / 4 ;  //number of full bytes of address
 	int fraction_part = address_2bit - (full_bytes * 4); // fraction part of address (number of 2bytes offset)
 	uint8_t byte_to_send = (buff[full_bytes] >> (6-(fraction_part * 2)) & 3);  // returns 2 bytes of buffer at address
@@ -84,17 +81,11 @@ void FSK4_start_TX(char* buff, uint8_t len) {
 		//adf_setup();
 	    current_2_bit=0;                                                   //reset counter of current position of bit address
 	    adf_RF_on(QRG_FSK4, PA_FSK4);                                   //turn on radio TX
-	    FSK_Active = 1;                                                    //change status
+	    FSK_Active = true;                                                    //change status
 	    TIM2->CR1 &= (uint16_t)(~((uint16_t)TIM_CR1_CEN));                 // Disable the TIM Counter
 	  	uint16_t timer2StartValue = (100000 / FSK4_BAUD) - 1;              //timer value calculated according to baud rate 999 for 100bd
 	    TIM2->ARR = timer2StartValue;                           //set timer counter max value to pre-set value for baudrate (auto-reload register)
 	  	TIM2->CR1 |= TIM_CR1_CEN;                               //enable timer again
 	    TIM2->DIER |= TIM_DIER_UIE;                             //Enable the interrupt
-	    FSK4_timer_handler(buff);                           //force execution of procedure responsible for interrupt handling
+	    FSK4_timer_handler();                           //force execution of procedure responsible for interrupt handling
 }
-
-
-
-
-
-

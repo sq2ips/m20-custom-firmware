@@ -7,27 +7,27 @@
 // This file is specifically made for M20 radiosondes. Uses specific hardware connections.
 // file is basically customized KitSprout library  https://github.com/KitSprout/KSDK
 
-#include <stdint.h>
+#include "main.h"
 #include "lps22hb.h"
 //#include "math.h"   //only for calculating altitude
 
 /**
   * @brief  SPI_RW
   */
-uint8_t SPI_RW(uint8_t sendByte )
+static uint8_t SPI_RW(uint8_t sendByte )
 {
-  SET_BIT(SPI1->CR1, SPI_CR1_SPE); 
+  SET_BIT(SPI1->CR1, SPI_CR1_SPE);
 	while(((SPI1->SR) & SPI_SR_TXE) != SPI_SR_TXE); // wait while tx-flag not empty
 	*(uint8_t *)&(SPI1->DR) = sendByte; // write data to be transmitted to the SPI data register
 	while ((SPI1->SR & SPI_SR_RXNE) != SPI_SR_RXNE); // wait while rx-buffer not empty
 	/* Wait until the bus is ready before releasing Chip select */
-	while(((SPI1->SR) & SPI_SR_BSY) == SPI_SR_BSY); 
+	while(((SPI1->SR) & SPI_SR_BSY) == SPI_SR_BSY);
   CLEAR_BIT(SPI1->CR1, SPI_CR1_SPE);
 
 	return *(uint8_t *)&(SPI1->DR); // return received data from SPI data register
 }
 
-void LPS22_WriteReg( uint8_t writeAddr, uint8_t writeData )
+static void LPS22_WriteReg( uint8_t writeAddr, uint8_t writeData )
 {
   LL_GPIO_ResetOutputPin(LPS_CS_GPIO_Port, LPS_CS_Pin);
   SPI_RW(writeAddr);
@@ -38,7 +38,7 @@ void LPS22_WriteReg( uint8_t writeAddr, uint8_t writeData )
 /**
  *  @brief  LPS22_ReadReg
  */
-uint8_t LPS22_ReadReg( uint8_t readAddr )
+static uint8_t LPS22_ReadReg( uint8_t readAddr )
 {
   uint8_t readData;
 

@@ -12,13 +12,13 @@
 #endif
 #include <string.h>
 
-char data[DATA_SIZE][SENTENCE_SIZE];
+static char data[DATA_SIZE][SENTENCE_SIZE];
 
-uint8_t correct = 0;
-uint16_t olddAlt = 0;
-uint32_t olddTime = 0;
+static uint8_t correct = 0;
+static uint16_t olddAlt = 0;
+static uint32_t olddTime = 0;
 
-uint16_t a_strtof(char *buffer){
+static uint16_t a_strtof(char *buffer){
     uint8_t d_pos = 0;
     uint16_t value = 0;
 
@@ -36,7 +36,7 @@ uint16_t a_strtof(char *buffer){
     return value;
 }
 
-uint8_t checksum(char *nmea_frame)
+static uint8_t checksum(char *nmea_frame)
 {
     //if you point a string with less than 5 characters the function will read outside of scope and crash the mcu.
     if(strlen(nmea_frame) < 5) return 0;
@@ -53,7 +53,7 @@ uint8_t checksum(char *nmea_frame)
     int receivedHash = 0;
     for (int i = 0; i < 2; i++) {
         receivedHash <<= 4;  // Shift left by 4 bits (equivalent to multiplying by 16)
-    
+
         if (recv_crc[i] >= '0' && recv_crc[i] <= '9') {
             receivedHash += recv_crc[i] - '0';  // Convert '0'-'9' to 0-9
         } else if (recv_crc[i] >= 'A' && recv_crc[i] <= 'F') {
@@ -70,7 +70,7 @@ uint8_t checksum(char *nmea_frame)
     }
 }
 
-uint8_t getValues(char *inputString, char values[MAX_SENTENCE_ELEMENTS][SENTENCE_ELEMENT_LEN]) {
+static uint8_t getValues(char *inputString, char values[MAX_SENTENCE_ELEMENTS][SENTENCE_ELEMENT_LEN]) {
     uint8_t pos = 0;
     uint8_t d_pos = 0;
     uint8_t cnt = 0;
@@ -100,7 +100,7 @@ uint8_t getValues(char *inputString, char values[MAX_SENTENCE_ELEMENTS][SENTENCE
     return cnt;
 }
 
-int nmea_GGA(NMEA *nmea_data, char *inputString){
+static bool nmea_GGA(NMEA *nmea_data, char *inputString){
 	char values[MAX_SENTENCE_ELEMENTS][SENTENCE_ELEMENT_LEN];
     memset(values, 0, sizeof(values));
 	uint8_t len = getValues(inputString, values);
@@ -117,7 +117,7 @@ int nmea_GGA(NMEA *nmea_data, char *inputString){
     }
 
     nmea_data->Sats = (values[7][0]-'0')*10 + (values[7][1]-'0');
-    
+
     uint8_t lonSide = values[5][0];
     uint8_t latSide = values[3][0];
     if(latSide == 'S' || latSide == 'N'){
@@ -188,7 +188,7 @@ int nmea_GGA(NMEA *nmea_data, char *inputString){
 }
 
 
-int nmea_GSA(NMEA *nmea_data, char*inputString){
+static bool nmea_GSA(NMEA *nmea_data, char*inputString){
 	char values[MAX_SENTENCE_ELEMENTS][SENTENCE_ELEMENT_LEN];
     memset(values, 0, sizeof(values));
 	uint8_t len = getValues(inputString, values);
@@ -214,7 +214,7 @@ int nmea_GSA(NMEA *nmea_data, char*inputString){
 
 
 
-int nmea_GLL(NMEA *nmea_data, char*inputString) {
+static bool nmea_GLL(NMEA *nmea_data, char*inputString) {
 	char values[MAX_SENTENCE_ELEMENTS][SENTENCE_ELEMENT_LEN];
     memset(values, 0, sizeof(values));
 	uint8_t len = getValues(inputString, values);
@@ -255,13 +255,13 @@ int nmea_GLL(NMEA *nmea_data, char*inputString) {
 
 }
 
-int nmea_VTG(NMEA *nmea_data, char*inputString) {
+static bool nmea_VTG(NMEA *nmea_data, char*inputString) {
 	char values[MAX_SENTENCE_ELEMENTS][SENTENCE_ELEMENT_LEN];
     memset(values, 0, sizeof(values));
 	uint8_t len = getValues(inputString, values);
     if(len<7) return 0;
 
-    nmea_data->Speed = a_strtof(values[7]); // 5 for knots, 7 for km/h 
+    nmea_data->Speed = a_strtof(values[7]); // 5 for knots, 7 for km/h
     return 1;
 }
 
@@ -293,6 +293,6 @@ void ParseNMEA(NMEA *nmea_data, uint8_t *buffer){
     	    	if (nmea_VTG(nmea_data, data[i])) correct++;
     	    }
     	}
-    	nmea_data->Corr = correct; 
+    	nmea_data->Corr = correct;
     }
 }

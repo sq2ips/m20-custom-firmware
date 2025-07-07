@@ -9,7 +9,7 @@
 #include <assert.h>
 #include <string.h>
 
-static char uw[] = {'$','$'};
+const static char uw[] = {'$','$'};
 
 #define X22             0x00400000   /* vector representation of X^{22} */
 #define X11             0x00000800   /* vector representation of X^{11} */
@@ -35,7 +35,7 @@ uint16_t crc16(char *string, uint8_t len) {
 
 #ifdef INTERLEAVER
 
-uint16_t primes[] = {
+const static uint16_t primes[] = {
     2,      3,      5,      7,      11,     13,     17,     19,     23,     29,
     31,     37,     41,     43,     47,     53,     59,     61,     67,     71,
     73,     79,     83,     89,     97,     101,    103,    107,    109,    113,

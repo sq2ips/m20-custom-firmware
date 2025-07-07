@@ -27,7 +27,7 @@
 #define __USE_BAROMETER
 
 /* Includes --------------------------------------------------------------------------------*/
-#include "main.h"
+#include <stdint.h>
 //#include "stm32l0xx_hal_conf.h"
 //#include "algorithms\mathUnit.h"
 
@@ -127,9 +127,6 @@ typedef struct {
 #define LPS22HB_SENS_DEGC     (100.0f)
 
 /* Exported functions ----------------------------------------------------------------------*/
-uint8_t  SPI_RW( uint8_t sendByte );
-void      LPS22_WriteReg( uint8_t writeAddr, uint8_t writeData );
-uint8_t   LPS22_ReadReg( uint8_t readAddr );
 
 uint8_t   LPS22_Init( void );
 uint8_t   LPS22_DeviceCheck( void );

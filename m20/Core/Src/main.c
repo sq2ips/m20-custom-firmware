@@ -50,7 +50,7 @@ bool GpsBufferReady = false;
 
 #if GPS_TYPE == 1
 NMEA NmeaData;
-static uint8_t GPS_airborne[44] = {0xB5, 0x62, 0x06, 0x24, 0x24, 0x00, 0x01, 0x00, 0x07, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x56, 0xD6};
+const static uint8_t GPS_airborne[44] = {0xB5, 0x62, 0x06, 0x24, 0x24, 0x00, 0x01, 0x00, 0x07, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x56, 0xD6};
 #elif GPS_TYPE == 2
 XMDATA GpsData;
 #endif
@@ -1037,7 +1037,7 @@ static void MX_GPIO_Init(void)
    GPIO_InitStruct.OutputType = LL_GPIO_OUTPUT_OPENDRAIN;
    GPIO_InitStruct.Pull = LL_GPIO_PULL_NO;
    LL_GPIO_Init(NTC_475K_GPIO_Port, &GPIO_InitStruct);
- 
+
    /**/
    GPIO_InitStruct.Pin = NTC_36K_Pin;
    GPIO_InitStruct.Mode = LL_GPIO_MODE_OUTPUT;
@@ -1045,7 +1045,7 @@ static void MX_GPIO_Init(void)
    GPIO_InitStruct.OutputType = LL_GPIO_OUTPUT_PUSHPULL;
    GPIO_InitStruct.Pull = LL_GPIO_PULL_NO;
    LL_GPIO_Init(NTC_36K_GPIO_Port, &GPIO_InitStruct);
- 
+
    /**/
    GPIO_InitStruct.Pin = NTC_12K_Pin;
    GPIO_InitStruct.Mode = LL_GPIO_MODE_OUTPUT;
@@ -1053,7 +1053,7 @@ static void MX_GPIO_Init(void)
    GPIO_InitStruct.OutputType = LL_GPIO_OUTPUT_OPENDRAIN;
    GPIO_InitStruct.Pull = LL_GPIO_PULL_NO;
    LL_GPIO_Init(NTC_12K_GPIO_Port, &GPIO_InitStruct);
- 
+
    /**/
    GPIO_InitStruct.Pin = NTC_330K_Pin;
    GPIO_InitStruct.Mode = LL_GPIO_MODE_OUTPUT;
@@ -1061,7 +1061,7 @@ static void MX_GPIO_Init(void)
    GPIO_InitStruct.OutputType = LL_GPIO_OUTPUT_OPENDRAIN;
    GPIO_InitStruct.Pull = LL_GPIO_PULL_NO;
    LL_GPIO_Init(NTC_330K_GPIO_Port, &GPIO_InitStruct);
- 
+
    /**/
    GPIO_InitStruct.Pin = NTC_1M5_Pin;
    GPIO_InitStruct.Mode = LL_GPIO_MODE_OUTPUT;
