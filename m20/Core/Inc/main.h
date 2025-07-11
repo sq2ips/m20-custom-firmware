@@ -82,6 +82,8 @@ void main_loop(void);
 #define BUTTON_GPIO_Port GPIOC
 #define LED_Pin LL_GPIO_PIN_14
 #define LED_GPIO_Port GPIOC
+#define PAYLOAD_ADC_Pin LL_GPIO_PIN_0
+#define PAYLOAD_ADC_GPIO_Port GPIOC
 #define LPS_CS_Pin LL_GPIO_PIN_4
 #define LPS_CS_GPIO_Port GPIOA
 #define NTC_ADC_Pin LL_GPIO_PIN_4
@@ -112,10 +114,10 @@ void main_loop(void);
 #define NTC_36K_GPIO_Port GPIOB
 #define NTC_12K_Pin LL_GPIO_PIN_6
 #define NTC_12K_GPIO_Port GPIOB
+#define NTC_2M_Pin LL_GPIO_PIN_8
+#define NTC_2M_GPIO_Port GPIOB
 #define NTC_330K_Pin LL_GPIO_PIN_9
 #define NTC_330K_GPIO_Port GPIOB
-#define NTC_1M5_Pin LL_GPIO_PIN_8
-#define NTC_1M5_GPIO_Port GPIOB
 #ifndef NVIC_PRIORITYGROUP_0
 #define NVIC_PRIORITYGROUP_0                                                   \
   ((uint32_t)0x00000007) /*!< 0 bit  for pre-emption priority,                 \
