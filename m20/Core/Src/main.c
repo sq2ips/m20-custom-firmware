@@ -178,7 +178,7 @@ void main_loop(void) {
   LL_ADC_REG_StartConversion(ADC1);
   while (LL_ADC_IsActiveFlag_EOC(ADC1) == 0) {
   }
-  HorusPacket.BatVoltage = (LL_ADC_REG_ReadConversionData12(ADC1) * 187) / 4549;
+  HorusPacket.BatVoltage = (LL_ADC_REG_ReadConversionData12(ADC1) * 187) / 4550;
   LL_ADC_ClearFlag_EOS(ADC1);
 
 #ifdef DEBUG
