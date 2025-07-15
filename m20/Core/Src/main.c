@@ -916,19 +916,19 @@ static void MX_GPIO_Init(void) {
   LL_GPIO_ResetOutputPin(ADF_CE_GPIO_Port, ADF_CE_Pin);
 
   /**/
-  LL_GPIO_ResetOutputPin(NTC_475K_GPIO_Port, NTC_475K_Pin);
+  LL_GPIO_SetOutputPin(NTC_475K_GPIO_Port, NTC_475K_Pin);
 
   /**/
   LL_GPIO_ResetOutputPin(NTC_36K_GPIO_Port, NTC_36K_Pin);
 
   /**/
-  LL_GPIO_ResetOutputPin(NTC_12K_GPIO_Port, NTC_12K_Pin);
+  LL_GPIO_SetOutputPin(NTC_12K_GPIO_Port, NTC_12K_Pin);
 
   /**/
-  LL_GPIO_ResetOutputPin(NTC_2M_GPIO_Port, NTC_2M_Pin);
+  LL_GPIO_SetOutputPin(NTC_2M_GPIO_Port, NTC_2M_Pin);
 
   /**/
-  LL_GPIO_ResetOutputPin(NTC_330K_GPIO_Port, NTC_330K_Pin);
+  LL_GPIO_SetOutputPin(NTC_330K_GPIO_Port, NTC_330K_Pin);
 
   /**/
   GPIO_InitStruct.Pin = BUTTON_Pin;
@@ -1045,7 +1045,7 @@ static void MX_GPIO_Init(void) {
   GPIO_InitStruct.Pin = NTC_36K_Pin;
   GPIO_InitStruct.Mode = LL_GPIO_MODE_OUTPUT;
   GPIO_InitStruct.Speed = LL_GPIO_SPEED_FREQ_LOW;
-  GPIO_InitStruct.OutputType = LL_GPIO_OUTPUT_OPENDRAIN;
+  GPIO_InitStruct.OutputType = LL_GPIO_OUTPUT_PUSHPULL;
   GPIO_InitStruct.Pull = LL_GPIO_PULL_NO;
   LL_GPIO_Init(NTC_36K_GPIO_Port, &GPIO_InitStruct);
 
