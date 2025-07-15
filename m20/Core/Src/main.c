@@ -178,11 +178,27 @@ void main_loop(void) {
   LL_ADC_REG_StartConversion(ADC1);
   while (LL_ADC_IsActiveFlag_EOC(ADC1) == 0) {
   }
-  HorusPacket.BatVoltage = (LL_ADC_REG_ReadConversionData12(ADC1) * 187) / 4549;
+  HorusPacket.BatVoltage = (LL_ADC_REG_ReadConversionData12(ADC1) * 187) / 4550;
   LL_ADC_ClearFlag_EOS(ADC1);
 
 #ifdef DEBUG
   printf("Bat voltage: %d\r\n", HorusPacket.BatVoltage);
+#endif
+
+  // Payload voltage reading
+  LL_ADC_REG_SetSequencerChannels(ADC1, LL_ADC_CHANNEL_10);
+  LL_ADC_REG_StartConversion(ADC1);
+  while (LL_ADC_IsActiveFlag_EOC(ADC1) == 0) {
+  }
+  HorusPacket.PayloadVoltage = (((LL_ADC_REG_ReadConversionData12(ADC1) *
+                                  (PAYLOAD_ADC_R1 + PAYLOAD_ADC_R2)) /
+                                 (PAYLOAD_ADC_R2)) *
+                                22) /
+                               273;
+  LL_ADC_ClearFlag_EOS(ADC1);
+
+#ifdef DEBUG
+  printf("Payload voltage: %d\r\n", HorusPacket.PayloadVoltage);
 #endif
 
   // NTC temp reading

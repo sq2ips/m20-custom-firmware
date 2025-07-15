@@ -16,12 +16,12 @@ typedef struct TBinaryPacket {
   uint8_t Sats;
   int8_t Temp;
   uint8_t BatVoltage;
-  // Custom data, 9 bytes RS41ing data
+  // Custom data, 9 bytes RS41ing data + payload voltage
   int16_t AscentRate;
   int16_t ExtTemp;
   uint8_t Hum;
   uint16_t Press;
-  uint16_t Unused;
+  uint16_t PayloadVoltage;
   // End of custom data
   uint16_t Checksum;
 } __attribute__((packed)) HorusBinaryPacket;

@@ -25,6 +25,9 @@
 #define LED_PERIOD 5            // time between LED lighting
 #define LED_DISABLE_ALT 1000    // disable led when certain altitude is reached, 0 for always enable
 
+#define PAYLOAD_ADC_R1 70
+#define PAYLOAD_ADC_R2 100
+
 /*-----------------------------------------------------------------*/
 //  the rest of parameters should not be changed normally
 
