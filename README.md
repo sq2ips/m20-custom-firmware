@@ -161,15 +161,15 @@ Before building the firmware you fist need to configure parameters located in th
 Parameters list:
 | parameter | type (and unit) | description |
 |-----------|------|-------------|
-| `QRG_FSK4` | float[] (in Hz) | Transmitted frequencies array, switched in a loop, add new frequencies after a comma in braces. |
-| `PAYLOAD_ID` | uint16 | Payload ID transmitted in Horus Binary frame, in order to conduct a flight you need to request one for your callsign, more information in the [Protocol documentation](https://github.com/projecthorus/horusdemodlib/wiki#how-do-i-transmit-it). For testing ID 256 is used |
+| `QRG_FSK4` | float[] (in Hz) | Transmitted frequencies array, switched in a loop, add new frequencies after a comma in braces. Refer to [Horus wiki](https://github.com/projecthorus/horusdemodlib/wiki#commonly-used-frequencies) for commonly used frequencies. |
+| `PAYLOAD_ID` | uint16 | Payload ID transmitted in Horus Binary frame, in order to conduct a flight you need to request one for your callsign, more information in the [Protocol documentation](https://github.com/projecthorus/horusdemodlib/wiki#how-do-i-transmit-it). For testing ID 256 is used. |
 | `TIME_PERIOD` | uint (in seconds) | Time between transmition of frames. Should not be lower than 4. |
 | `GPS_TYPE` | uint | Type of GPS module, eather 1 for u-blox MAX-M10M, 2 for XM1110 module. For identifying the module see [GPS](#gps) section. |
 | `PA_FSK4` | uint | Number from 0 to 63. See the table bellow. |
 | `RF_BOOST_ACTIVE` | bool | State of RF TX boost, amplifies signal by around 15dB. (In off state the boost cricut is attenuating the signal, when less output power is needed it's better to decrease `PA_FSK4` than turning it off.) |
-| `ADF_FREQ_CORRECTION` | uint (multiples of 244Hz) | Frequency correction for transmitted signal |
-| `LED_MODE` | uint | 0 - disabled, 1 - LED on while getting data before transmission, 2 - Fix type indication (1 flash for no fix, 2 flashes for 2D fix, 3 flashed 3D fix) |
-| `LED_PERIOD` | uint | only for `LED_MODE` 3, time between fix indication |
+| `ADF_FREQ_CORRECTION` | uint (multiples of 244Hz) | Frequency correction for transmitted signal. |
+| `LED_MODE` | uint | 0 - disabled, 1 - LED on while getting data before transmission, 2 - Fix type indication (1 flash for no fix, 2 flashes for 2D fix, 3 flashed 3D fix). |
+| `LED_PERIOD` | uint | only for `LED_MODE` 3, time between fix indication. |
 | `LED_DISABLE_ALT` | uint (in meters) | only for `LED_MODE` 3, disables LED when prompted altitude is reached. |
 
 ## Power setting
