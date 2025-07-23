@@ -25,6 +25,7 @@ static uint16_t current_2_bit = 0;
 static bool FSK_Active = false;
 static char *buffer;
 static uint8_t buffer_len;
+static uint8_t QRGCounter = 0;
 
 void FSK4_stop_TX() {
   TIM2->DIER &= ~(TIM_DIER_UIE); /* Disable the interrupt */
@@ -85,7 +86,9 @@ void FSK4_start_TX(char *buff, uint8_t len) {
   buffer_len = len;
   // adf_setup();
   current_2_bit = 0; // reset counter of current position of bit address
-  adf_RF_on(QRG_FSK4, PA_FSK4);                      // turn on radio TX
+  adf_RF_on(QRG_FSK4[QRGCounter++], PA_FSK4); // turn on radio TX
+  if (QRGCounter >= sizeof(QRG_FSK4) / sizeof(QRG_FSK4[0]))
+    QRGCounter = 0;
   FSK_Active = true;                                 // change status
   TIM2->CR1 &= (uint16_t)(~((uint16_t)TIM_CR1_CEN)); // Disable the TIM Counter
   uint16_t timer2StartValue =
@@ -93,8 +96,8 @@ void FSK4_start_TX(char *buff, uint8_t len) {
       1; // timer value calculated according to baud rate 999 for 100bd
   TIM2->ARR = timer2StartValue; // set timer counter max value to pre-set value
                                 // for baudrate (auto-reload register)
-  TIM2->CR1 |= TIM_CR1_CEN;   // enable timer again
-  TIM2->DIER |= TIM_DIER_UIE; // Enable the interrupt
-  FSK4_timer_handler();       // force execution of procedure responsible for
-                        // interrupt handling
+  TIM2->CR1 |= TIM_CR1_CEN;     // enable timer again
+  TIM2->DIER |= TIM_DIER_UIE;   // Enable the interrupt
+  FSK4_timer_handler();         // force execution of procedure responsible for
+                                // interrupt handling
 }

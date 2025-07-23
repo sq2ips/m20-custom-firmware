@@ -313,8 +313,8 @@ void adf_setup(void) {
   adf_reset_config();
   adf_set_r_divider(
       1); // We will be using whole 9(or 8)MHz for freq reference for adf7012
-  adf_set_frequency(QRG_FSK4); // Temporarily set freq for CW - it is going to
-                               // be changed later when turning on TX
+  adf_set_frequency(QRG_FSK4[0]); // Temporarily set freq for CW - it is going
+                                  // to be changed later when turning on TX
   adf_set_pll_enable(ADF_ON);
   adf_write_config();
 }
