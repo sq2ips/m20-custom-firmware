@@ -18,6 +18,8 @@ const static float QRG_FSK4[] = {435100000}; // Transmitted frequencies array, s
 
 #define GPS_TYPE 1              // Type of GPS module: 1 - u-blox | 2 - XM1110
 
+#define GPS_WATCHDOG 3            // number of frames without gps fix to trigger restart
+
 #define PA_FSK4 10              // RF power setting for horus transmission values 0-63
 #define RF_BOOST_ACTIVE 1       // RF booster enabled for transmissions about 15dB gain, but more power consumed - normally should be ON(1).
 
