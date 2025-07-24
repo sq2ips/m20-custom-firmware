@@ -2,7 +2,7 @@
 The goal of this project is to reverse engineer the [Meteomodem M20](https://www.meteomodem.com/m20) radiosonde and build custom free and open-source firmware for its usage in ham radio baloons based on the [Horus Binary V2](https://github.com/projecthorus/horusdemodlib/wiki) radio protocol.
 
 # Code
-The code is writen in C using STM32CubeMX (not to be confused with STM32CubeIDE) and Low Layer (LL) libraries and compiled using arm-none-eabi toolchain. Now it fits into the original STM32L051R6T6 chip.
+The code is writen in C using STM32CubeMX (not to be confused with STM32CubeIDE) generated project and Low Layer (LL) libraries, compiled using arm-none-eabi toolchain (version 15.1.0 is used). Now it fits into the original STM32L051R6T6 chip.
 Building and flashing instructions are placed further in this file.
 
 # Stage
@@ -26,6 +26,7 @@ The currently implemented features are:
 - Getting temperature and pressure
 - Getting external temperature
 - Watchdog timer
+- GPS watchdog for no fix (useful in GPS jamming/spoofing areas)
 
 # Planned work
 - implementing transmission frequency switching
@@ -165,6 +166,7 @@ Parameters list:
 | `PAYLOAD_ID` | uint16 | Payload ID transmitted in Horus Binary frame, in order to conduct a flight you need to request one for your callsign, more information in the [Protocol documentation](https://github.com/projecthorus/horusdemodlib/wiki#how-do-i-transmit-it). For testing ID 256 is used. |
 | `TIME_PERIOD` | uint (in seconds) | Time between transmition of frames. Should not be lower than 4. |
 | `GPS_TYPE` | uint | Type of GPS module, eather 1 for u-blox MAX-M10M, 2 for XM1110 module. For identifying the module see [GPS](#gps) section. |
+| `GPS_WATCHDOG` | uint | Number of main loop iterations without GPS fix that will trigger restart (Only if there was fix before). |
 | `PA_FSK4` | uint | Number from 0 to 63. See the table bellow. |
 | `RF_BOOST_ACTIVE` | bool | State of RF TX boost, amplifies signal by around 15dB. (In off state the boost cricut is attenuating the signal, when less output power is needed it's better to decrease `PA_FSK4` than turning it off.) |
 | `ADF_FREQ_CORRECTION` | uint (multiples of 244Hz) | Frequency correction for transmitted signal. |
