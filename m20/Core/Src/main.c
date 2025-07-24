@@ -61,7 +61,6 @@ XMDATA GpsData;
 
 #ifdef GPS_WATCHDOG
 uint8_t GpsWatchdogCounter = 0;
-bool PreviousFix = false;
 #endif
 
 uint8_t lps_init;
@@ -119,17 +118,13 @@ PUTCHAR_PROTOTYPE {
 void main_loop(void) {
 #ifdef GPS_WATCHDOG
 #if GPS_TYPE == 1
-  if (NmeaData.Fix > 1 && NmeaData.Sats > 0)
-    PreviousFix = true;
-  if (PreviousFix && (NmeaData.Fix <= 1 || NmeaData.Sats == 0)) {
+  if (NmeaData.Fix <= 1 || NmeaData.Sats == 0) {
     GpsWatchdogCounter++;
   } else {
     GpsWatchdogCounter = 0;
   }
 #elif GPS_TYPE == 2
-  if (GpsData.Fix > 0 && GpsData.Sats > 0)
-    PreviousFix = true;
-  if (PreviousFix && (GpsData.Fix == 0 || GpsData.Sats == 0)) {
+  if (GpsData.Fix == 0 || GpsData.Sats == 0) {
     GpsWatchdogCounter++;
   } else {
     GpsWatchdogCounter = 0;
@@ -137,8 +132,7 @@ void main_loop(void) {
 #endif
   if (GpsWatchdogCounter >= GPS_WATCHDOG) {
     LL_GPIO_ResetOutputPin(GPS_ON_GPIO_Port, GPS_ON_Pin); // disable GPS
-    while (1) {
-    } // trigger a restart with IWDG
+    while (1) {} // trigger a restart with IWDG
   }
 #endif
   // LED
