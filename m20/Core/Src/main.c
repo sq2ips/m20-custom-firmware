@@ -61,7 +61,7 @@ XMDATA GpsData;
 
 #ifdef GPS_WATCHDOG
 uint8_t GpsWatchdogCounter = 0;
-bool GpsPreviuosFix = false;
+bool GpsPreviousFix = false;
 #endif
 
 uint8_t lps_init;
@@ -253,7 +253,7 @@ void main_loop(void) {
   if (GpsWatchdogCounter >= GPS_WATCHDOG) {
     LL_GPIO_ResetOutputPin(GPS_ON_GPIO_Port, GPS_ON_Pin); // disable GPS
     for(uint8_t i = 0; i<10; i++){
-        LL_Delay(100);
+        LL_mDelay(100);
         LL_IWDG_ReloadCounter(IWDG);
     }
     LL_GPIO_ResetOutputPin(GPS_ON_GPIO_Port, GPS_ON_Pin); // enable GPS
