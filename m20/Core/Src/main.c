@@ -62,7 +62,6 @@ XMDATA GpsData;
 #ifdef GPS_WATCHDOG
 uint8_t GpsWatchdogCounter = 0;
 bool GpsPreviuosFix = false;
-bool GpsReset = false;
 #endif
 
 uint8_t lps_init;
