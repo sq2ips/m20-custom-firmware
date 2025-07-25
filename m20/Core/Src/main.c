@@ -61,7 +61,7 @@ XMDATA GpsData;
 
 #ifdef GPS_WATCHDOG
 uint8_t GpsWatchdogCounter = 0;
-bool PreviousFix = false;
+bool GpsPreviousFix = false;
 #endif
 
 uint8_t lps_init;
@@ -117,30 +117,6 @@ PUTCHAR_PROTOTYPE {
 /* Private user code ---------------------------------------------------------*/
 /* USER CODE BEGIN 0 */
 void main_loop(void) {
-#ifdef GPS_WATCHDOG
-#if GPS_TYPE == 1
-  if (NmeaData.Fix > 1 && NmeaData.Sats > 0)
-    PreviousFix = true;
-  if (PreviousFix && (NmeaData.Fix <= 1 || NmeaData.Sats == 0)) {
-    GpsWatchdogCounter++;
-  } else {
-    GpsWatchdogCounter = 0;
-  }
-#elif GPS_TYPE == 2
-  if (GpsData.Fix > 0 && GpsData.Sats > 0)
-    PreviousFix = true;
-  if (PreviousFix && (GpsData.Fix == 0 || GpsData.Sats == 0)) {
-    GpsWatchdogCounter++;
-  } else {
-    GpsWatchdogCounter = 0;
-  }
-#endif
-  if (GpsWatchdogCounter >= GPS_WATCHDOG) {
-    LL_GPIO_ResetOutputPin(GPS_ON_GPIO_Port, GPS_ON_Pin); // disable GPS
-    while (1) {
-    } // trigger a restart with IWDG
-  }
-#endif
   // LED
 #if LED_MODE == 1
   LL_GPIO_TogglePin(LED_GPIO_Port, LED_Pin);
@@ -254,6 +230,34 @@ void main_loop(void) {
 // LED
 #if LED_MODE == 1
   LL_GPIO_TogglePin(LED_GPIO_Port, LED_Pin);
+#endif
+
+#ifdef GPS_WATCHDOG
+#if GPS_TYPE == 1
+  if (NmeaData.Fix >= 1 && NmeaData.Sats>1)
+      GpsPreviousFix = true;
+  if (GpsPreviousFix && (NmeaData.Fix <= 1 || NmeaData.Sats == 0)) {
+    GpsWatchdogCounter++;
+  } else {
+    GpsWatchdogCounter = 0;
+  }
+#elif GPS_TYPE == 2
+  if (NmeaData.Fix >= 1 && NmeaData.Sats>1)
+      GpsPreviousFix = true;
+  if (GpsPreviousFix && (GpsData.Fix <= 1 || GpsData.Sats == 0)) {
+    GpsWatchdogCounter++;
+  } else {
+    GpsWatchdogCounter = 0;
+  }
+#endif
+  if (GpsWatchdogCounter >= GPS_WATCHDOG) {
+    LL_GPIO_ResetOutputPin(GPS_ON_GPIO_Port, GPS_ON_Pin); // disable GPS
+    for(uint8_t i = 0; i<10; i++){
+        LL_mDelay(100);
+        LL_IWDG_ReloadCounter(IWDG);
+    }
+    LL_GPIO_ResetOutputPin(GPS_ON_GPIO_Port, GPS_ON_Pin); // enable GPS
+  }
 #endif
 }
 void GPS_Handler(void) {
