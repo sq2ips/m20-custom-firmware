@@ -257,6 +257,7 @@ void main_loop(void) {
         LL_IWDG_ReloadCounter(IWDG);
     }
     LL_GPIO_SetOutputPin(GPS_ON_GPIO_Port, GPS_ON_Pin); // enable GPS
+    GpsWatchdogCounter = 0;
   }
 #endif
 }
