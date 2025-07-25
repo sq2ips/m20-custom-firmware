@@ -256,7 +256,7 @@ void main_loop(void) {
         LL_mDelay(100);
         LL_IWDG_ReloadCounter(IWDG);
     }
-    LL_GPIO_ResetOutputPin(GPS_ON_GPIO_Port, GPS_ON_Pin); // enable GPS
+    LL_GPIO_SetOutputPin(GPS_ON_GPIO_Port, GPS_ON_Pin); // enable GPS
   }
 #endif
 }
