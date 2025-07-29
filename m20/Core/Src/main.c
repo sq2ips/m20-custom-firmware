@@ -234,7 +234,7 @@ void main_loop(void) {
 
 #ifdef GPS_WATCHDOG
 #if GPS_TYPE == 1
-  if (NmeaData.Fix >= 1 && NmeaData.Sats>1)
+  if (NmeaData.Fix >= 1 && NmeaData.Sats>0)
       GpsPreviousFix = true;
   if (GpsPreviousFix && (NmeaData.Fix <= 1 || NmeaData.Sats == 0)) {
     GpsWatchdogCounter++;
@@ -242,7 +242,7 @@ void main_loop(void) {
     GpsWatchdogCounter = 0;
   }
 #elif GPS_TYPE == 2
-  if (NmeaData.Fix >= 1 && NmeaData.Sats>1)
+  if (GpsData.Fix >= 1 && GpsData.Sats>0)
       GpsPreviousFix = true;
   if (GpsPreviousFix && (GpsData.Fix <= 1 || GpsData.Sats == 0)) {
     GpsWatchdogCounter++;
