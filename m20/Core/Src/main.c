@@ -60,8 +60,16 @@ XMDATA GpsData;
 #endif
 
 #ifdef GPS_WATCHDOG
-uint8_t GpsWatchdogCounter = 0;
-bool GpsPreviousFix = false;
+struct GpsWatchdogStruct {
+  bool PreviousFix;
+  bool AfterRestart;
+  uint8_t AfterRestartCounter;
+  bool TriggerRestart;
+
+#if GPS_TYPE == 2
+  uint32_t LastTime;
+#endif
+} GpsWatchdog;
 #endif
 
 uint8_t lps_init;
@@ -87,6 +95,8 @@ static void MX_TIM6_Init(void);
 void GPS_Handler(void);
 void LED_Handler(void);
 void main_loop(void);
+void DelayWithIWDG(uint16_t time);
+void GpsAirborne(void);
 
 #ifdef DEBUG
 #ifdef __GNUC__
@@ -183,6 +193,11 @@ void main_loop(void) {
   LL_ADC_REG_StartConversion(ADC1);
   while (LL_ADC_IsActiveFlag_EOC(ADC1) == 0) {
   }
+  // ADC voltage: 3.3V, divided by ADC max value 4095 (2^12-1). That gives a
+  // range between 0 for 0V and 1 for 3.3V. Than it's multiplied by max
+  // variable value: 255, and divided by corresponding voltage: 5V, simplified
+  // gives 187/4550 Note: this value will not go higher than 168 corresponding
+  // to 3.3V max value of ADC
   HorusPacket.BatVoltage = (LL_ADC_REG_ReadConversionData12(ADC1) * 187) / 4550;
   LL_ADC_ClearFlag_EOS(ADC1);
 
@@ -221,8 +236,93 @@ void main_loop(void) {
                                             (unsigned char *)&HorusPacket,
                                             sizeof(HorusPacket));
 
+#ifdef GPS_WATCHDOG
+// Set a flag if we have initial fix.
+#if GPS_TYPE == 1
+  if (NmeaData.Fix > 1 && NmeaData.Sats > 0) {
+    GpsWatchdog.PreviousFix = true;
+    GpsWatchdog.AfterRestart = false;
+  }
+#elif GPS_TYPE == 2
+  if (GpsData.Fix > 1 && GpsData.Sats > 0) {
+    GpsWatchdog.PreviousFix = true;
+    GpsWatchdog.AfterRestart = false;
+  }
+#endif
+// Check GPS reset conditions only if there was initial fix.
+  if (GpsWatchdog.PreviousFix) {
+#if GPS_TYPE == 1
+    if (NmeaData.Fix > 1 && NmeaData.Sats > 0) {
+      if (NmeaData.AscentRate >= GPS_WATCHDOG_ASCENTRATE) {
+        GpsWatchdog.TriggerRestart = true;
+      }
+    }
+#elif GPS_TYPE == 2
+    if (GpsData.Fix > 1 && GpsData.Sats > 0) {
+        // If there is  fix check spoofing specific conditions.
+        // Ascent rate
+    //printf("%d %d\r\n",(int32_t)GpsData.Time - TIME_PERIOD, GpsWatchdog.LastTime);
+      /*if ((int32_t)GpsData.AscentRate >= GPS_WATCHDOG_ASCENTRATE
+          || (int32_t)GpsData.AscentRate <= (-1*GPS_WATCHDOG_ASCENTRATE)
+          // Time deviation
+          || (GpsWatchdog.LastTime != 0 &&
+          (((int32_t)GpsData.Time - TIME_PERIOD) - GpsWatchdog.LastTime > GPS_WATCHDOG_MAX_D_TIME
+          || GpsWatchdog.LastTime - ((int32_t)GpsData.Time - TIME_PERIOD) < GPS_WATCHDOG_MAX_D_TIME))) {
+        // If conditions match trigger a restart
+        GpsWatchdog.TriggerRestart = true;
+      }*/
+
+      GpsWatchdog.LastTime = GpsData.Time;
+      // if (GpsData.AscentRate >= GPS_WATCHDOG_ASCENTRATE ||
+      //(GpsWatchdog.LastTime != 0 &&
+      // (GpsData.Time-TIME_PERIOD-GpsWatchdog.LastTime>GPS_WATCHDOG_MAX_TIME ||
+      // GpsData.Time-TIME_PERIOD-GpsWatchdog.LastTime<(-1*GPS_WATCHDOG_MAX_TIME))))
+      // /
+    }
+#endif
+    else if (GpsWatchdog.AfterRestart) {
+        // If there is no fix and gps after a restart give it some time before next restart
+      GpsWatchdog.AfterRestartCounter++;
+      if (GpsWatchdog.AfterRestartCounter >= GPS_WATCHDOG_ARC/TIME_PERIOD) {
+        GpsWatchdog.TriggerRestart = true;
+      }
+    } else {
+      GpsWatchdog.TriggerRestart = true;
+    }
+  }
+  //printf("%d %d %d %d\r\n", GpsWatchdog.PreviousFix,
+   //      GpsWatchdog.AfterRestart, GpsWatchdog.AfterRestartCounter,
+   //      GpsWatchdog.TriggerRestart);
+
+  if (GpsWatchdog.TriggerRestart) {
+    LL_GPIO_ResetOutputPin(GPS_ON_GPIO_Port, GPS_ON_Pin); // disable GPS
+    DelayWithIWDG(1000);
+    LL_GPIO_SetOutputPin(GPS_ON_GPIO_Port, GPS_ON_Pin); // enable GPS
+  }
+#endif
+
   // Transmit
   FSK4_start_TX(HorusCodedBuffer, HorusCodedLen);
+
+#ifdef GPS_WATCHDOG
+  if (GpsWatchdog.TriggerRestart) {
+#if GPS_TYPE == 1
+    while (FSK4_is_active()) {
+      LL_IWDG_ReloadCounter(IWDG);
+      LL_mDelay(100);
+    } // Wait for end of transmission (and for GPS module to start).
+
+    GpsAirborne(); // Send a command to GPS module to change to airborne mode.
+#endif
+    // Reset variables to after restart state
+    GpsWatchdog.TriggerRestart = false;
+    GpsWatchdog.AfterRestart = true;
+    GpsWatchdog.AfterRestartCounter = 0;
+    GpsWatchdog.LastTime = 0;
+
+    HorusPacket.GpsResetCount++;
+  }
+#endif
 
   // Packet counter
   HorusPacket.PacketCount++;
@@ -230,78 +330,6 @@ void main_loop(void) {
 // LED
 #if LED_MODE == 1
   LL_GPIO_TogglePin(LED_GPIO_Port, LED_Pin);
-#endif
-
-#ifdef GPS_WATCHDOG
-#if GPS_TYPE == 1
-  if (NmeaData.Fix >= 1 && NmeaData.Sats>0)
-      GpsPreviousFix = true;
-  if (GpsPreviousFix && (NmeaData.Fix <= 1 || NmeaData.Sats == 0)) {
-    GpsWatchdogCounter++;
-  } else {
-    GpsWatchdogCounter = 0;
-  }
-#elif GPS_TYPE == 2
-  if (GpsData.Fix >= 1 && GpsData.Sats>0)
-      GpsPreviousFix = true;
-  if (GpsPreviousFix && (GpsData.Fix <= 1 || GpsData.Sats == 0)) {
-    GpsWatchdogCounter++;
-  } else {
-    GpsWatchdogCounter = 0;
-  }
-#endif
-  if (GpsWatchdogCounter >= GPS_WATCHDOG) {
-    LL_GPIO_ResetOutputPin(GPS_ON_GPIO_Port, GPS_ON_Pin); // disable GPS
-    for(uint8_t i = 0; i<10; i++){
-        LL_mDelay(100);
-        LL_IWDG_ReloadCounter(IWDG);
-    }
-    LL_GPIO_SetOutputPin(GPS_ON_GPIO_Port, GPS_ON_Pin); // enable GPS
-    GpsWatchdogCounter = 0;
-  }
-#endif
-}
-void GPS_Handler(void) {
-  if (LL_LPUART_IsEnabledIT_RXNE(LPUART1) &&
-      LL_LPUART_IsActiveFlag_RXNE(LPUART1)) {
-    if (GpsBufferCounter >= GpsRxBuffer_SIZE) {
-      GpsBufferCounter = 0;
-      GpsBufferReady = true;
-    }
-    GpsRxBuffer[GpsBufferCounter] = LL_LPUART_ReceiveData8(LPUART1);
-    GpsBufferCounter++;
-  } else if (LL_LPUART_IsActiveFlag_ORE(LPUART1)) {
-    LL_LPUART_ClearFlag_ORE(LPUART1);
-#ifdef DEBUG
-    printf("ORE!\r\n");
-#endif
-  }
-}
-void LED_Handler(void) {
-#if LED_MODE == 2
-#if GPS_TYPE == 1
-  uint8_t fix = NmeaData.Fix;
-  if (LED_DISABLE_ALT != 0) {
-    if (NmeaData.Alt >= LED_DISABLE_ALT) {
-      LL_TIM_DisableCounter(TIM6);
-      LL_TIM_DisableIT_UPDATE(TIM6);
-    }
-  }
-#elif GPS_TYPE == 2
-  uint8_t fix = GpsData.Fix;
-  if (LED_DISABLE_ALT != 0) {
-    if (GpsData.Alt >= LED_DISABLE_ALT) {
-      LL_TIM_DisableCounter(TIM6);
-      LL_TIM_DisableIT_UPDATE(TIM6);
-    }
-  }
-#endif
-  for (; fix > 0; fix--) {
-    LL_GPIO_SetOutputPin(LED_GPIO_Port, LED_Pin);
-    LL_mDelay(50);
-    LL_GPIO_ResetOutputPin(LED_GPIO_Port, LED_Pin);
-    LL_mDelay(100);
-  }
 #endif
 }
 /* USER CODE END 0 */
@@ -316,9 +344,11 @@ int main(void) {
 
   /* USER CODE END 1 */
 
-  /* MCU Configuration--------------------------------------------------------*/
+  /* MCU
+   * Configuration--------------------------------------------------------*/
 
-  /* Reset of all peripherals, Initializes the Flash interface and the Systick.
+  /* Reset of all peripherals, Initializes the Flash interface and the
+   * Systick.
    */
   LL_APB2_GRP1_EnableClock(LL_APB2_GRP1_PERIPH_SYSCFG);
   LL_APB1_GRP1_EnableClock(LL_APB1_GRP1_PERIPH_PWR);
@@ -345,7 +375,7 @@ int main(void) {
   MX_TIM2_Init();
   MX_TIM22_Init();
   MX_ADC_Init();
-  // MX_IWDG_Init(); // IWDG implementation after GPS
+  MX_IWDG_Init();
   MX_TIM6_Init();
   /* USER CODE BEGIN 2 */
 
@@ -359,6 +389,7 @@ int main(void) {
 
   HorusPacket.PayloadID = PAYLOAD_ID;
 
+  // Init of LPS22 sensor, try 5 times
   for (uint8_t i = 0; i < 5; i++) {
     lps_init = LPS22_Init();
     if (lps_init == 0)
@@ -380,26 +411,13 @@ int main(void) {
 
 #if GPS_TYPE == 1
   // u-blox change mode to airborne
-  LL_mDelay(2000);
-  for (uint8_t ih = 0; ih < 2; ih++) {
-    for (uint8_t ig = 0; ig < 44; ig++) {
-      while (!LL_LPUART_IsActiveFlag_TXE(LPUART1)) {
-      }
-      LL_LPUART_TransmitData8(LPUART1, GPS_airborne[ig]);
-    }
-    while (!LL_LPUART_IsActiveFlag_TC(LPUART1)) {
-    }
-    if (ih == 0)
-      LL_mDelay(900);
-    LL_mDelay(100);
-  }
+  DelayWithIWDG(2000); // Wait for full GPS start
+  GpsAirborne(); // Send a command to GPS module to change to airborne mode.
+  DelayWithIWDG(100);
 
 #endif
 
   LL_GPIO_ResetOutputPin(LED_GPIO_Port, LED_Pin);
-
-  // watchdog timer
-  MX_IWDG_Init();
 
   // main loop timer
   LL_TIM_EnableCounter(TIM22);
@@ -1112,6 +1130,70 @@ static void MX_GPIO_Init(void) {
 }
 
 /* USER CODE BEGIN 4 */
+void GPS_Handler(void) {
+  if (LL_LPUART_IsEnabledIT_RXNE(LPUART1) &&
+      LL_LPUART_IsActiveFlag_RXNE(LPUART1)) {
+    if (GpsBufferCounter >= GpsRxBuffer_SIZE) {
+      GpsBufferCounter = 0;
+      GpsBufferReady = true;
+    }
+    GpsRxBuffer[GpsBufferCounter] = LL_LPUART_ReceiveData8(LPUART1);
+    GpsBufferCounter++;
+  } else if (LL_LPUART_IsActiveFlag_ORE(LPUART1)) {
+    LL_LPUART_ClearFlag_ORE(LPUART1);
+#ifdef DEBUG
+    printf("ORE!\r\n");
+#endif
+  }
+}
+void LED_Handler(void) {
+#if LED_MODE == 2
+#if GPS_TYPE == 1
+  uint8_t fix = NmeaData.Fix;
+  if (LED_DISABLE_ALT != 0) {
+    if (NmeaData.Alt >= LED_DISABLE_ALT) {
+      LL_TIM_DisableCounter(TIM6);
+      LL_TIM_DisableIT_UPDATE(TIM6);
+    }
+  }
+#elif GPS_TYPE == 2
+  uint8_t fix = GpsData.Fix;
+  if (LED_DISABLE_ALT != 0) {
+    if (GpsData.Alt >= LED_DISABLE_ALT) {
+      LL_TIM_DisableCounter(TIM6);
+      LL_TIM_DisableIT_UPDATE(TIM6);
+    }
+  }
+#endif
+  for (; fix > 0; fix--) {
+    LL_GPIO_SetOutputPin(LED_GPIO_Port, LED_Pin);
+    LL_mDelay(50);
+    LL_GPIO_ResetOutputPin(LED_GPIO_Port, LED_Pin);
+    LL_mDelay(100);
+  }
+#endif
+}
+void DelayWithIWDG(uint16_t time) {
+  for (uint8_t i = 0; i < time / 100; i++) {
+    LL_IWDG_ReloadCounter(IWDG);
+    LL_mDelay(100);
+  }
+}
+#if GPS_TYPE == 1
+void GpsAirborne(void) {
+  for (uint8_t ih = 0; ih < 2; ih++) {
+    for (uint8_t ig = 0; ig < 44; ig++) {
+      while (!LL_LPUART_IsActiveFlag_TXE(LPUART1)) {
+      }
+      LL_LPUART_TransmitData8(LPUART1, GPS_airborne[ig]);
+    }
+    while (!LL_LPUART_IsActiveFlag_TC(LPUART1)) {
+    }
+    if (ih == 0)
+      DelayWithIWDG(900);
+  }
+}
+#endif
 /* USER CODE END 4 */
 
 /**
@@ -1120,7 +1202,8 @@ static void MX_GPIO_Init(void) {
  */
 void Error_Handler(void) {
   /* USER CODE BEGIN Error_Handler_Debug */
-  /* User can add his own implementation to report the HAL error return state */
+  /* User can add his own implementation to report the HAL error return state
+   */
   __disable_irq();
   while (1) {
   }
@@ -1138,8 +1221,8 @@ void Error_Handler(void) {
 void assert_failed(uint8_t *file, uint32_t line) {
   /* USER CODE BEGIN 6 */
   /* User can add his own implementation to report the file name and line
-     number, ex: printf("Wrong parameters value: file %s on line %d\r\n", file,
-     line) */
+     number, ex: printf("Wrong parameters value: file %s on line %d\r\n",
+     file, line) */
   /* USER CODE END 6 */
 }
 #endif /* USE_FULL_ASSERT */

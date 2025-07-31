@@ -16,9 +16,9 @@ const static float QRG_FSK4[] = {435100000}; // Transmitted frequencies array, s
 
 #define TIME_PERIOD 6           // Time betwen starts of transmissions (in seconds) (must be more than 3)
 
-#define GPS_TYPE 1              // Type of GPS module: 1 - u-blox | 2 - XM1110
+#define GPS_TYPE 2              // Type of GPS module: 1 - u-blox | 2 - XM1110
 
-#define GPS_WATCHDOG 3            // number of frames without gps fix to trigger restart
+#define GPS_WATCHDOG            // Enable GPS watchdog
 
 #define PA_FSK4 10              // RF power setting for horus transmission values 0-63
 #define RF_BOOST_ACTIVE 1       // RF booster enabled for transmissions about 15dB gain, but more power consumed - normally should be ON(1).
@@ -31,6 +31,10 @@ const static float QRG_FSK4[] = {435100000}; // Transmitted frequencies array, s
 
 /*-----------------------------------------------------------------*/
 //  the rest of parameters should not be changed normally
+
+#define GPS_WATCHDOG_ARC 180    // Time of GPS watchdog after restart counter, how much time (in s) the module has for getting a fix after a restart before next one
+//#define GPS_WATCHDOG_MAX_D_TIME 10 // Max GPS time deviation (in s) from last frame
+//#define GPS_WATCHDOG_ASCENTRATE 100 // Ascent rate value triggering restart
 
 #define FSK4_BAUD 100           // Baudrate for horus 4FSK
 #define FSK4_SPACE_MULTIPLIER 1 // Tone spacing multiplier - 1 for 244Hz, 2 for 488, etc.

@@ -42,7 +42,7 @@ void ParseXM(XMDATA *GpsData, uint8_t *buffer, uint8_t position) {
                   ((GpsData->Time & 0x00FF0000) >> 8) |
                   ((GpsData->Time & 0x0000FF00) << 8);
 
-  if (GpsData->Fix > 1 && GpsData->Alt != 0) {
+  if (GpsData->Fix == 3 && GpsData->Alt != 0) {
     if (GpsData->Time != 0) {
       if (oldTime == 0) {
         oldAlt = GpsData->Alt;
