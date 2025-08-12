@@ -69,8 +69,8 @@ void ParseXM(XMDATA *GpsData, uint8_t *buffer, uint8_t position) {
   GpsData->Minutes = (GpsData->Time / 60) % 60;
   GpsData->Seconds = GpsData->Time % 60;
 
-  // memcpy(&GpsData->Sats, buffer + 27 + position, sizeof(uint8_t)); // not
-  // sure of this byte meaning (always 12)
+  // memcpy(&GpsData->Sats, buffer + 27 + position, sizeof(uint8_t));
+  // not sure of this byte meaning (always 12)
   for (GpsData->Sats = 0; GpsData->Sats < 16; GpsData->Sats++) {
     if (buffer[position + 28 + GpsData->Sats] == 0) {
       break;

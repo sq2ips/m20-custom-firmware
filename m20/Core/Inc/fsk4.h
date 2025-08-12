@@ -8,4 +8,4 @@ bool FSK4_is_active();
 void FSK4_timer_handler();
 void FSK4_start_TX(char *buff, uint8_t len);
 
-#endif /* INC_HORUS_TRANSMIT_H_ */
+#endif /* INC_FSK4_H_ */

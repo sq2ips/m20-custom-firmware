@@ -3,7 +3,7 @@
 
 #include <stdint.h>
 
-typedef struct XM_DATA {
+typedef struct TXMDATA {
   uint8_t
       Fix; // 00 = no data/parsing error, 01 = no fix, 02 = 2D fix, 03 = 3D fix
   float Lat;        // latitude in degrees with decimal places + for N - for S

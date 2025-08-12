@@ -1,16 +1,9 @@
-/*
- * nmea.h
- *
- *  Created on: Dec 30, 2024
- *      Author: pawel
- */
-
 #ifndef INC_NMEA_H_
 #define INC_NMEA_H_
 
 #include <stdint.h>
 
-typedef struct NMEA_DATA {
+typedef struct TNMEADATA {
   float Lat;    // latitude in degrees with decimal places + for N - for S
   float Lon;    // longitude in degrees with decimal places
   uint16_t Alt; // altitude in meters

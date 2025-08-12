@@ -75,16 +75,13 @@ void adf_reset_config(void) {
   adf_reset_register_two();
   adf_reset_register_three();
   adf_reset();
-
-  // HAL_Delay(10);      //as pin for reading adf ready state is not available,
-  // we will wait a moment
 }
 
 /* Bellow values are based on experiments. Do not change if not required. Some
  * of those are critical and are not documented vco_adjust=3; pa_bias = 7;
  * vco_bias = 0; crystal_oscillator_disable = 1; For modulation deviation set
  * value on experimental basis, for FM channel width to be appropriate. In
- * theory in 270z steps?
+ * theory in 244z steps?
  */
 
 void adf_reset_register_zero(void) {
@@ -143,7 +140,6 @@ void adf_reset(void) {
   LL_mDelay(1); // short delay between powering off and on
   LL_GPIO_SetOutputPin(RADIO_EN_GPIO_Port, RADIO_EN_Pin);
   LL_GPIO_SetOutputPin(ADF_CE_GPIO_Port, ADF_CE_Pin);
-  // HAL_Delay(100);
 }
 
 void adf_turn_off(void) {
@@ -275,8 +271,8 @@ void adf_set_frequency(float freq) {
 
 void adf_4fsk_fone(uint8_t tone) {
   /* minimum frequency change is defined as Fpfd/(2^15). Fpfd=osc/Rdiv (Rdiv=1
-   * in our case). Thus for achieving 270Hz frequency step we have to provide
-   * 9MHz osc signal using frequency adjust register is fastest, since one have
+   * in our case). Thus for achieving 244Hz frequency step we have to provide
+   * 8MHz osc signal using frequency adjust register is fastest, since one have
    * to write only register 0 (consecutive registers does not need to be sent)
    * Frequency shifts smaller than calculated cannot be achieved, thus baudrate
    * slower than 100bd are not possible. Only multiplications of 100bd are
@@ -312,7 +308,7 @@ void adf_setup(void) {
   LL_GPIO_SetOutputPin(ADF_CE_GPIO_Port, ADF_CE_Pin);
   adf_reset_config();
   adf_set_r_divider(
-      1); // We will be using whole 9(or 8)MHz for freq reference for adf7012
+      1); // We will be using whole 8MHz for freq reference for adf7012
   adf_set_frequency(QRG_FSK4[0]); // Temporarily set freq for CW - it is going
                                   // to be changed later when turning on TX
   adf_set_pll_enable(ADF_ON);
@@ -332,7 +328,6 @@ void adf_RF_on(
   } else {
     LL_GPIO_SetOutputPin(RF_Boost_GPIO_Port, RF_Boost_Pin);
   }
-  // HAL_GPIO_WritePin(RF_Boost_GPIO_Port, RF_Boost_Pin, !RF_BOOST_ACTIVE); //RF
   // boost 0 - is ON adf_write_register_three();
 }
 

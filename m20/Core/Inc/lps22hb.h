@@ -18,20 +18,12 @@
 #ifndef __LPS22HB_H
 #define __LPS22HB_H
 
-/*
-#ifdef __cplusplus
- extern "C" {
-#endif
-*/
-
 #define __LPS22
 #define __USE_BAROMETER
 
 /* Includes
  * --------------------------------------------------------------------------------*/
 #include <stdint.h>
-// #include "stm32l0xx_hal_conf.h"
-// #include "algorithms\mathUnit.h"
 
 /* Exported types
  * --------------------------------------------------------------------------*/
@@ -138,11 +130,5 @@ uint8_t LPS22_DeviceCheck(void);
 float LPS22_GetPress(void);
 float LPS22_GetTemp(void);
 // float     LPS22_GetAltitude( float pressure );
-
-/*
-#ifdef __cplusplus
-}
-#endif
-*/
 
 #endif

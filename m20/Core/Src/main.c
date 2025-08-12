@@ -76,7 +76,7 @@ uint8_t lps_init;
 
 HorusBinaryPacket HorusPacket;
 
-char HorusCodedBuffer[100];
+char HorusCodedBuffer[100]; // TODO: change size
 uint16_t HorusCodedLen;
 /* USER CODE END PV */
 
