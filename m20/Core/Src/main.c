@@ -400,6 +400,8 @@ int main(void) {
 
   HorusPacket.PayloadID = PAYLOAD_ID;
 
+  HorusPacket.Unused = 32; // number in unused packet space, can be used to identify M20 transmitter durring flight, value is not important
+
   // Init of LPS22 sensor, try 5 times
   for (uint8_t i = 0; i < 5; i++) {
     lps_init = LPS22_Init();
