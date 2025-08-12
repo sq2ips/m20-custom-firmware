@@ -3,8 +3,6 @@
 #ifndef INC_CONFIG_H_
 #define INC_CONFIG_H_
 
-#include <stdint.h>
-
 //#define DEBUG
 
 /*-----------------------------------------------------------------*/
