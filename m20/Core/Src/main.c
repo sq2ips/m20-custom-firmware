@@ -249,50 +249,56 @@ void main_loop(void) {
     GpsWatchdog.AfterRestart = false;
   }
 #endif
-// Check GPS reset conditions only if there was initial fix.
+  // Check GPS reset conditions only if there was initial fix.
   if (GpsWatchdog.PreviousFix) {
 #if GPS_TYPE == 1
     if (NmeaData.Fix > 1 && NmeaData.Sats > 0) {
-      if (NmeaData.AscentRate >= GPS_WATCHDOG_ASCENTRATE) {
-        GpsWatchdog.TriggerRestart = true;
-      }
+      /*
+        if (NmeaData.AscentRate >= GPS_WATCHDOG_ASCENTRATE) {
+          GpsWatchdog.TriggerRestart = true;
+        }*/ //disable all gps watchdog checks for now, more testing needed
     }
 #elif GPS_TYPE == 2
     if (GpsData.Fix > 1 && GpsData.Sats > 0) {
-        // If there is  fix check spoofing specific conditions.
-        // Ascent rate
-    //printf("%d %d\r\n",(int32_t)GpsData.Time - TIME_PERIOD, GpsWatchdog.LastTime);
+      // If there is  fix check spoofing specific conditions.
+      // Ascent rate
+      // printf("%d %d\r\n",(int32_t)GpsData.Time - TIME_PERIOD,
+      // GpsWatchdog.LastTime);
       /*if ((int32_t)GpsData.AscentRate >= GPS_WATCHDOG_ASCENTRATE
           || (int32_t)GpsData.AscentRate <= (-1*GPS_WATCHDOG_ASCENTRATE)
           // Time deviation
           || (GpsWatchdog.LastTime != 0 &&
-          (((int32_t)GpsData.Time - TIME_PERIOD) - GpsWatchdog.LastTime > GPS_WATCHDOG_MAX_D_TIME
-          || GpsWatchdog.LastTime - ((int32_t)GpsData.Time - TIME_PERIOD) < GPS_WATCHDOG_MAX_D_TIME))) {
+          (((int32_t)GpsData.Time - TIME_PERIOD) - GpsWatchdog.LastTime >
+      GPS_WATCHDOG_MAX_D_TIME
+          || GpsWatchdog.LastTime - ((int32_t)GpsData.Time - TIME_PERIOD) <
+      GPS_WATCHDOG_MAX_D_TIME))) {
         // If conditions match trigger a restart
         GpsWatchdog.TriggerRestart = true;
-      }*/
+      }
 
       GpsWatchdog.LastTime = GpsData.Time;
       // if (GpsData.AscentRate >= GPS_WATCHDOG_ASCENTRATE ||
       //(GpsWatchdog.LastTime != 0 &&
       // (GpsData.Time-TIME_PERIOD-GpsWatchdog.LastTime>GPS_WATCHDOG_MAX_TIME ||
-      // GpsData.Time-TIME_PERIOD-GpsWatchdog.LastTime<(-1*GPS_WATCHDOG_MAX_TIME))))
-      // /
+      //
+      GpsData.Time-TIME_PERIOD-GpsWatchdog.LastTime<(-1*GPS_WATCHDOG_MAX_TIME))))
+      */
     }
 #endif
     else if (GpsWatchdog.AfterRestart) {
-        // If there is no fix and gps after a restart give it some time before next restart
+      // If there is no fix and gps after a restart give it some time before
+      // next restart
       GpsWatchdog.AfterRestartCounter++;
-      if (GpsWatchdog.AfterRestartCounter >= GPS_WATCHDOG_ARC/TIME_PERIOD) {
+      if (GpsWatchdog.AfterRestartCounter >= GPS_WATCHDOG_ARC / TIME_PERIOD) {
         GpsWatchdog.TriggerRestart = true;
       }
     } else {
       GpsWatchdog.TriggerRestart = true;
     }
   }
-  //printf("%d %d %d %d\r\n", GpsWatchdog.PreviousFix,
-   //      GpsWatchdog.AfterRestart, GpsWatchdog.AfterRestartCounter,
-   //      GpsWatchdog.TriggerRestart);
+  // printf("%d %d %d %d\r\n", GpsWatchdog.PreviousFix,
+  //       GpsWatchdog.AfterRestart, GpsWatchdog.AfterRestartCounter,
+  //       GpsWatchdog.TriggerRestart);
 
   if (GpsWatchdog.TriggerRestart) {
     LL_GPIO_ResetOutputPin(GPS_ON_GPIO_Port, GPS_ON_Pin); // disable GPS
@@ -311,14 +317,19 @@ void main_loop(void) {
       LL_IWDG_ReloadCounter(IWDG);
       LL_mDelay(100);
     } // Wait for end of transmission (and for GPS module to start).
-
+    LL_LPUART_DisableIT_RXNE(
+        LPUART1);  // disable UART RX interrupt to not occure while mode change
     GpsAirborne(); // Send a command to GPS module to change to airborne mode.
+    LL_LPUART_EnableIT_RXNE(LPUART1); // reenable UART RX interrupt
+    // clear GPS buffer needed?
 #endif
+    // GPS type 2 doesn't need mode change
+
     // Reset variables to after restart state
     GpsWatchdog.TriggerRestart = false;
     GpsWatchdog.AfterRestart = true;
     GpsWatchdog.AfterRestartCounter = 0;
-    GpsWatchdog.LastTime = 0;
+    //GpsWatchdog.LastTime = 0;
 
     HorusPacket.GpsResetCount++;
   }
@@ -406,7 +417,6 @@ int main(void) {
   }
 
   // GPS UART init
-  LL_LPUART_EnableIT_RXNE(LPUART1);
   LL_LPUART_Enable(LPUART1);
 
 #if GPS_TYPE == 1
@@ -414,8 +424,10 @@ int main(void) {
   DelayWithIWDG(2000); // Wait for full GPS start
   GpsAirborne(); // Send a command to GPS module to change to airborne mode.
   DelayWithIWDG(100);
-
 #endif
+
+  // GPS UART RX interrupt enable after mode change
+  LL_LPUART_EnableIT_RXNE(LPUART1);
 
   LL_GPIO_ResetOutputPin(LED_GPIO_Port, LED_Pin);
 
@@ -426,6 +438,14 @@ int main(void) {
   // LED timer
   LL_TIM_EnableCounter(TIM6);
   LL_TIM_EnableIT_UPDATE(TIM6);
+
+  /* Interrupt priorites:
+   * TIM2 - modulation timer: 0
+   * LPUART1 - GPS UART RX: 1
+   * TIM22 - main loop: 2
+   * TIM6 - LED timer: 3
+   * SysTick: 3
+   */
 
   /* USER CODE END 2 */
 
@@ -864,7 +884,7 @@ static void MX_TIM6_Init(void) {
   LL_APB1_GRP1_EnableClock(LL_APB1_GRP1_PERIPH_TIM6);
 
   /* TIM6 interrupt Init */
-  NVIC_SetPriority(TIM6_DAC_IRQn, 2);
+  NVIC_SetPriority(TIM6_DAC_IRQn, 3);
   NVIC_EnableIRQ(TIM6_DAC_IRQn);
 
   /* USER CODE BEGIN TIM6_Init 1 */

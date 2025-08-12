@@ -16,7 +16,7 @@ const static float QRG_FSK4[] = {435100000}; // Transmitted frequencies array, s
 
 #define TIME_PERIOD 6           // Time betwen starts of transmissions (in seconds) (must be more than 3)
 
-#define GPS_TYPE 2              // Type of GPS module: 1 - u-blox | 2 - XM1110
+#define GPS_TYPE 1              // Type of GPS module: 1 - u-blox | 2 - XM1110
 
 #define GPS_WATCHDOG            // Enable GPS watchdog
 
