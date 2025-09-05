@@ -302,7 +302,7 @@ void main_loop(void) {
 
   if (GpsWatchdog.TriggerRestart) {
     LL_GPIO_ResetOutputPin(GPS_ON_GPIO_Port, GPS_ON_Pin); // disable GPS
-    DelayWithIWDG(1000);
+    DelayWithIWDG(500);
     LL_GPIO_SetOutputPin(GPS_ON_GPIO_Port, GPS_ON_Pin); // enable GPS
   }
 #endif
