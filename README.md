@@ -90,6 +90,10 @@ Data format:
 
 ![alt text](https://github.com/sq2ips/m20-custom-firmware/blob/main/img/GPS.png?raw=true)
 
+## GPS Watchdog
+This is a feature meant to reset the GPS module when it stops working because of jamming/spoofling. https://gpsjam.org/ It is mainly implemented because of high level of interference present at north part of Poland.
+It restarts the module if after getting an initial fix it will dissapear after set time.
+
 # Barometer and temperature sensor
 LPS22HB sensor is used with SPI interface, it sends pressure data, and additionaly temperature.
 
@@ -166,6 +170,7 @@ Parameters list:
 | `PAYLOAD_ID` | uint16 | Payload ID transmitted in Horus Binary frame, in order to conduct a flight you need to request one for your callsign, more information in the [Protocol documentation](https://github.com/projecthorus/horusdemodlib/wiki#how-do-i-transmit-it). For testing ID 256 is used. |
 | `TIME_PERIOD` | uint (in seconds) | Time between transmition of frames. Should not be lower than 4. |
 | `GPS_TYPE` | uint | Type of GPS module, eather 1 for u-blox MAX-M10M, 2 for XM1110 module. For identifying the module see [GPS](#gps) section. |
+| `GPS_WATCHDOG` | bool | Enable [GPS Watchdog](#gps-watchdog)
 | `GPS_WATCHDOG` | uint | Number of main loop iterations without GPS fix that will trigger restart (Only if there was fix before). |
 | `PA_FSK4` | uint | Number from 0 to 63. See the table bellow. |
 | `RF_BOOST_ACTIVE` | bool | State of RF TX boost, amplifies signal by around 15dB. (In off state the boost cricut is attenuating the signal, when less output power is needed it's better to decrease `PA_FSK4` than turning it off.) |
