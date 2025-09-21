@@ -19,7 +19,7 @@ In this stage the code works to the point where it gets GPS and sensors data, th
 
 # Features list
 The currently implemented features are:
-- GPS time, position, altitude, speed, ascent rate and number of satellites (NMEA and XM1110)
+- GPS time, position, altitude, speed (not working in XM1110), ascent rate and number of satellites (NMEA and XM1110)
 - changing u-blox module mode to airborne to allow higher altitude flights
 - Sending data over radio using Horus Binary V2 protocol
 - Getting battery voltage
@@ -34,17 +34,18 @@ The currently implemented features are:
 - making use of STM32 energy saving states
 - Implementing XM1110 GPS speed data
 - implementing humidity sensors
-- implementing APRS
+- implementing APRS (using hadrware PWM based on the method from here https://github.com/mikaelnousiainen/RS41ng/tree/main#si4032-bell-fsk-modulation-hack-for-aprs)
 
 # Known issues
 - High frequency instability (no TCXO)
 - Transmitted frequency "jumps"
+- High RAM consumption caused by staticly alocated memory for NMEA GPS parsing.
 
 # Horus 4FSK tone spacing
 Due to hardware limitations (system clock PLL setting options) it is not possible to generate a clock signal for the radio module whose frequency is divisible by 9. That results in no possibility of having a 270Hz tone spacing standardized by the RS41ng project. The tone spacing is set to 244Hz acquired by an 8MHz clock signal. The limitation is directly connected with the method of implementing FSK and there seems to be no way to overcome it without hardware intervention. The effect is that receiving stations must set a different from standard tone spacing or the SNR will be very low, for comparison:
 
-![alt text](https://github.com/sq2ips/m20-custom-firmware/blob/main/img/snr270.png?raw=true)
-![alt text](https://github.com/sq2ips/m20-custom-firmware/blob/main/img/snr244.png?raw=true)
+![snr270](https://github.com/sq2ips/m20-custom-firmware/blob/main/img/snr270.png?raw=true)
+![snr244](https://github.com/sq2ips/m20-custom-firmware/blob/main/img/snr244.png?raw=true)
 
 # Authors
 - Paweł SQ2IPS
