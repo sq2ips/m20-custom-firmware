@@ -3,7 +3,7 @@
 #ifndef INC_CONFIG_H_
 #define INC_CONFIG_H_
 
-//#define DEBUG
+#define DEBUG
 
 /*-----------------------------------------------------------------*/
 //  Sonde configuration, parameters that should be changed
@@ -19,7 +19,7 @@ const static float QRG_FSK4[] = {435100000}; // Transmitted frequencies array, s
 #define GPS_WATCHDOG            // Enable GPS watchdog
 
 #define PA_FSK4 10              // RF power setting for horus transmission values 0-63
-#define RF_BOOST_ACTIVE 1       // RF booster enabled for transmissions about 15dB gain, but more power consumed - normally should be ON(1).
+#define RF_BOOST_ACTIVE 0       // RF booster enabled for transmissions about 15dB gain, but more power consumed - normally should be ON(1).
 
 #define ADF_FREQ_CORRECTION 19  // correction of frequency from crystal inaccuracy in 244Hz steps. To be individually set for each sonde.
 

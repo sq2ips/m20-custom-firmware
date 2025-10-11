@@ -56,6 +56,7 @@ Core/Src/horus.c \
 Core/Src/lps22hb.c \
 Core/Src/nmea.c \
 Core/Src/xm_gps.c \
+Core/Src/utils.c \
 Drivers/STM32L0xx_HAL_Driver/Src/stm32l0xx_ll_adc.c \
 Drivers/STM32L0xx_HAL_Driver/Src/stm32l0xx_ll_pwr.c
 

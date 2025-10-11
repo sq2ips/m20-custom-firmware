@@ -18,8 +18,9 @@
 #include "fsk4.h"
 #include "horus.h"
 #include "lps22hb.h"
+#include "utils.h"
 
-#include <math.h>
+//#include <math.h>
 #ifdef DEBUG
 #include <stdio.h>
 #include <string.h>
@@ -76,7 +77,7 @@ uint8_t lps_init;
 
 HorusBinaryPacket HorusPacket;
 
-char HorusCodedBuffer[100]; // TODO: change size
+char HorusCodedBuffer[65]; // TODO: change size
 uint16_t HorusCodedLen;
 /* USER CODE END PV */
 
@@ -145,7 +146,7 @@ void main_loop(void) {
   HorusPacket.Lat = NmeaData.Lat;
   HorusPacket.Lon = NmeaData.Lon;
   HorusPacket.Speed = (uint8_t)NmeaData.Speed;
-  HorusPacket.AscentRate = (int16_t)round(NmeaData.AscentRate * 100.0);
+  HorusPacket.AscentRate = (int16_t)Round(NmeaData.AscentRate * 100.0);
   HorusPacket.Alt = NmeaData.Alt;
   HorusPacket.Sats = NmeaData.Sats;
 #ifdef DEBUG
@@ -153,7 +154,7 @@ void main_loop(void) {
          "%d m/s Satellites: %d, Time: %d:%d:%d\r\n",
          NmeaData.Fix, (uint32_t)(NmeaData.Lat * 10e6),
          (uint32_t)(NmeaData.Lon * 10e6), NmeaData.Alt, NmeaData.Speed,
-         (int16_t)round(NmeaData.AscentRate * 100), NmeaData.Sats,
+         (int16_t)Round(NmeaData.AscentRate * 100), NmeaData.Sats,
          NmeaData.Hours, NmeaData.Minutes, NmeaData.Seconds);
 #endif
 
@@ -167,13 +168,13 @@ void main_loop(void) {
   HorusPacket.Speed = (uint16_t)GpsData.GroundSpeed; // Doesn't work
   HorusPacket.Alt = (uint16_t)GpsData.Alt;
   HorusPacket.Sats = GpsData.Sats;
-  HorusPacket.AscentRate = (int16_t)round(GpsData.AscentRate * 100.0);
+  HorusPacket.AscentRate = (int16_t)Round(GpsData.AscentRate * 100.0);
 #ifdef DEBUG
-  printf("Fix: %d, Lat: %d, Lon: %d, Alt: %d, Ascent Rate: %d, Ground Speed: "
+  printf("Fix: %d, Lat: %d, Lon: %d, Alt: %d, Ascent Rate: %d, GRound Speed: "
          "%f, Sats: %d, Time: %d: %d:%d:%d\r\n",
          GpsData.Fix, (int32_t)(GpsData.Lat * 1e6),
          (int32_t)(GpsData.Lon * 1e6), (uint32_t)(GpsData.Alt * 1e6),
-         (int16_t)(GpsData.AscentRate * 100.0), GpsData.GroundSpeed,
+         (int16_t)(GpsData.AscentRate * 100.0), GpsData.GRoundSpeed,
          GpsData.Sats, GpsData.Time, GpsData.Hours, GpsData.Minutes,
          GpsData.Seconds);
 #endif
@@ -181,8 +182,8 @@ void main_loop(void) {
 
   // LPS22HB sensor
   if (lps_init == 0) {
-    HorusPacket.Temp = (int8_t)round(LPS22_GetTemp());
-    HorusPacket.Press = (uint16_t)round(LPS22_GetPress() * 10.0);
+    HorusPacket.Temp = (int8_t)Round(LPS22_GetTemp());
+    HorusPacket.Press = (uint16_t)Round(LPS22_GetPress() * 10.0);
   }
 #ifdef DEBUG
   printf("temp: %d, press: %d\r\n", HorusPacket.Temp, HorusPacket.Press);
@@ -221,10 +222,10 @@ void main_loop(void) {
   // External temp calculating
   // Rntc = Vout * R1 /  Vin - Vout
   float NTC_R = ((temp_adc_raw * 36500) / (4096 - temp_adc_raw));
-  float NTC_T = 1 / (-0.000400644 + (0.000490078 * log(NTC_R)) +
-                     (-0.000000720 * pow(log(NTC_R), 3))) -
+  float NTC_T = 1 / (-0.000400644 + (0.000490078 * Log(NTC_R)) +
+                     (-0.000000720 * Log(NTC_R)*Log(NTC_R)*Log(NTC_R))) -
                 273.15;
-  HorusPacket.ExtTemp = (int16_t)round(NTC_T * 10.0);
+  HorusPacket.ExtTemp = (int16_t)Round(NTC_T * 10.0);
 #ifdef DEBUG
   printf("NTC: raw: %d, Temp: %d\r\n", temp_adc_raw, HorusPacket.ExtTemp);
 #endif
