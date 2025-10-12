@@ -365,7 +365,7 @@ int main(void)
   LL_APB1_GRP1_EnableClock(LL_APB1_GRP1_PERIPH_PWR);
 
   /* SysTick_IRQn interrupt configuration */
-  NVIC_SetPriority(SysTick_IRQn, 5);
+  NVIC_SetPriority(SysTick_IRQn, 4);
 
   /* USER CODE BEGIN Init */
 
@@ -444,11 +444,10 @@ int main(void)
 
   /* Interrupt priorites:
    * TIM2 - modulation timer: 0
-   * TIM21 - AFSK modulation timer: 1
-   * LPUART1 - GPS UART RX: 2
-   * TIM22 - main loop: 3
-   * TIM6 - LED timer: 4
-   * SysTick: 5
+   * LPUART1 - GPS UART RX: 1
+   * TIM22 - main loop: 2
+   * TIM6 - LED timer: 3
+   * SysTick: 4
    */
   AFSK_start_TX();
   /* USER CODE END 2 */
@@ -701,7 +700,7 @@ static void MX_LPUART1_UART_Init(void)
   LL_GPIO_Init(GPIOC, &GPIO_InitStruct);
 
   /* LPUART1 interrupt Init */
-  NVIC_SetPriority(LPUART1_IRQn, 2);
+  NVIC_SetPriority(LPUART1_IRQn, 1);
   NVIC_EnableIRQ(LPUART1_IRQn);
 
   /* USER CODE BEGIN LPUART1_Init 1 */
@@ -910,7 +909,7 @@ static void MX_TIM6_Init(void)
   LL_APB1_GRP1_EnableClock(LL_APB1_GRP1_PERIPH_TIM6);
 
   /* TIM6 interrupt Init */
-  NVIC_SetPriority(TIM6_DAC_IRQn, 4);
+  NVIC_SetPriority(TIM6_DAC_IRQn, 3);
   NVIC_EnableIRQ(TIM6_DAC_IRQn);
 
   /* USER CODE BEGIN TIM6_Init 1 */
@@ -942,29 +941,46 @@ static void MX_TIM21_Init(void)
   /* USER CODE END TIM21_Init 0 */
 
   LL_TIM_InitTypeDef TIM_InitStruct = {0};
+  LL_TIM_OC_InitTypeDef TIM_OC_InitStruct = {0};
+
+  LL_GPIO_InitTypeDef GPIO_InitStruct = {0};
 
   /* Peripheral clock enable */
   LL_APB2_GRP1_EnableClock(LL_APB2_GRP1_PERIPH_TIM21);
-
-  /* TIM21 interrupt Init */
-  NVIC_SetPriority(TIM21_IRQn, 1);
-  NVIC_EnableIRQ(TIM21_IRQn);
 
   /* USER CODE BEGIN TIM21_Init 1 */
 
   /* USER CODE END TIM21_Init 1 */
   TIM_InitStruct.Prescaler = 0;
   TIM_InitStruct.CounterMode = LL_TIM_COUNTERMODE_UP;
-  TIM_InitStruct.Autoreload = 9999;
+  TIM_InitStruct.Autoreload = 65535;
   TIM_InitStruct.ClockDivision = LL_TIM_CLOCKDIVISION_DIV1;
   LL_TIM_Init(TIM21, &TIM_InitStruct);
   LL_TIM_DisableARRPreload(TIM21);
   LL_TIM_SetClockSource(TIM21, LL_TIM_CLOCKSOURCE_INTERNAL);
+  LL_TIM_OC_EnablePreload(TIM21, LL_TIM_CHANNEL_CH1);
+  TIM_OC_InitStruct.OCMode = LL_TIM_OCMODE_PWM1;
+  TIM_OC_InitStruct.OCState = LL_TIM_OCSTATE_DISABLE;
+  TIM_OC_InitStruct.CompareValue = 0;
+  TIM_OC_InitStruct.OCPolarity = LL_TIM_OCPOLARITY_HIGH;
+  LL_TIM_OC_Init(TIM21, LL_TIM_CHANNEL_CH1, &TIM_OC_InitStruct);
+  LL_TIM_OC_EnableFast(TIM21, LL_TIM_CHANNEL_CH1);
   LL_TIM_SetTriggerOutput(TIM21, LL_TIM_TRGO_RESET);
   LL_TIM_DisableMasterSlaveMode(TIM21);
   /* USER CODE BEGIN TIM21_Init 2 */
 
   /* USER CODE END TIM21_Init 2 */
+  LL_IOP_GRP1_EnableClock(LL_IOP_GRP1_PERIPH_GPIOB);
+  /**TIM21 GPIO Configuration
+  PB13   ------> TIM21_CH1
+  */
+  GPIO_InitStruct.Pin = ADF_TX_Data_Pin;
+  GPIO_InitStruct.Mode = LL_GPIO_MODE_ALTERNATE;
+  GPIO_InitStruct.Speed = LL_GPIO_SPEED_FREQ_HIGH;
+  GPIO_InitStruct.OutputType = LL_GPIO_OUTPUT_PUSHPULL;
+  GPIO_InitStruct.Pull = LL_GPIO_PULL_NO;
+  GPIO_InitStruct.Alternate = LL_GPIO_AF_6;
+  LL_GPIO_Init(ADF_TX_Data_GPIO_Port, &GPIO_InitStruct);
 
 }
 
@@ -985,7 +1001,7 @@ static void MX_TIM22_Init(void)
   LL_APB2_GRP1_EnableClock(LL_APB2_GRP1_PERIPH_TIM22);
 
   /* TIM22 interrupt Init */
-  NVIC_SetPriority(TIM22_IRQn, 3);
+  NVIC_SetPriority(TIM22_IRQn, 2);
   NVIC_EnableIRQ(TIM22_IRQn);
 
   /* USER CODE BEGIN TIM22_Init 1 */
@@ -1031,9 +1047,6 @@ static void MX_GPIO_Init(void)
 
   /**/
   LL_GPIO_ResetOutputPin(RF_Boost_GPIO_Port, RF_Boost_Pin);
-
-  /**/
-  LL_GPIO_ResetOutputPin(ADF_TX_Data_GPIO_Port, ADF_TX_Data_Pin);
 
   /**/
   LL_GPIO_ResetOutputPin(GPS_ON_GPIO_Port, GPS_ON_Pin);
@@ -1100,14 +1113,6 @@ static void MX_GPIO_Init(void)
   GPIO_InitStruct.OutputType = LL_GPIO_OUTPUT_PUSHPULL;
   GPIO_InitStruct.Pull = LL_GPIO_PULL_NO;
   LL_GPIO_Init(RF_Boost_GPIO_Port, &GPIO_InitStruct);
-
-  /**/
-  GPIO_InitStruct.Pin = ADF_TX_Data_Pin;
-  GPIO_InitStruct.Mode = LL_GPIO_MODE_OUTPUT;
-  GPIO_InitStruct.Speed = LL_GPIO_SPEED_FREQ_LOW;
-  GPIO_InitStruct.OutputType = LL_GPIO_OUTPUT_PUSHPULL;
-  GPIO_InitStruct.Pull = LL_GPIO_PULL_NO;
-  LL_GPIO_Init(ADF_TX_Data_GPIO_Port, &GPIO_InitStruct);
 
   /**/
   GPIO_InitStruct.Pin = GPS_ON_Pin;
