@@ -16,7 +16,6 @@ void AFSK_stop_TX() {
   TIM2->DIER &= ~(TIM_DIER_UIE); // Disable the interrupt
   
   TIM21->CR1 &= (uint16_t)(~((uint16_t)TIM_CR1_CEN));
-  TIM21->DIER &= ~(TIM_DIER_UIE); // Disable the interrupt
   adf_RF_off();                  // turn TX off
   AFSK_Active = false;
 }
@@ -27,8 +26,7 @@ void AFSK_timer_handler(){ // Changing tone (TIM2)
     TIM2->CNT = 0;
     if(cntr++ == 1200){
         current_tone = !current_tone;
-        printf("current tone %d\r\n", current_tone);
-        LL_GPIO_TogglePin(ADF_TX_Data_GPIO_Port, ADF_TX_Data_Pin);
+        printf("current tone %d, cnt %d\r\n", current_tone, TIM21->CNT);
         cntr = 0;
     }
 
@@ -37,11 +35,7 @@ void AFSK_timer_handler(){ // Changing tone (TIM2)
     }else{
         TIM21->ARR = (uint16_t)((SystemCoreClock / (BELL202_TONE_0 * AFSK_TONE_TIM_PSC)) - 1);
     }
-}
-
-void AFSK_modulation_timer_handler(){ // Generating tone (TIM21)
-    TIM21->CNT = 0;
-    //LL_GPIO_TogglePin(ADF_Data_GPIO_Port, ADF_Data_Pin);
+    TIM21->CCR1 = (TIM21->ARR+1)/2;
 }
 
 void AFSK_start_TX() {
@@ -61,8 +55,4 @@ void AFSK_start_TX() {
   AFSK_timer_handler(); // Handle modulation for setting autoreload for TIM21
                                 // for baudrate (auto-reload register)
   TIM21->CR1 |= TIM_CR1_CEN;     // enable timer again
-  TIM21->DIER |= TIM_DIER_UIE;   // Enable the interrupt
-  
-  // Start handling for 0th timer iteration (or should it???)
-  AFSK_modulation_timer_handler();
 }

@@ -12,6 +12,8 @@ const static float QRG_FSK4[] = {435100000}; // Transmitted frequencies array, s
 
 #define QRG_AFSK 435100000
 
+#define ADF_DEVIATION 5
+
 #define PAYLOAD_ID 256          // Sonde payload ID 256 - for 4FSKTEST-V2
 
 #define TIME_PERIOD 6           // Time betwen starts of transmissions (in seconds) (must be more than 3)
