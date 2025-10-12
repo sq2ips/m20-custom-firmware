@@ -22,6 +22,8 @@
 #include "stm32l0xx_it.h"
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
+#include "fsk4.h"
+#include "afsk.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -149,6 +151,8 @@ void TIM2_IRQHandler(void)
 		LL_TIM_ClearFlag_UPDATE(TIM2);
     if (FSK4_is_active()) {     //check if we are transmitting in 4FSK mode
       FSK4_timer_handler();
+    }else if(AFSK_is_active()){
+      AFSK_timer_handler();
     }
 	}
   /* USER CODE END TIM2_IRQn 0 */
@@ -171,6 +175,24 @@ void TIM6_DAC_IRQHandler(void)
   /* USER CODE BEGIN TIM6_DAC_IRQn 1 */
 
   /* USER CODE END TIM6_DAC_IRQn 1 */
+}
+
+/**
+  * @brief This function handles TIM21 global interrupt.
+  */
+void TIM21_IRQHandler(void)
+{
+  /* USER CODE BEGIN TIM21_IRQn 0 */
+  if(LL_TIM_IsActiveFlag_UPDATE(TIM21) == 1){
+    LL_TIM_ClearFlag_UPDATE(TIM21);
+    if(AFSK_is_active()){
+      AFSK_modulation_timer_handler();
+    }
+  }
+  /* USER CODE END TIM21_IRQn 0 */
+  /* USER CODE BEGIN TIM21_IRQn 1 */
+
+  /* USER CODE END TIM21_IRQn 1 */
 }
 
 /**

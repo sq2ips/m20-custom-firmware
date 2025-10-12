@@ -27,7 +27,6 @@
 
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
-
 /* USER CODE END Includes */
 
 /* Exported types ------------------------------------------------------------*/
@@ -52,6 +51,7 @@ void PendSV_Handler(void);
 void SysTick_Handler(void);
 void TIM2_IRQHandler(void);
 void TIM6_DAC_IRQHandler(void);
+void TIM21_IRQHandler(void);
 void TIM22_IRQHandler(void);
 void LPUART1_IRQHandler(void);
 /* USER CODE BEGIN EFP */

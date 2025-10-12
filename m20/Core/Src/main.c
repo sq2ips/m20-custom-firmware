@@ -16,11 +16,11 @@
 #endif
 #include "adf.h"
 #include "fsk4.h"
+#include "afsk.h"
 #include "horus.h"
 #include "lps22hb.h"
 #include "utils.h"
 
-//#include <math.h>
 #ifdef DEBUG
 #include <stdio.h>
 #include <string.h>
@@ -92,6 +92,7 @@ static void MX_TIM22_Init(void);
 static void MX_ADC_Init(void);
 static void MX_IWDG_Init(void);
 static void MX_TIM6_Init(void);
+static void MX_TIM21_Init(void);
 /* USER CODE BEGIN PFP */
 void GPS_Handler(void);
 void LED_Handler(void);
@@ -347,26 +348,24 @@ void main_loop(void) {
 /* USER CODE END 0 */
 
 /**
- * @brief  The application entry point.
- * @retval int
- */
-int main(void) {
+  * @brief  The application entry point.
+  * @retval int
+  */
+int main(void)
+{
 
   /* USER CODE BEGIN 1 */
 
   /* USER CODE END 1 */
 
-  /* MCU
-   * Configuration--------------------------------------------------------*/
+  /* MCU Configuration--------------------------------------------------------*/
 
-  /* Reset of all peripherals, Initializes the Flash interface and the
-   * Systick.
-   */
+  /* Reset of all peripherals, Initializes the Flash interface and the Systick. */
   LL_APB2_GRP1_EnableClock(LL_APB2_GRP1_PERIPH_SYSCFG);
   LL_APB1_GRP1_EnableClock(LL_APB1_GRP1_PERIPH_PWR);
 
   /* SysTick_IRQn interrupt configuration */
-  NVIC_SetPriority(SysTick_IRQn, 3);
+  NVIC_SetPriority(SysTick_IRQn, 5);
 
   /* USER CODE BEGIN Init */
 
@@ -389,6 +388,7 @@ int main(void) {
   MX_ADC_Init();
   MX_IWDG_Init();
   MX_TIM6_Init();
+  MX_TIM21_Init();
   /* USER CODE BEGIN 2 */
 
   // Power on modules
@@ -435,8 +435,8 @@ int main(void) {
   LL_GPIO_ResetOutputPin(LED_GPIO_Port, LED_Pin);
 
   // main loop timer
-  LL_TIM_EnableCounter(TIM22);
-  LL_TIM_EnableIT_UPDATE(TIM22);
+  //LL_TIM_EnableCounter(TIM22);
+  //LL_TIM_EnableIT_UPDATE(TIM22);
 
   // LED timer
   LL_TIM_EnableCounter(TIM6);
@@ -444,12 +444,13 @@ int main(void) {
 
   /* Interrupt priorites:
    * TIM2 - modulation timer: 0
-   * LPUART1 - GPS UART RX: 1
-   * TIM22 - main loop: 2
-   * TIM6 - LED timer: 3
-   * SysTick: 3
+   * TIM21 - AFSK modulation timer: 1
+   * LPUART1 - GPS UART RX: 2
+   * TIM22 - main loop: 3
+   * TIM6 - LED timer: 4
+   * SysTick: 5
    */
-
+  AFSK_start_TX();
   /* USER CODE END 2 */
 
   /* Infinite loop */
@@ -478,40 +479,50 @@ int main(void) {
 }
 
 /**
- * @brief System Clock Configuration
- * @retval None
- */
-void SystemClock_Config(void) {
+  * @brief System Clock Configuration
+  * @retval None
+  */
+void SystemClock_Config(void)
+{
   LL_FLASH_SetLatency(LL_FLASH_LATENCY_0);
-  while (LL_FLASH_GetLatency() != LL_FLASH_LATENCY_0) {
+  while(LL_FLASH_GetLatency()!= LL_FLASH_LATENCY_0)
+  {
   }
   LL_PWR_SetRegulVoltageScaling(LL_PWR_REGU_VOLTAGE_SCALE1);
-  while (LL_PWR_IsActiveFlag_VOS() != 0) {
+  while (LL_PWR_IsActiveFlag_VOS() != 0)
+  {
   }
   LL_RCC_HSE_Enable();
 
-  /* Wait till HSE is ready */
-  while (LL_RCC_HSE_IsReady() != 1) {
+   /* Wait till HSE is ready */
+  while(LL_RCC_HSE_IsReady() != 1)
+  {
+
   }
   LL_RCC_LSI_Enable();
 
-  /* Wait till LSI is ready */
-  while (LL_RCC_LSI_IsReady() != 1) {
+   /* Wait till LSI is ready */
+  while(LL_RCC_LSI_IsReady() != 1)
+  {
+
   }
-  LL_RCC_PLL_ConfigDomain_SYS(LL_RCC_PLLSOURCE_HSE, LL_RCC_PLL_MUL_3,
-                              LL_RCC_PLL_DIV_2);
+  LL_RCC_PLL_ConfigDomain_SYS(LL_RCC_PLLSOURCE_HSE, LL_RCC_PLL_MUL_3, LL_RCC_PLL_DIV_2);
   LL_RCC_PLL_Enable();
 
-  /* Wait till PLL is ready */
-  while (LL_RCC_PLL_IsReady() != 1) {
+   /* Wait till PLL is ready */
+  while(LL_RCC_PLL_IsReady() != 1)
+  {
+
   }
   LL_RCC_SetAHBPrescaler(LL_RCC_SYSCLK_DIV_1);
   LL_RCC_SetAPB1Prescaler(LL_RCC_APB1_DIV_1);
   LL_RCC_SetAPB2Prescaler(LL_RCC_APB2_DIV_1);
   LL_RCC_SetSysClkSource(LL_RCC_SYS_CLKSOURCE_PLL);
 
-  /* Wait till System clock is ready */
-  while (LL_RCC_GetSysClkSource() != LL_RCC_SYS_CLKSOURCE_STATUS_PLL) {
+   /* Wait till System clock is ready */
+  while(LL_RCC_GetSysClkSource() != LL_RCC_SYS_CLKSOURCE_STATUS_PLL)
+  {
+
   }
 
   LL_Init1msTick(12000000);
@@ -523,11 +534,12 @@ void SystemClock_Config(void) {
 }
 
 /**
- * @brief ADC Initialization Function
- * @param None
- * @retval None
- */
-static void MX_ADC_Init(void) {
+  * @brief ADC Initialization Function
+  * @param None
+  * @retval None
+  */
+static void MX_ADC_Init(void)
+{
 
   /* USER CODE BEGIN ADC_Init 0 */
 
@@ -568,19 +580,19 @@ static void MX_ADC_Init(void) {
   /* USER CODE END ADC_Init 1 */
 
   /** Configure Regular Channel
-   */
+  */
   LL_ADC_REG_SetSequencerChAdd(ADC1, LL_ADC_CHANNEL_8);
 
   /** Configure Regular Channel
-   */
+  */
   LL_ADC_REG_SetSequencerChAdd(ADC1, LL_ADC_CHANNEL_10);
 
   /** Configure Regular Channel
-   */
+  */
   LL_ADC_REG_SetSequencerChAdd(ADC1, LL_ADC_CHANNEL_14);
 
   /** Common config
-   */
+  */
   ADC_REG_InitStruct.TriggerSource = LL_ADC_REG_TRIG_SOFTWARE;
   ADC_REG_InitStruct.SequencerDiscont = LL_ADC_REG_SEQ_DISCONT_DISABLE;
   ADC_REG_InitStruct.ContinuousMode = LL_ADC_REG_CONV_SINGLE;
@@ -590,8 +602,7 @@ static void MX_ADC_Init(void) {
   LL_ADC_SetSamplingTimeCommonChannels(ADC1, LL_ADC_SAMPLINGTIME_3CYCLES_5);
   LL_ADC_SetOverSamplingScope(ADC1, LL_ADC_OVS_DISABLE);
   LL_ADC_REG_SetSequencerScanDirection(ADC1, LL_ADC_REG_SEQ_SCAN_DIR_FORWARD);
-  LL_ADC_SetCommonFrequencyMode(__LL_ADC_COMMON_INSTANCE(ADC1),
-                                LL_ADC_CLOCK_FREQ_MODE_HIGH);
+  LL_ADC_SetCommonFrequencyMode(__LL_ADC_COMMON_INSTANCE(ADC1), LL_ADC_CLOCK_FREQ_MODE_HIGH);
   LL_ADC_DisableIT_EOC(ADC1);
   LL_ADC_DisableIT_EOS(ADC1);
   ADC_InitStruct.Clock = LL_ADC_CLOCK_SYNC_PCLK_DIV1;
@@ -609,22 +620,23 @@ static void MX_ADC_Init(void) {
   /* Note: If system core clock frequency is below 200kHz, wait time */
   /* is only a few CPU processing cycles. */
   uint32_t wait_loop_index;
-  wait_loop_index = ((LL_ADC_DELAY_INTERNAL_REGUL_STAB_US *
-                      (SystemCoreClock / (100000 * 2))) /
-                     10);
-  while (wait_loop_index != 0) {
+  wait_loop_index = ((LL_ADC_DELAY_INTERNAL_REGUL_STAB_US * (SystemCoreClock / (100000 * 2))) / 10);
+  while(wait_loop_index != 0)
+  {
     wait_loop_index--;
   }
   /* USER CODE BEGIN ADC_Init 2 */
   /* USER CODE END ADC_Init 2 */
+
 }
 
 /**
- * @brief IWDG Initialization Function
- * @param None
- * @retval None
- */
-static void MX_IWDG_Init(void) {
+  * @brief IWDG Initialization Function
+  * @param None
+  * @retval None
+  */
+static void MX_IWDG_Init(void)
+{
 
   /* USER CODE BEGIN IWDG_Init 0 */
 
@@ -637,21 +649,24 @@ static void MX_IWDG_Init(void) {
   LL_IWDG_EnableWriteAccess(IWDG);
   LL_IWDG_SetPrescaler(IWDG, LL_IWDG_PRESCALER_8);
   LL_IWDG_SetReloadCounter(IWDG, 4095);
-  while (LL_IWDG_IsReady(IWDG) != 1) {
+  while (LL_IWDG_IsReady(IWDG) != 1)
+  {
   }
 
   LL_IWDG_ReloadCounter(IWDG);
   /* USER CODE BEGIN IWDG_Init 2 */
 
   /* USER CODE END IWDG_Init 2 */
+
 }
 
 /**
- * @brief LPUART1 Initialization Function
- * @param None
- * @retval None
- */
-static void MX_LPUART1_UART_Init(void) {
+  * @brief LPUART1 Initialization Function
+  * @param None
+  * @retval None
+  */
+static void MX_LPUART1_UART_Init(void)
+{
 
   /* USER CODE BEGIN LPUART1_Init 0 */
 
@@ -686,7 +701,7 @@ static void MX_LPUART1_UART_Init(void) {
   LL_GPIO_Init(GPIOC, &GPIO_InitStruct);
 
   /* LPUART1 interrupt Init */
-  NVIC_SetPriority(LPUART1_IRQn, 1);
+  NVIC_SetPriority(LPUART1_IRQn, 2);
   NVIC_EnableIRQ(LPUART1_IRQn);
 
   /* USER CODE BEGIN LPUART1_Init 1 */
@@ -706,14 +721,16 @@ static void MX_LPUART1_UART_Init(void) {
   /* USER CODE BEGIN LPUART1_Init 2 */
 
   /* USER CODE END LPUART1_Init 2 */
+
 }
 
 /**
- * @brief USART1 Initialization Function
- * @param None
- * @retval None
- */
-static void MX_USART1_UART_Init(void) {
+  * @brief USART1 Initialization Function
+  * @param None
+  * @retval None
+  */
+static void MX_USART1_UART_Init(void)
+{
 
   /* USER CODE BEGIN USART1_Init 0 */
 
@@ -763,14 +780,16 @@ static void MX_USART1_UART_Init(void) {
   /* USER CODE BEGIN USART1_Init 2 */
 
   /* USER CODE END USART1_Init 2 */
+
 }
 
 /**
- * @brief SPI1 Initialization Function
- * @param None
- * @retval None
- */
-static void MX_SPI1_Init(void) {
+  * @brief SPI1 Initialization Function
+  * @param None
+  * @retval None
+  */
+static void MX_SPI1_Init(void)
+{
 
   /* USER CODE BEGIN SPI1_Init 0 */
 
@@ -832,14 +851,16 @@ static void MX_SPI1_Init(void) {
   /* USER CODE BEGIN SPI1_Init 2 */
 
   /* USER CODE END SPI1_Init 2 */
+
 }
 
 /**
- * @brief TIM2 Initialization Function
- * @param None
- * @retval None
- */
-static void MX_TIM2_Init(void) {
+  * @brief TIM2 Initialization Function
+  * @param None
+  * @retval None
+  */
+static void MX_TIM2_Init(void)
+{
 
   /* USER CODE BEGIN TIM2_Init 0 */
   /* USER CODE END TIM2_Init 0 */
@@ -868,14 +889,16 @@ static void MX_TIM2_Init(void) {
   /* USER CODE BEGIN TIM2_Init 2 */
 
   /* USER CODE END TIM2_Init 2 */
+
 }
 
 /**
- * @brief TIM6 Initialization Function
- * @param None
- * @retval None
- */
-static void MX_TIM6_Init(void) {
+  * @brief TIM6 Initialization Function
+  * @param None
+  * @retval None
+  */
+static void MX_TIM6_Init(void)
+{
 
   /* USER CODE BEGIN TIM6_Init 0 */
 
@@ -887,7 +910,7 @@ static void MX_TIM6_Init(void) {
   LL_APB1_GRP1_EnableClock(LL_APB1_GRP1_PERIPH_TIM6);
 
   /* TIM6 interrupt Init */
-  NVIC_SetPriority(TIM6_DAC_IRQn, 3);
+  NVIC_SetPriority(TIM6_DAC_IRQn, 4);
   NVIC_EnableIRQ(TIM6_DAC_IRQn);
 
   /* USER CODE BEGIN TIM6_Init 1 */
@@ -903,14 +926,55 @@ static void MX_TIM6_Init(void) {
   /* USER CODE BEGIN TIM6_Init 2 */
 
   /* USER CODE END TIM6_Init 2 */
+
 }
 
 /**
- * @brief TIM22 Initialization Function
- * @param None
- * @retval None
- */
-static void MX_TIM22_Init(void) {
+  * @brief TIM21 Initialization Function
+  * @param None
+  * @retval None
+  */
+static void MX_TIM21_Init(void)
+{
+
+  /* USER CODE BEGIN TIM21_Init 0 */
+
+  /* USER CODE END TIM21_Init 0 */
+
+  LL_TIM_InitTypeDef TIM_InitStruct = {0};
+
+  /* Peripheral clock enable */
+  LL_APB2_GRP1_EnableClock(LL_APB2_GRP1_PERIPH_TIM21);
+
+  /* TIM21 interrupt Init */
+  NVIC_SetPriority(TIM21_IRQn, 1);
+  NVIC_EnableIRQ(TIM21_IRQn);
+
+  /* USER CODE BEGIN TIM21_Init 1 */
+
+  /* USER CODE END TIM21_Init 1 */
+  TIM_InitStruct.Prescaler = 0;
+  TIM_InitStruct.CounterMode = LL_TIM_COUNTERMODE_UP;
+  TIM_InitStruct.Autoreload = 9999;
+  TIM_InitStruct.ClockDivision = LL_TIM_CLOCKDIVISION_DIV1;
+  LL_TIM_Init(TIM21, &TIM_InitStruct);
+  LL_TIM_DisableARRPreload(TIM21);
+  LL_TIM_SetClockSource(TIM21, LL_TIM_CLOCKSOURCE_INTERNAL);
+  LL_TIM_SetTriggerOutput(TIM21, LL_TIM_TRGO_RESET);
+  LL_TIM_DisableMasterSlaveMode(TIM21);
+  /* USER CODE BEGIN TIM21_Init 2 */
+
+  /* USER CODE END TIM21_Init 2 */
+
+}
+
+/**
+  * @brief TIM22 Initialization Function
+  * @param None
+  * @retval None
+  */
+static void MX_TIM22_Init(void)
+{
 
   /* USER CODE BEGIN TIM22_Init 0 */
   /* USER CODE END TIM22_Init 0 */
@@ -921,7 +985,7 @@ static void MX_TIM22_Init(void) {
   LL_APB2_GRP1_EnableClock(LL_APB2_GRP1_PERIPH_TIM22);
 
   /* TIM22 interrupt Init */
-  NVIC_SetPriority(TIM22_IRQn, 2);
+  NVIC_SetPriority(TIM22_IRQn, 3);
   NVIC_EnableIRQ(TIM22_IRQn);
 
   /* USER CODE BEGIN TIM22_Init 1 */
@@ -939,17 +1003,19 @@ static void MX_TIM22_Init(void) {
   /* USER CODE BEGIN TIM22_Init 2 */
 
   /* USER CODE END TIM22_Init 2 */
+
 }
 
 /**
- * @brief GPIO Initialization Function
- * @param None
- * @retval None
- */
-static void MX_GPIO_Init(void) {
+  * @brief GPIO Initialization Function
+  * @param None
+  * @retval None
+  */
+static void MX_GPIO_Init(void)
+{
   LL_GPIO_InitTypeDef GPIO_InitStruct = {0};
-  /* USER CODE BEGIN MX_GPIO_Init_1 */
-  /* USER CODE END MX_GPIO_Init_1 */
+/* USER CODE BEGIN MX_GPIO_Init_1 */
+/* USER CODE END MX_GPIO_Init_1 */
 
   /* GPIO Ports Clock Enable */
   LL_IOP_GRP1_EnableClock(LL_IOP_GRP1_PERIPH_GPIOC);
@@ -1148,8 +1214,8 @@ static void MX_GPIO_Init(void) {
   GPIO_InitStruct.Pull = LL_GPIO_PULL_NO;
   LL_GPIO_Init(NTC_330K_GPIO_Port, &GPIO_InitStruct);
 
-  /* USER CODE BEGIN MX_GPIO_Init_2 */
-  /* USER CODE END MX_GPIO_Init_2 */
+/* USER CODE BEGIN MX_GPIO_Init_2 */
+/* USER CODE END MX_GPIO_Init_2 */
 }
 
 /* USER CODE BEGIN 4 */
@@ -1220,10 +1286,11 @@ void GpsAirborne(void) {
 /* USER CODE END 4 */
 
 /**
- * @brief  This function is executed in case of error occurrence.
- * @retval None
- */
-void Error_Handler(void) {
+  * @brief  This function is executed in case of error occurrence.
+  * @retval None
+  */
+void Error_Handler(void)
+{
   /* USER CODE BEGIN Error_Handler_Debug */
   /* User can add his own implementation to report the HAL error return state
    */
@@ -1233,15 +1300,16 @@ void Error_Handler(void) {
   /* USER CODE END Error_Handler_Debug */
 }
 
-#ifdef USE_FULL_ASSERT
+#ifdef  USE_FULL_ASSERT
 /**
- * @brief  Reports the name of the source file and the source line number
- *         where the assert_param error has occurred.
- * @param  file: pointer to the source file name
- * @param  line: assert_param error line source number
- * @retval None
- */
-void assert_failed(uint8_t *file, uint32_t line) {
+  * @brief  Reports the name of the source file and the source line number
+  *         where the assert_param error has occurred.
+  * @param  file: pointer to the source file name
+  * @param  line: assert_param error line source number
+  * @retval None
+  */
+void assert_failed(uint8_t *file, uint32_t line)
+{
   /* USER CODE BEGIN 6 */
   /* User can add his own implementation to report the file name and line
      number, ex: printf("Wrong parameters value: file %s on line %d\r\n",
