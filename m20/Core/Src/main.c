@@ -393,7 +393,7 @@ int main(void)
 
   // Power on modules
   LL_GPIO_SetOutputPin(POWER_ON_GPIO_Port, POWER_ON_Pin);
-  LL_GPIO_SetOutputPin(GPS_ON_GPIO_Port, GPS_ON_Pin);
+  //LL_GPIO_SetOutputPin(GPS_ON_GPIO_Port, GPS_ON_Pin);
   LL_GPIO_SetOutputPin(RADIO_EN_GPIO_Port, RADIO_EN_Pin);
   adf_setup();
 
@@ -404,11 +404,11 @@ int main(void)
   HorusPacket.Unused = 32; // number in unused packet space, can be used to identify M20 transmitter durring flight, value is not important
 
   // Init of LPS22 sensor, try 5 times
-  for (uint8_t i = 0; i < 5; i++) {
-    lps_init = LPS22_Init();
-    if (lps_init == 0)
-      break;
-  }
+  //for (uint8_t i = 0; i < 5; i++) {
+  //  lps_init = LPS22_Init();
+  //  if (lps_init == 0)
+  //    break;
+  //}
 #ifdef DEBUG
   printf("LPS init: %d\r\n", lps_init);
 #endif
@@ -420,17 +420,17 @@ int main(void)
   }
 
   // GPS UART init
-  LL_LPUART_Enable(LPUART1);
+  //LL_LPUART_Enable(LPUART1);
 
 #if GPS_TYPE == 1
   // u-blox change mode to airborne
-  DelayWithIWDG(2000); // Wait for full GPS start
-  GpsAirborne(); // Send a command to GPS module to change to airborne mode.
-  DelayWithIWDG(100);
+  //DelayWithIWDG(2000); // Wait for full GPS start
+  //GpsAirborne(); // Send a command to GPS module to change to airborne mode.
+  //DelayWithIWDG(100);
 #endif
 
   // GPS UART RX interrupt enable after mode change
-  LL_LPUART_EnableIT_RXNE(LPUART1);
+  //LL_LPUART_EnableIT_RXNE(LPUART1);
 
   LL_GPIO_ResetOutputPin(LED_GPIO_Port, LED_Pin);
 
@@ -439,8 +439,8 @@ int main(void)
   //LL_TIM_EnableIT_UPDATE(TIM22);
 
   // LED timer
-  LL_TIM_EnableCounter(TIM6);
-  LL_TIM_EnableIT_UPDATE(TIM6);
+  //LL_TIM_EnableCounter(TIM6);
+  //LL_TIM_EnableIT_UPDATE(TIM6);
 
   /* Interrupt priorites:
    * TIM2 - modulation timer: 0
@@ -957,7 +957,6 @@ static void MX_TIM21_Init(void)
   TIM_InitStruct.ClockDivision = LL_TIM_CLOCKDIVISION_DIV1;
   LL_TIM_Init(TIM21, &TIM_InitStruct);
   LL_TIM_DisableARRPreload(TIM21);
-  LL_TIM_SetClockSource(TIM21, LL_TIM_CLOCKSOURCE_INTERNAL);
   LL_TIM_OC_EnablePreload(TIM21, LL_TIM_CHANNEL_CH1);
   TIM_OC_InitStruct.OCMode = LL_TIM_OCMODE_PWM1;
   TIM_OC_InitStruct.OCState = LL_TIM_OCSTATE_DISABLE;

@@ -5,7 +5,7 @@
 #define BELL202_TONE_0 2200
 #define AFSK_TONE_TIM_PSC 1
 
-#define AFSK_BAUDRATE 1
+#define AFSK_BAUDRATE 1200
 #define AFSK_BAUDRATE_TIM_PSC 100
 
 bool AFSK_is_active();

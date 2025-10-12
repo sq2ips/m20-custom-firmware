@@ -24,12 +24,12 @@ static uint16_t cntr = 0;
 static bool current_tone = 0;
 void AFSK_timer_handler(){ // Changing tone (TIM2)
     TIM2->CNT = 0;
-    if(cntr++ == 1200){
+    //TIM21->CNT = 0;
+    if(cntr++ == 100){
         current_tone = !current_tone;
-        printf("current tone %d, cnt %d\r\n", current_tone, TIM21->CNT);
         cntr = 0;
     }
-
+    
     if(current_tone == 1){
         TIM21->ARR = (uint16_t)((SystemCoreClock / (BELL202_TONE_1 * AFSK_TONE_TIM_PSC)) - 1);
     }else{
@@ -54,5 +54,6 @@ void AFSK_start_TX() {
   TIM21->PSC = (uint16_t)AFSK_TONE_TIM_PSC - 1;
   AFSK_timer_handler(); // Handle modulation for setting autoreload for TIM21
                                 // for baudrate (auto-reload register)
+  TIM21->CCER = LL_TIM_CHANNEL_CH1; // Set PWM channel
   TIM21->CR1 |= TIM_CR1_CEN;     // enable timer again
 }
