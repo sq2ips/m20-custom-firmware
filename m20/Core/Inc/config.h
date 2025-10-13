@@ -12,7 +12,7 @@ const static float QRG_FSK4[] = {435100000}; // Transmitted frequencies array, s
 
 #define QRG_AFSK 435100000
 
-#define ADF_DEVIATION 5
+#define ADF_DEVIATION 5  // 5= about 5k5Hz, 10=11kHz
 
 #define PAYLOAD_ID 256          // Sonde payload ID 256 - for 4FSKTEST-V2
 

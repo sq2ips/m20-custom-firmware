@@ -107,7 +107,7 @@ void adf_reset_register_two(void) {
   adf_config.r2.mod_control = ADF_MODULATION_FSK;
   adf_config.r2.gook = ADF_OFF;
   adf_config.r2.power_amplifier_level = 0; // power level
-  adf_config.r2.modulation_deviation = ADF_DEVIATION;  // 5= about 5k5Hz, 10=11kHz
+  adf_config.r2.modulation_deviation = ADF_DEVIATION;
   adf_config.r2.gfsk_modulation_control = 0;
   adf_config.r2.index_counter = 0;
 }
