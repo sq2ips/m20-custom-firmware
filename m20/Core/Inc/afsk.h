@@ -3,10 +3,14 @@
 
 #define BELL202_TONE_A 1200
 #define BELL202_TONE_B 2200
-#define AFSK_TONE_TIM_PSC 1
+#define AFSK_PWM_TIM_PSC 0
+#define AFSK_PWM_TIM_ARR 249 // PWM frequency: 12MHz / (249+1) Hz = 48kHz
 
 #define AFSK_BAUDRATE 1200
-#define AFSK_BAUDRATE_TIM_PSC 100
+#define AFSK_UPDATE_TIM_PSC 0
+#define AFSK_UPDATE_SAMPLERATE 12000 // update timer frequency (at with the duty cycle will be updated): 12MHz / 12kHz = 1000-1 ARR value
+
+#define SINE_TABLE_SIZE 512
 
 /*
  *           APRS BELL202/HDLC frame sync segments
