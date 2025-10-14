@@ -36,6 +36,8 @@ The currently implemented features are:
 - implementing humidity sensors
 - implementing APRS (using hadrware PWM based on the method from here https://github.com/mikaelnousiainen/RS41ng/tree/main#si4032-bell-fsk-modulation-hack-for-aprs)
 
+## APRS implementation in progress on branch develop
+
 # Known issues
 - High frequency instability (no TCXO)
 - Transmitted frequency "jumps"
