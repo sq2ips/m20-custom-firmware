@@ -60,6 +60,8 @@
   "files.associations": {
     "fsk4.h": "c",
     "compare": "c",
-    "cstdint": "c"
+    "cstdint": "c",
+    "afsk.h": "c",
+    "main.h": "c"
   }
 }

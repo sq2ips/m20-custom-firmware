@@ -449,7 +449,6 @@ int main(void)
    * TIM6 - LED timer: 3
    * SysTick: 4
    */
-  AFSK_start_TX();
   /* USER CODE END 2 */
 
   /* Infinite loop */
@@ -459,7 +458,9 @@ int main(void)
 
     /* USER CODE BEGIN 3 */
     AFSK_start_TX();
+    LL_GPIO_TogglePin(LED_GPIO_Port, LED_Pin);
     while(AFSK_is_active()){}
+    LL_GPIO_TogglePin(LED_GPIO_Port, LED_Pin);
     LL_mDelay(5000);
   }
   /* USER CODE END 3 */
