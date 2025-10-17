@@ -1,16 +1,14 @@
 #ifndef INC_AFSK_H_
 #define INC_AFSK_H_
 
-#define BELL202_MARK 1200 // Mark tone 1200Hz tuned
-#define BELL202_SPACE 2200 // Space tone 2200Hz tuned
+#define BELL202_MARK 1200UL // Mark tone 1200Hz tuned
+#define BELL202_SPACE 2200UL // Space tone 2200Hz tuned
 #define AFSK_PWM_TIM_PSC 0 // Prescaler 1
-#define AFSK_PWM_TIM_ARR 249 // PWM frequency: 12MHz / (249+1) Hz = 48kHz
+#define AFSK_PWM_TIM_ARR 255 // Must be max value from sine lookup table generates PWM frequency: 12MHz / (255+1) Hz = 46.875kHz
 
-#define AFSK_BAUDRATE 1200 // Baudrate (and bitrate)
+#define AFSK_BAUDRATE 1200UL // Baudrate (and bitrate)
 #define AFSK_UPDATE_TIM_PSC 0 // Prescaler 1
-#define AFSK_UPDATE_SAMPLERATE 12000 // update timer frequency (at with the duty cycle will be updated): 12MHz / 12kHz = 1000-1 ARR value
-
-#define SINE_TABLE_SIZE 512 // Size of sine table
+#define AFSK_UPDATE_SAMPLERATE 12000UL // update timer frequency (at with the duty cycle will be updated): (12MHz / 12kHz) - 1 = 999 ARR value
 
 /*
  *           APRS BELL202/HDLC frame sync segments

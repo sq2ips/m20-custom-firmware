@@ -10,6 +10,5 @@
 
 float Log(float x);
 int32_t Round(float number);
-float Sinf(float x);
 
 #endif

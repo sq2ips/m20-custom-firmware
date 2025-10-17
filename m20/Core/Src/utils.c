@@ -39,31 +39,3 @@ int32_t Round(float number) {
         return int_part;
     }
 }
-static float normalize_angle(float x) {
-    while (x > PI) x -= 2 * PI;
-    while (x < -PI) x += 2 * PI;
-    return x;
-}
-
-float Sinf(float x) {
-    x = normalize_angle(x);
-
-    // Taylor series expansion up to x^9 term
-    float x2 = x * x;
-    float term = x;
-    float result = term;
-
-    term *= -x2 / (2 * 3);   // -x^3 / 3!
-    result += term;
-
-    term *= -x2 / (4 * 5);   // +x^5 / 5!
-    result += term;
-
-    term *= -x2 / (6 * 7);   // -x^7 / 7!
-    result += term;
-
-    term *= -x2 / (8 * 9);   // +x^9 / 9!
-    result += term;
-
-    return result;
-}
