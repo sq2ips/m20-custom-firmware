@@ -108,8 +108,8 @@ void AFSK_timer_handler(){ // sampling and PWM timer (TIM21) changing duty cycle
              * NRZI calls for zeros in the original bit stream to be encoded as a continuous-phase frequency
              * transition between consecutive symbols, while ones are encoded as the lack of a frequency change between two symbols."
              */
-                if(get_next_bit() == 0) phase_inc ^= (PHASE_INC_MARC ^ PHASE_INC_SPACE); // When bit is 0, change the current frequency, when 1 dont change it
-            }
+            if(get_next_bit() == 0) phase_inc ^= (PHASE_INC_MARC ^ PHASE_INC_SPACE); // When bit is 0, change the current frequency, when 1 dont change it
+        }
     }
 
     sample_in_baud += (1<<8);
