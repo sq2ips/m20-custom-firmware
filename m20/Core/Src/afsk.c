@@ -50,9 +50,10 @@ static const uint8_t sine_table[] = {
 };
 
 static const uint16_t SINE_TABLE_SIZE = sizeof(sine_table);
-static const uint16_t PHASE_INC_MARC = ((SINE_TABLE_SIZE * BELL202_MARK) << 7)/AFSK_UPDATE_SAMPLERATE; // Phase increase for generating marc Bell 202 tone. Fixed point 9.7
-static const uint16_t PHASE_INC_SPACE = ((SINE_TABLE_SIZE * BELL202_SPACE) << 7)/AFSK_UPDATE_SAMPLERATE; // Phase increase for generating space Bell 202 tone. Fixed point 9.7
-static const uint16_t SAMPLES_PER_BAUD = (AFSK_UPDATE_SAMPLERATE << 8)/AFSK_BAUDRATE; // Number of samples after with the next next bit will be sent. Fixed point 8.8
+static const uint16_t AFSK_SAMPLE_RATE = MODEM_CLOCK_RATE/(AFSK_PWM_TIM_ARR+1); // Frequency of PWM and rate of the sampling interrupt
+static const uint16_t PHASE_INC_MARC = ((SINE_TABLE_SIZE * BELL202_MARK) << 7)/AFSK_SAMPLE_RATE; // Phase increase for generating marc Bell 202 tone. Fixed point 9.7
+static const uint16_t PHASE_INC_SPACE = ((SINE_TABLE_SIZE * BELL202_SPACE) << 7)/AFSK_SAMPLE_RATE; // Phase increase for generating space Bell 202 tone. Fixed point 9.7
+static const uint16_t SAMPLES_PER_BAUD = (AFSK_SAMPLE_RATE << 8)/AFSK_BAUDRATE; // Number of samples after with the next next bit will be sent. Fixed point 8.8
 
 volatile static uint16_t phase_inc = PHASE_INC_MARC; // current phase increase value, fixed point 9.7
 volatile static uint16_t phase = 0; // Current phase value, fixed point 9.7
@@ -88,8 +89,8 @@ static bool get_next_bit(){
     }
 }
 
-void AFSK_timer_handler(){ // Modulation timer (TIM2) changing phase increase according to current tone
-    TIM2->CNT = 0; // Reset timer counter
+void AFSK_timer_handler(){ // sampling and PWM timer (TIM21) changing duty cycle acoording to phase (and increasing it according to current tone)
+    TIM21->CNT = 0; // Reset timer counter ??
 
     TIM21->CCR1 = sine_table[(phase>>7) + ((phase & (1<<6))>>6)]; // Set the duty cycle to index from phase, rounding fixed point 9.7 to int
 
@@ -126,16 +127,9 @@ void AFSK_start_TX() {
   sample_in_baud = 0; // reset samples per baud
   bit_pos = 0; // reset bit position counter
 
-  // TIM2 - Modulation, changing duty cycles
-  TIM2->CR1 &= (uint16_t)(~((uint16_t)TIM_CR1_CEN)); // Disable the TIM Counter
-  TIM2->PSC = AFSK_UPDATE_TIM_PSC;
-  TIM2->ARR = (SystemCoreClock/AFSK_UPDATE_SAMPLERATE)-1;
-  TIM2->CR1 |= TIM_CR1_CEN;     // enable timer again
-  TIM2->DIER |= TIM_DIER_UIE;   // Enable the interrupt
-
   AFSK_timer_handler(); // Tirgger first modulation iteration to set initial values before PWM will be turned on
 
-  // TIM21 - PWM timer, Generating tones
+  // TIM21 - PWM timer generating tones and sampling interrupts
   TIM21->CR1 &= (uint16_t)(~((uint16_t)TIM_CR1_CEN)); // Disable the TIM Counter
   TIM21->PSC = AFSK_PWM_TIM_PSC; // Set prescaler
   TIM21->ARR = AFSK_PWM_TIM_ARR; // Set autoreload
