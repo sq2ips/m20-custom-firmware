@@ -56,9 +56,9 @@ volatile static uint16_t phase_inc = PHASE_INC_MARC; // current phase increase v
 volatile static uint16_t phase = 0;                  // Current phase value, fixed point 9.7
 volatile static uint16_t sample_in_baud = 0;
 
-volatile static uint16_t bit_pos = 0;
-volatile static uint8_t stuffing_cnt = 0;
-volatile static bool stuff = false;
+static uint16_t bit_pos = 0;
+static uint8_t stuffing_cnt = 0;
+static bool stuff = false;
 
 bool AFSK_Active = false; // Activity flag
 

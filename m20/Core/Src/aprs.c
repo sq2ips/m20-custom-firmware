@@ -6,6 +6,7 @@
 
 #include "aprs.h"
 #include "config.h"
+#include "utils.h"
 
 #include <string.h>
 
@@ -27,26 +28,32 @@ static uint16_t calculateFcs(uint8_t *input_data, uint16_t len) {
   return (~crc);
 }
 
-static uint16_t generate_ax25_frame(uint8_t *info_field, uint8_t info_field_size, uint8_t *buff){
-    volatile uint16_t pos = 0;
+static uint8_t generate_ax25_frame(uint8_t *info_field, uint8_t info_field_size, uint8_t *buff){
+    uint8_t pos = 0;
     uint8_t d_pos = 0;
 
     memset(buff, 0, sizeof(250));
     
     for(; pos<6; pos++){ // Destination adress
-        buff[pos] = APRS_D_CALL[pos]<<1;
+        if(pos >= sizeof(APRS_D_CALL)-1){
+            buff[pos] = APRS_SPACE_SYMBOL<<1;
+        }else buff[pos] = APRS_D_CALL[pos]<<1;
     }
     buff[pos++] = (APRS_D_CALL_SSID<<1) | 0b11100000; // Destination adress SSID
     
     d_pos = pos;
     for(; pos-d_pos<6; pos++){ // Source adress
-        buff[pos] = APRS_S_CALL[pos-d_pos]<<1;
+        if(pos-d_pos >= sizeof(APRS_S_CALL)-1){
+            buff[pos] = APRS_SPACE_SYMBOL<<1;
+        }else buff[pos] = APRS_S_CALL[pos-d_pos]<<1;
     }
     buff[pos++] = (APRS_S_CALL_SSID<<1) | 0b11100000; // Source adress SSID
     
     d_pos = pos;
     for(; pos-d_pos<6; pos++){ // Path
-        buff[pos] = APRS_PATH[pos-d_pos]<<1;
+        if(pos-d_pos >= sizeof(APRS_PATH)-1){
+            buff[pos] = APRS_SPACE_SYMBOL<<1;
+        }else buff[pos] = APRS_PATH[pos-d_pos]<<1;
     }
     buff[pos++] = (APRS_PATH_SSID<<1) | 0b11100001; // Path SSID (1 at end as last adress)
     
@@ -64,7 +71,66 @@ static uint16_t generate_ax25_frame(uint8_t *info_field, uint8_t info_field_size
     return pos;
 }
 
-uint16_t encode_APRS_packet(APRSPacket Packet, uint8_t *buff){
-    uint8_t info[] = "@092345z/:*E\";qZ=OMRC/A=088132Hello World!";
-    return generate_ax25_frame(info, sizeof(info)-1, buff);
+static uint8_t compress_pos(float lat, float lon, uint8_t *buff){
+    uint32_t lat_base10 = Round(380926 * (90-lat));
+    uint8_t cnt = 0;
+
+    buff[cnt++] = (lat_base10 / 753571) + 33;
+    buff[cnt++] = ((lat_base10 % 753571) / 8281) + 33;
+    buff[cnt++] = ((lat_base10 % 753571) % 8281) / 91 + 33;
+    buff[cnt++] = ((lat_base10 % 753571) % 8281) % 91 + 33;
+
+
+    uint32_t lon_base10 = Round(190463 * (180+lat));
+    buff[cnt++] = (lon_base10 / 753571) + 33;
+    buff[cnt++] = ((lon_base10 % 753571) / 8281) + 33;
+    buff[cnt++] = ((lon_base10 % 753571) % 8281) / 91 + 33;
+    buff[cnt++] = ((lon_base10 % 753571) % 8281) % 91 + 33;
+
+    return cnt;
+}
+
+uint8_t encode_APRS_packet(APRSPacket Packet, uint8_t *buff){
+    uint8_t info_field[APRS_MAX_INFO_LEN];
+    uint8_t pos = 0;
+
+    info_field[pos++] = '@';
+    
+    info_field[pos++] = Packet.Hours%10+'0';
+    info_field[pos++] = Packet.Hours/10+'0';
+
+    info_field[pos++] = Packet.Minutes%10+'0';
+    info_field[pos++] = Packet.Minutes/10+'0';
+
+    info_field[pos++] = Packet.Seconds%10+'0';
+    info_field[pos++] = Packet.Seconds/10+'0';
+
+    info_field[pos++] = 'z';
+
+    info_field[pos++] = APRS_SYMBOL[0];
+
+    pos += compress_pos(Packet.Lat, Packet.Lon, info_field+pos);
+
+    info_field[pos++] = APRS_SYMBOL[1];
+
+    info_field[pos++] = 33; // no course data
+
+    info_field[pos++] = Round((Log(Packet.Speed*0.5399565f+1)/Log(1.08f)))+33;
+
+    info_field[pos++] = 67;
+
+    info_field[pos++] = '/';
+    info_field[pos++] = 'A';
+    info_field[pos++] = '=';
+    uint32_t alt_ft = (uint32_t)(Packet.Alt*3.28084f);
+    uint32_t a = 1000000;
+    for(uint8_t i = 0; i<6; i++){
+        info_field[pos++] = (alt_ft%(a*10))/a;
+        a/=10;
+    }
+
+    memcpy(info_field+pos, "test", 4);
+    pos+=4;
+
+    return generate_ax25_frame(info_field, pos, buff);
 }
