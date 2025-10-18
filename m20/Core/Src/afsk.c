@@ -20,41 +20,40 @@
  * Also it means that the PWM autoreload value must be the max balue from the table
  */
 static const uint8_t sine_table[] = {
-  127, 129, 130, 132, 133, 135, 136, 138, 139, 141, 143, 144, 146, 147, 149, 150, 152, 153, 155, 156, 158, 
-  159, 161, 163, 164, 166, 167, 168, 170, 171, 173, 174, 176, 177, 179, 180, 182, 183, 184, 186, 187, 188, 
-  190, 191, 193, 194, 195, 197, 198, 199, 200, 202, 203, 204, 205, 207, 208, 209, 210, 211, 213, 214, 215, 
-  216, 217, 218, 219, 220, 221, 223, 224, 225, 226, 227, 228, 228, 229, 230, 231, 232, 233, 234, 235, 236, 
-  236, 237, 238, 239, 239, 240, 241, 242, 242, 243, 244, 244, 245, 245, 246, 247, 247, 248, 248, 249, 249, 
-  249, 250, 250, 251, 251, 251, 252, 252, 252, 253, 253, 253, 253, 254, 254, 254, 254, 254, 254, 254, 254, 
-  254, 254, 255, 254, 254, 254, 254, 254, 254, 254, 254, 254, 254, 253, 253, 253, 253, 252, 252, 252, 251, 
-  251, 251, 250, 250, 249, 249, 249, 248, 248, 247, 247, 246, 245, 245, 244, 244, 243, 242, 242, 241, 240, 
-  239, 239, 238, 237, 236, 236, 235, 234, 233, 232, 231, 230, 229, 228, 228, 227, 226, 225, 224, 223, 221, 
-  220, 219, 218, 217, 216, 215, 214, 213, 211, 210, 209, 208, 207, 205, 204, 203, 202, 200, 199, 198, 197, 
-  195, 194, 193, 191, 190, 188, 187, 186, 184, 183, 182, 180, 179, 177, 176, 174, 173, 171, 170, 168, 167, 
-  166, 164, 163, 161, 159, 158, 156, 155, 153, 152, 150, 149, 147, 146, 144, 143, 141, 139, 138, 136, 135, 
-  133, 132, 130, 129, 127, 125, 124, 122, 121, 119, 118, 116, 115, 113, 111, 110, 108, 107, 105, 104, 102, 
-  101,  99,  98,  96,  95,  93,  91,  90,  88,  87,  86,  84,  83,  81,  80,  78,  77,  75,  74,  72,  71, 
-   70,  68,  67,  66,  64,  63,  61,  60,  59,  57,  56,  55,  54,  52,  51,  50,  49,  47,  46,  45,  44, 
-   43,  41,  40,  39,  38,  37,  36,  35,  34,  33,  31,  30,  29,  28,  27,  26,  26,  25,  24,  23,  22, 
-   21,  20,  19,  18,  18,  17,  16,  15,  15,  14,  13,  12,  12,  11,  10,  10,   9,   9,   8,   7,   7, 
-    6,   6,   5,   5,   5,   4,   4,   3,   3,   3,   2,   2,   2,   1,   1,   1,   1,   0,   0,   0,   0, 
-    0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   1,   1,   1,   1, 
-    2,   2,   2,   3,   3,   3,   4,   4,   5,   5,   5,   6,   6,   7,   7,   8,   9,   9,  10,  10,  11, 
-   12,  12,  13,  14,  15,  15,  16,  17,  18,  18,  19,  20,  21,  22,  23,  24,  25,  26,  26,  27,  28, 
-   29,  30,  31,  33,  34,  35,  36,  37,  38,  39,  40,  41,  43,  44,  45,  46,  47,  49,  50,  51,  52, 
-   54,  55,  56,  57,  59,  60,  61,  63,  64,  66,  67,  68,  70,  71,  72,  74,  75,  77,  78,  80,  81, 
-   83,  84,  86,  87,  88,  90,  91,  93,  95,  96,  98,  99, 101, 102, 104, 105, 107, 108, 110, 111, 113, 
-  115, 116, 118, 119, 121, 122, 124, 125
-};
+    127, 129, 130, 132, 133, 135, 136, 138, 139, 141, 143, 144, 146, 147, 149, 150, 152, 153, 155, 156, 158,
+    159, 161, 163, 164, 166, 167, 168, 170, 171, 173, 174, 176, 177, 179, 180, 182, 183, 184, 186, 187, 188,
+    190, 191, 193, 194, 195, 197, 198, 199, 200, 202, 203, 204, 205, 207, 208, 209, 210, 211, 213, 214, 215,
+    216, 217, 218, 219, 220, 221, 223, 224, 225, 226, 227, 228, 228, 229, 230, 231, 232, 233, 234, 235, 236,
+    236, 237, 238, 239, 239, 240, 241, 242, 242, 243, 244, 244, 245, 245, 246, 247, 247, 248, 248, 249, 249,
+    249, 250, 250, 251, 251, 251, 252, 252, 252, 253, 253, 253, 253, 254, 254, 254, 254, 254, 254, 254, 254,
+    254, 254, 255, 254, 254, 254, 254, 254, 254, 254, 254, 254, 254, 253, 253, 253, 253, 252, 252, 252, 251,
+    251, 251, 250, 250, 249, 249, 249, 248, 248, 247, 247, 246, 245, 245, 244, 244, 243, 242, 242, 241, 240,
+    239, 239, 238, 237, 236, 236, 235, 234, 233, 232, 231, 230, 229, 228, 228, 227, 226, 225, 224, 223, 221,
+    220, 219, 218, 217, 216, 215, 214, 213, 211, 210, 209, 208, 207, 205, 204, 203, 202, 200, 199, 198, 197,
+    195, 194, 193, 191, 190, 188, 187, 186, 184, 183, 182, 180, 179, 177, 176, 174, 173, 171, 170, 168, 167,
+    166, 164, 163, 161, 159, 158, 156, 155, 153, 152, 150, 149, 147, 146, 144, 143, 141, 139, 138, 136, 135,
+    133, 132, 130, 129, 127, 125, 124, 122, 121, 119, 118, 116, 115, 113, 111, 110, 108, 107, 105, 104, 102,
+    101, 99, 98, 96, 95, 93, 91, 90, 88, 87, 86, 84, 83, 81, 80, 78, 77, 75, 74, 72, 71,
+    70, 68, 67, 66, 64, 63, 61, 60, 59, 57, 56, 55, 54, 52, 51, 50, 49, 47, 46, 45, 44,
+    43, 41, 40, 39, 38, 37, 36, 35, 34, 33, 31, 30, 29, 28, 27, 26, 26, 25, 24, 23, 22,
+    21, 20, 19, 18, 18, 17, 16, 15, 15, 14, 13, 12, 12, 11, 10, 10, 9, 9, 8, 7, 7,
+    6, 6, 5, 5, 5, 4, 4, 3, 3, 3, 2, 2, 2, 1, 1, 1, 1, 0, 0, 0, 0,
+    0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1,
+    2, 2, 2, 3, 3, 3, 4, 4, 5, 5, 5, 6, 6, 7, 7, 8, 9, 9, 10, 10, 11,
+    12, 12, 13, 14, 15, 15, 16, 17, 18, 18, 19, 20, 21, 22, 23, 24, 25, 26, 26, 27, 28,
+    29, 30, 31, 33, 34, 35, 36, 37, 38, 39, 40, 41, 43, 44, 45, 46, 47, 49, 50, 51, 52,
+    54, 55, 56, 57, 59, 60, 61, 63, 64, 66, 67, 68, 70, 71, 72, 74, 75, 77, 78, 80, 81,
+    83, 84, 86, 87, 88, 90, 91, 93, 95, 96, 98, 99, 101, 102, 104, 105, 107, 108, 110, 111, 113,
+    115, 116, 118, 119, 121, 122, 124, 125};
 
 static const uint16_t SINE_TABLE_SIZE = sizeof(sine_table);
-static const uint16_t AFSK_SAMPLE_RATE = MODEM_CLOCK_RATE/(AFSK_PWM_TIM_ARR+1); // Frequency of PWM and rate of the sampling interrupt
-static const uint16_t PHASE_INC_MARC = ((SINE_TABLE_SIZE * BELL202_MARK) << 7)/AFSK_SAMPLE_RATE; // Phase increase for generating marc Bell 202 tone. Fixed point 9.7
-static const uint16_t PHASE_INC_SPACE = ((SINE_TABLE_SIZE * BELL202_SPACE) << 7)/AFSK_SAMPLE_RATE; // Phase increase for generating space Bell 202 tone. Fixed point 9.7
-static const uint16_t SAMPLES_PER_BAUD = (AFSK_SAMPLE_RATE << 8)/AFSK_BAUDRATE; // Number of samples after with the next next bit will be sent. Fixed point 8.8
+static const uint16_t AFSK_SAMPLE_RATE = MODEM_CLOCK_RATE / (AFSK_PWM_TIM_ARR + 1);                  // Frequency of PWM and rate of the sampling interrupt
+static const uint16_t PHASE_INC_MARC = ((SINE_TABLE_SIZE * BELL202_MARK) << 7) / AFSK_SAMPLE_RATE;   // Phase increase for generating marc Bell 202 tone. Fixed point 9.7
+static const uint16_t PHASE_INC_SPACE = ((SINE_TABLE_SIZE * BELL202_SPACE) << 7) / AFSK_SAMPLE_RATE; // Phase increase for generating space Bell 202 tone. Fixed point 9.7
+static const uint16_t SAMPLES_PER_BAUD = (AFSK_SAMPLE_RATE << 8) / AFSK_BAUDRATE;                    // Number of samples after with the next next bit will be sent. Fixed point 8.8
 
 volatile static uint16_t phase_inc = PHASE_INC_MARC; // current phase increase value, fixed point 9.7
-volatile static uint16_t phase = 0; // Current phase value, fixed point 9.7
+volatile static uint16_t phase = 0;                  // Current phase value, fixed point 9.7
 volatile static uint16_t sample_in_baud = 0;
 
 volatile static uint16_t bit_pos = 0;
@@ -64,79 +63,98 @@ static bool AFSK_Active = false; // Activity flag
 static uint8_t *buff;
 static uint16_t buff_len;
 
-bool AFSK_is_active(){ // Return activity flag
+bool AFSK_is_active()
+{ // Return activity flag
     return AFSK_Active;
 }
 
-void AFSK_stop_TX() { // Disable TX
-  TIM21->DIER &= ~(TIM_DIER_UIE); // Disable the interrupt
-  TIM21->CR1 &= (uint16_t)(~((uint16_t)TIM_CR1_CEN)); // Disable the PWM counter
-  adf_RF_off(); // turn TX off
-  AFSK_Active = false; // turn off activty flag
+void AFSK_stop_TX()
+{                                                       // Disable TX
+    TIM21->DIER &= ~(TIM_DIER_UIE);                     // Disable the interrupt
+    TIM21->CR1 &= (uint16_t)(~((uint16_t)TIM_CR1_CEN)); // Disable the PWM counter
+    adf_RF_off();                                       // turn TX off
+    AFSK_Active = false;                                // turn off activty flag
 }
 
 // 0, N1-1 | N1, N1+N2-1 | N1+N2, N1+N2+buff_len-1 | N1+N2+buff_len, N1+N2+buff_len+N3-1
-static bool get_next_bit(){
-    if(bit_pos < (N1_SYNC_COUNT)*8){
-        return 0; // N1 sync octet is 0x00 
-    }else if(bit_pos >= (N1_SYNC_COUNT)*8 && bit_pos < (N1_SYNC_COUNT+N2_SYNC_COUNT)*8){ // N2 octet sync section
-        return (AFSK_SYNC_FLAG>>(7-(bit_pos%8))) & 1;
-    }else if(bit_pos >= N1_SYNC_COUNT+N2_SYNC_COUNT*8 && bit_pos < (N1_SYNC_COUNT+N2_SYNC_COUNT+buff_len)*8){ // DATA section
-        return (buff[(bit_pos/8)-(N1_SYNC_COUNT+N2_SYNC_COUNT)]>>(7-(bit_pos%8))) & 1;
-    }else if(bit_pos >= (N1_SYNC_COUNT+N2_SYNC_COUNT+buff_len)*8 && bit_pos < (N1_SYNC_COUNT+N2_SYNC_COUNT+buff_len+N3_SYNC_COUNT)*8){ // N3 octet sync section
-        return (AFSK_SYNC_FLAG>>(7-(bit_pos%8))) & 1;
+static bool get_next_bit()
+{
+    if (bit_pos < (N1_SYNC_COUNT) * 8)
+    {
+        return 0; // N1 sync octet is 0x00
+    }
+    else if (bit_pos >= (N1_SYNC_COUNT) * 8 && bit_pos < (N1_SYNC_COUNT + N2_SYNC_COUNT) * 8)
+    { // N2 octet sync section
+        return (AFSK_SYNC_FLAG >> (7 - (bit_pos % 8))) & 1;
+    }
+    else if (bit_pos >= N1_SYNC_COUNT + N2_SYNC_COUNT * 8 && bit_pos < (N1_SYNC_COUNT + N2_SYNC_COUNT + buff_len) * 8)
+    { // DATA section
+        return (buff[(bit_pos / 8) - (N1_SYNC_COUNT + N2_SYNC_COUNT)] >> (7 - (bit_pos % 8))) & 1;
+    }
+    else if (bit_pos >= (N1_SYNC_COUNT + N2_SYNC_COUNT + buff_len) * 8 && bit_pos < (N1_SYNC_COUNT + N2_SYNC_COUNT + buff_len + N3_SYNC_COUNT) * 8)
+    { // N3 octet sync section
+        return (AFSK_SYNC_FLAG >> (7 - (bit_pos % 8))) & 1;
     }
 }
 
-void AFSK_timer_handler(){ // sampling and PWM timer (TIM21) changing duty cycle acoording to phase (and increasing it according to current tone)
-    //TIM21->CNT = 0; // Reset timer counter, not needed, PWM reloads it
+void AFSK_timer_handler()
+{ // sampling and PWM timer (TIM21) changing duty cycle acoording to phase (and increasing it according to current tone)
+    // TIM21->CNT = 0; // Reset timer counter, not needed, PWM reloads it
 
-    TIM21->CCR1 = sine_table[(phase>>7) + ((phase & (1<<6))>>6)]; // Set the duty cycle to index from phase, rounding fixed point 9.7 to int
+    TIM21->CCR1 = sine_table[(phase >> 7) + ((phase & (1 << 6)) >> 6)]; // Set the duty cycle to index from phase, rounding fixed point 9.7 to int
 
     phase += phase_inc; // increase phase for generating wanted frequency
-    if (phase >= (SINE_TABLE_SIZE<<7)) phase -= (SINE_TABLE_SIZE<<7); // normalise phase value to be in bounds of array
+    if (phase >= (SINE_TABLE_SIZE << 7))
+        phase -= (SINE_TABLE_SIZE << 7); // normalise phase value to be in bounds of array
 
-    if (sample_in_baud < (1<<8)){ // With the baudrate frequency process next bit of data
+    if (sample_in_baud < (1 << 8))
+    { // With the baudrate frequency process next bit of data
 
-        if(bit_pos >= (N1_SYNC_COUNT+N2_SYNC_COUNT+buff_len+N3_SYNC_COUNT)*8){ // check for end of transmission
+        if (bit_pos >= (N1_SYNC_COUNT + N2_SYNC_COUNT + buff_len + N3_SYNC_COUNT) * 8)
+        { // check for end of transmission
             AFSK_stop_TX();
-        }else{
-            /* 
+        }
+        else
+        {
+            /*
              * "One implication of using HDLC is that frames are not encoded using the 1200Hz mark and 2200Hz
              * space symbols of traditional Bell 202, but instead use an inverted non-return to zero (NRZI) encoding.
              * NRZI calls for zeros in the original bit stream to be encoded as a continuous-phase frequency
              * transition between consecutive symbols, while ones are encoded as the lack of a frequency change between two symbols."
              */
-            if(get_next_bit() == 0) phase_inc ^= (PHASE_INC_MARC ^ PHASE_INC_SPACE); // When bit is 0, change the current frequency, when 1 dont change it
+            if (get_next_bit() == 0)
+                phase_inc ^= (PHASE_INC_MARC ^ PHASE_INC_SPACE); // When bit is 0, change the current frequency, when 1 dont change it
         }
     }
 
-    sample_in_baud += (1<<8);
-    if(sample_in_baud >= SAMPLES_PER_BAUD){
-        sample_in_baud-=SAMPLES_PER_BAUD;
+    sample_in_baud += (1 << 8);
+    if (sample_in_baud >= SAMPLES_PER_BAUD)
+    {
+        sample_in_baud -= SAMPLES_PER_BAUD;
         bit_pos++; // increase bit counter
     }
 }
 
-void AFSK_start_TX(uint8_t *buffer, uint16_t buffer_len) {
-  buff = buffer; // Set buffer pointer
-  buff_len = buffer_len; // Set buffer length
+void AFSK_start_TX(uint8_t *buffer, uint16_t buffer_len)
+{
+    buff = buffer;         // Set buffer pointer
+    buff_len = buffer_len; // Set buffer length
 
-  adf_RF_on(QRG_AFSK, PA_FSK4); // turn on radio TX
-  AFSK_Active = true; // turn on activity flag
-  phase_inc = PHASE_INC_MARC; // first phase increase for marc tone
-  phase = 0; // reset phase
-  sample_in_baud = 0; // reset samples per baud
-  bit_pos = 0; // reset bit position counter
+    adf_RF_on(QRG_AFSK, PA_FSK4); // turn on radio TX
+    AFSK_Active = true;           // turn on activity flag
+    phase_inc = PHASE_INC_MARC;   // first phase increase for marc tone
+    phase = 0;                    // reset phase
+    sample_in_baud = 0;           // reset samples per baud
+    bit_pos = 0;                  // reset bit position counter
 
-  // TIM21 - PWM timer generating tones and sampling interrupts
-  TIM21->CR1 &= (uint16_t)(~((uint16_t)TIM_CR1_CEN)); // Disable the TIM Counter
-  TIM21->PSC = AFSK_PWM_TIM_PSC; // Set prescaler
-  TIM21->ARR = AFSK_PWM_TIM_ARR; // Set autoreload
+    // TIM21 - PWM timer generating tones and sampling interrupts
+    TIM21->CR1 &= (uint16_t)(~((uint16_t)TIM_CR1_CEN)); // Disable the TIM Counter
+    TIM21->PSC = AFSK_PWM_TIM_PSC;                      // Set prescaler
+    TIM21->ARR = AFSK_PWM_TIM_ARR;                      // Set autoreload
 
-  TIM21->CCER |= LL_TIM_CHANNEL_CH1; // Set PWM channel
-  TIM21->CR1 |= TIM_CR1_CEN;     // enable timer again
-  TIM21->DIER |= TIM_DIER_UIE; // Enable the interrupt
+    TIM21->CCER |= LL_TIM_CHANNEL_CH1; // Set PWM channel
+    TIM21->CR1 |= TIM_CR1_CEN;         // enable timer again
+    TIM21->DIER |= TIM_DIER_UIE;       // Enable the interrupt
 
-  AFSK_timer_handler(); // Tirgger first modulation iteration to set initial values before PWM will be turned on
+    AFSK_timer_handler(); // Tirgger first modulation iteration to set initial values before PWM will be turned on
 }
