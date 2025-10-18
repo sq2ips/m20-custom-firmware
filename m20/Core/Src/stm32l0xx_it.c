@@ -23,7 +23,6 @@
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
 #include "fsk4.h"
-#include "afsk.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -58,7 +57,8 @@
 /* External variables --------------------------------------------------------*/
 
 /* USER CODE BEGIN EV */
-
+extern bool AFSK_Active;
+extern void AFSK_timer_handler();
 /* USER CODE END EV */
 
 /******************************************************************************/
@@ -181,9 +181,9 @@ void TIM6_DAC_IRQHandler(void)
 void TIM21_IRQHandler(void)
 {
   /* USER CODE BEGIN TIM21_IRQn 0 */
-  if(LL_TIM_IsActiveFlag_UPDATE(TIM21) == 1){
+  if(LL_TIM_IsActiveFlag_UPDATE(TIM21)){
 		LL_TIM_ClearFlag_UPDATE(TIM21);
-    if(AFSK_is_active()) AFSK_timer_handler();
+    if(AFSK_Active) AFSK_timer_handler();
   }
   /* USER CODE END TIM21_IRQn 0 */
   /* USER CODE BEGIN TIM21_IRQn 1 */

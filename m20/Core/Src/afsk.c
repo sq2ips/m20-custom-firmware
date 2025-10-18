@@ -58,15 +58,10 @@ volatile static uint16_t sample_in_baud = 0;
 
 volatile static uint16_t bit_pos = 0;
 
-static bool AFSK_Active = false; // Activity flag
+extern bool AFSK_Active = false; // Activity flag
 
 static uint8_t *buff;
 static uint16_t buff_len;
-
-bool AFSK_is_active()
-{ // Return activity flag
-    return AFSK_Active;
-}
 
 void AFSK_stop_TX()
 {                                                       // Disable TX
