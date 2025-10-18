@@ -1,6 +1,8 @@
 #ifndef INC_AFSK_H_
 #define INC_AFSK_H_
 
+#include <stdint.h>
+
 #define MODEM_CLOCK_RATE 12000000 // System clock
 
 #define BELL202_MARK 1200UL // Mark tone 1200Hz tuned
@@ -19,14 +21,15 @@
  * |-----------|-----------|-----------------|-----------|
 */
 
-#define BELL202_N2_N3_FLAG 0b01111110 // 0x7E sync flag for N2 and N3
+#define AFSK_SYNC_FLAG 0b01111110 // 0x7E sync flag for N2 and N3
 
-#define N2_SEGMENT_COUNT 100 // number of N2 octets
-#define N3_SEGMENT_COUNT 10 // number of N3 octets
+#define N1_SYNC_COUNT 20 // number of N1 octets
+#define N2_SYNC_COUNT 10 // number of N2 octets
+#define N3_SYNC_COUNT 10 // number of N3 octets
 
 bool AFSK_is_active();
 void AFSK_stop_TX();
 void AFSK_timer_handler();
-void AFSK_start_TX();
+void AFSK_start_TX(uint8_t *buffer, uint16_t buffer_len);
 
 #endif

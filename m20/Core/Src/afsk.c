@@ -12,8 +12,6 @@
 #include "main.h"
 #include "config.h"
 
-#include <stdio.h>
-
 /*
  * The sine lookup table is the carrier signal, its values are set as the PWM dutycycle,
  * it's indexed by a phase value, continously increased in the modulation interrupt by
@@ -58,12 +56,13 @@ static const uint16_t SAMPLES_PER_BAUD = (AFSK_SAMPLE_RATE << 8)/AFSK_BAUDRATE; 
 volatile static uint16_t phase_inc = PHASE_INC_MARC; // current phase increase value, fixed point 9.7
 volatile static uint16_t phase = 0; // Current phase value, fixed point 9.7
 volatile static uint16_t sample_in_baud = 0;
+
 volatile static uint16_t bit_pos = 0;
 
 static bool AFSK_Active = false; // Activity flag
 
-static const uint8_t buff[] = {0x7e, 0x41, 0x05, 0x25, 0x65, 0x02, 0x02, 0x07, 0x39, 0x79, 0x61, 0x41, 0x19, 0x19, 0x47, 0x75, 0x49, 0x11, 0x51, 0x46, 0x02, 0xc7, 0xc0, 0x07, 0x81, 0x06, 0x4e, 0x26, 0x66, 0x16, 0x56, 0x2f, 0x7a, 0x2e, 0x2a, 0x51, 0x22, 0x6e, 0x47, 0x2d, 0x5e, 0x79, 0x59, 0x25, 0x61, 0x7a, 0x41, 0x5e, 0x06, 0x0e, 0x0e, 0x46, 0x66, 0x26, 0x09, 0x53, 0x1b, 0x1b, 0x7b, 0x02, 0x75, 0x7b, 0x27, 0x1b, 0x13, 0x42, 0x22, 0x89, 0x3f, 0x3f};
-static const uint16_t buff_len = sizeof(buff);
+static uint8_t *buff;
+static uint16_t buff_len;
 
 bool AFSK_is_active(){ // Return activity flag
     return AFSK_Active;
@@ -76,21 +75,22 @@ void AFSK_stop_TX() { // Disable TX
   AFSK_Active = false; // turn off activty flag
 }
 
-// 0, N2-1 | N2, N2+buff_len-1 | buff_len, buff_len+N3-1
+// 0, N1-1 | N1, N1+N2-1 | N1+N2, N1+N2+buff_len-1 | N1+N2+buff_len, N1+N2+buff_len+N3-1
 static bool get_next_bit(){
-    if(bit_pos < (N2_SEGMENT_COUNT)*8){ // N2 octet sync section
-        return (BELL202_N2_N3_FLAG>>(7-(bit_pos%8))) & 1;
-    }else if(bit_pos >= N2_SEGMENT_COUNT*8 && bit_pos < (N2_SEGMENT_COUNT+buff_len)*8){ // DATA section
-        return (buff[(bit_pos/8)-(N2_SEGMENT_COUNT)]>>(7-(bit_pos%8))) & 1;
-    }else if(bit_pos >= (N2_SEGMENT_COUNT+buff_len)*8 && bit_pos < (N2_SEGMENT_COUNT+buff_len+N3_SEGMENT_COUNT)*8){ // N3 octet sync section
-        return (BELL202_N2_N3_FLAG>>(7-(bit_pos%8))) & 1;
+    if(bit_pos < (N1_SYNC_COUNT)*8){
+        return 0; // N1 sync octet is 0x00 
+    }else if(bit_pos >= (N1_SYNC_COUNT)*8 && bit_pos < (N1_SYNC_COUNT+N2_SYNC_COUNT)*8){ // N2 octet sync section
+        return (AFSK_SYNC_FLAG>>(7-(bit_pos%8))) & 1;
+    }else if(bit_pos >= N1_SYNC_COUNT+N2_SYNC_COUNT*8 && bit_pos < (N1_SYNC_COUNT+N2_SYNC_COUNT+buff_len)*8){ // DATA section
+        return (buff[(bit_pos/8)-(N1_SYNC_COUNT+N2_SYNC_COUNT)]>>(7-(bit_pos%8))) & 1;
+    }else if(bit_pos >= (N1_SYNC_COUNT+N2_SYNC_COUNT+buff_len)*8 && bit_pos < (N1_SYNC_COUNT+N2_SYNC_COUNT+buff_len+N3_SYNC_COUNT)*8){ // N3 octet sync section
+        return (AFSK_SYNC_FLAG>>(7-(bit_pos%8))) & 1;
     }
 }
 
 void AFSK_timer_handler(){ // sampling and PWM timer (TIM21) changing duty cycle acoording to phase (and increasing it according to current tone)
-    //TIM21->CNT = 0; // Reset timer counter ??
+    //TIM21->CNT = 0; // Reset timer counter, not needed, PWM reloads it
 
-    //printf("phase: %d\r\n", phase);
     TIM21->CCR1 = sine_table[(phase>>7) + ((phase & (1<<6))>>6)]; // Set the duty cycle to index from phase, rounding fixed point 9.7 to int
 
     phase += phase_inc; // increase phase for generating wanted frequency
@@ -98,7 +98,7 @@ void AFSK_timer_handler(){ // sampling and PWM timer (TIM21) changing duty cycle
 
     if (sample_in_baud < (1<<8)){ // With the baudrate frequency process next bit of data
 
-        if(bit_pos >= (N2_SEGMENT_COUNT+buff_len+N3_SEGMENT_COUNT)*8){ // check for end of transmission
+        if(bit_pos >= (N1_SYNC_COUNT+N2_SYNC_COUNT+buff_len+N3_SYNC_COUNT)*8){ // check for end of transmission
             AFSK_stop_TX();
         }else{
             /* 
@@ -118,15 +118,16 @@ void AFSK_timer_handler(){ // sampling and PWM timer (TIM21) changing duty cycle
     }
 }
 
-void AFSK_start_TX() {
+void AFSK_start_TX(uint8_t *buffer, uint16_t buffer_len) {
+  buff = buffer; // Set buffer pointer
+  buff_len = buffer_len; // Set buffer length
+
   adf_RF_on(QRG_AFSK, PA_FSK4); // turn on radio TX
   AFSK_Active = true; // turn on activity flag
   phase_inc = PHASE_INC_MARC; // first phase increase for marc tone
   phase = 0; // reset phase
   sample_in_baud = 0; // reset samples per baud
   bit_pos = 0; // reset bit position counter
-
-  AFSK_timer_handler(); // Tirgger first modulation iteration to set initial values before PWM will be turned on
 
   // TIM21 - PWM timer generating tones and sampling interrupts
   TIM21->CR1 &= (uint16_t)(~((uint16_t)TIM_CR1_CEN)); // Disable the TIM Counter
@@ -137,4 +138,5 @@ void AFSK_start_TX() {
   TIM21->CR1 |= TIM_CR1_CEN;     // enable timer again
   TIM21->DIER |= TIM_DIER_UIE; // Enable the interrupt
 
+  AFSK_timer_handler(); // Tirgger first modulation iteration to set initial values before PWM will be turned on
 }
