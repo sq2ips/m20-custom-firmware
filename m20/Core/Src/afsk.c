@@ -58,7 +58,7 @@ volatile static uint16_t sample_in_baud = 0;
 
 volatile static uint16_t bit_pos = 0;
 
-extern bool AFSK_Active = false; // Activity flag
+bool AFSK_Active = false; // Activity flag
 
 static uint8_t *buff;
 static uint16_t buff_len;

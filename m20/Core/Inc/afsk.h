@@ -31,6 +31,6 @@ void AFSK_stop_TX();
 void AFSK_start_TX(uint8_t *buffer, uint16_t buffer_len);
 
 extern bool AFSK_Active;
-extern void AFSK_timer_handler();
+void AFSK_timer_handler();
 
 #endif

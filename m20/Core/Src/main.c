@@ -461,7 +461,7 @@ int main(void)
     /* USER CODE BEGIN 3 */
     AFSK_start_TX(afsk_buff, sizeof(afsk_buff));
     LL_GPIO_TogglePin(LED_GPIO_Port, LED_Pin);
-    while(AFSK_Active){}
+    while(AFSK_Active) LL_mDelay(100);
     LL_GPIO_TogglePin(LED_GPIO_Port, LED_Pin);
     LL_mDelay(5000);
   }
