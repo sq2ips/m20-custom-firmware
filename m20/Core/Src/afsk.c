@@ -57,6 +57,8 @@ volatile static uint16_t phase = 0;                  // Current phase value, fix
 volatile static uint16_t sample_in_baud = 0;
 
 volatile static uint16_t bit_pos = 0;
+volatile static uint8_t stuffing_cnt = 0;
+volatile static bool stuff = false;
 
 bool AFSK_Active = false; // Activity flag
 
@@ -84,7 +86,17 @@ static bool get_next_bit()
     }
     else if (bit_pos >= N1_SYNC_COUNT + N2_SYNC_COUNT * 8 && bit_pos < (N1_SYNC_COUNT + N2_SYNC_COUNT + buff_len) * 8)
     { // DATA section
-        return (buff[(bit_pos / 8) - (N1_SYNC_COUNT + N2_SYNC_COUNT)] >> (7 - (bit_pos % 8))) & 1;
+        bool bit = (buff[(bit_pos / 8) - (N1_SYNC_COUNT + N2_SYNC_COUNT)] >> (bit_pos % 8)) & 1;
+        if(bit){
+            stuffing_cnt++;
+            if(stuffing_cnt>=5){
+                stuffing_cnt = 0;
+                stuff = true;
+            }
+        }else{
+            stuffing_cnt = 0;
+        }
+        return bit;
     }
     else if (bit_pos >= (N1_SYNC_COUNT + N2_SYNC_COUNT + buff_len) * 8 && bit_pos < (N1_SYNC_COUNT + N2_SYNC_COUNT + buff_len + N3_SYNC_COUNT) * 8)
     { // N3 octet sync section
@@ -117,7 +129,11 @@ void AFSK_timer_handler()
              * NRZI calls for zeros in the original bit stream to be encoded as a continuous-phase frequency
              * transition between consecutive symbols, while ones are encoded as the lack of a frequency change between two symbols."
              */
-            if (get_next_bit() == 0)
+            if(stuff){
+                phase_inc ^= (PHASE_INC_MARC ^ PHASE_INC_SPACE);
+                bit_pos--;
+                stuff = false;
+            }else if (get_next_bit() == 0)
                 phase_inc ^= (PHASE_INC_MARC ^ PHASE_INC_SPACE); // When bit is 0, change the current frequency, when 1 dont change it
         }
     }
@@ -137,10 +153,11 @@ void AFSK_start_TX(uint8_t *buffer, uint16_t buffer_len)
 
     adf_RF_on(QRG_AFSK, PA_FSK4); // turn on radio TX
     AFSK_Active = true;           // turn on activity flag
-    phase_inc = PHASE_INC_MARC;   // first phase increase for marc tone
+    //phase_inc = PHASE_INC_MARC;   // first phase increase for marc tone
     phase = 0;                    // reset phase
     sample_in_baud = 0;           // reset samples per baud
     bit_pos = 0;                  // reset bit position counter
+    stuffing_cnt = 0;
 
     // TIM21 - PWM timer generating tones and sampling interrupts
     TIM21->CR1 &= (uint16_t)(~((uint16_t)TIM_CR1_CEN)); // Disable the TIM Counter
