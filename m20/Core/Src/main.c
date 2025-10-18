@@ -17,6 +17,7 @@
 #include "adf.h"
 #include "fsk4.h"
 #include "afsk.h"
+#include "aprs.h"
 #include "horus.h"
 #include "lps22hb.h"
 #include "utils.h"
@@ -79,7 +80,9 @@ uint8_t lps_init;
 
 HorusBinaryPacket HorusPacket;
 
-char HorusCodedBuffer[65]; // TODO: change size
+APRSPacket AprsPacket;
+
+char HorusCodedBuffer[250]; // TODO: change size
 uint16_t HorusCodedLen;
 /* USER CODE END PV */
 
@@ -459,7 +462,8 @@ int main(void)
     /* USER CODE END WHILE */
 
     /* USER CODE BEGIN 3 */
-    AFSK_start_TX(afsk_buff, sizeof(afsk_buff));
+    uint16_t bufflen = encode_APRS_packet(AprsPacket, HorusCodedBuffer);
+    AFSK_start_TX(HorusCodedBuffer, bufflen);
     LL_GPIO_TogglePin(LED_GPIO_Port, LED_Pin);
     while(AFSK_Active) LL_mDelay(100);
     LL_GPIO_TogglePin(LED_GPIO_Port, LED_Pin);
