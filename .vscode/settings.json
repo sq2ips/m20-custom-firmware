@@ -62,6 +62,7 @@
     "compare": "c",
     "cstdint": "c",
     "afsk.h": "c",
-    "main.h": "c"
+    "main.h": "c",
+    "lps22hb.h": "c"
   }
 }

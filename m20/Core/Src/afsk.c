@@ -60,6 +60,7 @@ static uint16_t bit_pos = 0;
 static uint8_t stuffing_cnt = 0;
 static bool stuff = false;
 
+static uint8_t QRGCounter = 0;
 bool AFSK_Active = false; // Activity flag
 
 static uint8_t *buff;
@@ -106,8 +107,6 @@ static bool get_next_bit()
 
 void AFSK_timer_handler()
 { // sampling and PWM timer (TIM21) changing duty cycle acoording to phase (and increasing it according to current tone)
-    // TIM21->CNT = 0; // Reset timer counter, not needed, PWM reloads it
-
     TIM21->CCR1 = sine_table[(phase >> 7) + ((phase & (1 << 6)) >> 6)]; // Set the duty cycle to index from phase, rounding fixed point 9.7 to int
 
     phase += phase_inc; // increase phase for generating wanted frequency
@@ -151,7 +150,9 @@ void AFSK_start_TX(uint8_t *buffer, uint16_t buffer_len)
     buff = buffer;         // Set buffer pointer
     buff_len = buffer_len; // Set buffer length
 
-    adf_RF_on(QRG_AFSK, PA_FSK4); // turn on radio TX
+    adf_RF_on(QRG_AFSK[QRGCounter++], AFSK_POWER); // turn on radio TX
+    if (QRGCounter >= sizeof(QRG_AFSK) / sizeof(QRG_AFSK[0])) QRGCounter = 0;
+
     AFSK_Active = true;           // turn on activity flag
     //phase_inc = PHASE_INC_MARC;   // first phase increase for marc tone
     phase = 0;                    // reset phase

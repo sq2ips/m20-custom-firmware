@@ -7,7 +7,7 @@
 #include "config.h"
 #include "main.h"
 
-#ifdef DEBUG
+#if GPS_DEBUG
 #include <stdio.h>
 #endif
 #include <string.h>
@@ -301,8 +301,8 @@ void ParseNMEA(NMEA *nmea_data, uint8_t *buffer) {
   for (uint8_t i = 0; i < cnt; i++) {
     if (strstr(data[i], "GN") != NULL && strstr(data[i], "\r\n") != NULL &&
         checksum(data[i])) {
-#ifdef DEBUG
-      // printf(">%s", data[i]);
+#if GPS_DEBUG
+      printf(">%s", data[i]);
 #endif
       if (strstr(data[i], "GNGLL") != NULL) {
         if (nmea_GLL(nmea_data, data[i]))

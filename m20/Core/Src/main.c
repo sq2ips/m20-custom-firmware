@@ -9,18 +9,25 @@
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
 #include "config.h"
+#include "utils.h"
+
 #if GPS_TYPE == 1
 #include "nmea.h"
 #elif GPS_TYPE == 2
 #include "xm_gps.h"
 #endif
 #include "adf.h"
+#if HORUS_ENABLE
 #include "fsk4.h"
+#include "horus.h"
+#endif
+#if APRS_ENABLE
 #include "afsk.h"
 #include "aprs.h"
-#include "horus.h"
+#endif
+#if LPS22_ENABLE
 #include "lps22hb.h"
-#include "utils.h"
+#endif
 
 #ifdef DEBUG
 #include <stdio.h>
@@ -61,7 +68,7 @@ const static uint8_t GPS_airborne[44] = {
 XMDATA GpsData;
 #endif
 
-#ifdef GPS_WATCHDOG
+#if GPS_WATCHDOG
 struct GpsWatchdogStruct {
   bool PreviousFix;
   bool AfterRestart;
@@ -74,14 +81,31 @@ struct GpsWatchdogStruct {
 } GpsWatchdog;
 #endif
 
+uint8_t GpsResetCount = 0;
+
+#if LPS22_ENABLE
 uint8_t lps_init;
+#endif
 
+int8_t LpsTemp = 0;
+uint16_t LpsPress = 0; // *10
+
+uint16_t BatVoltage = 0;
+
+int16_t ExtTemp = 0; // *10
+
+#if HORUS_ENABLE
 HorusBinaryPacket HorusPacket;
+#endif
 
+#if APRS_ENABLE
 APRSPacket AprsPacket;
+#endif
 
-char HorusCodedBuffer[93]; // TODO: change size
-uint16_t HorusCodedLen;
+uint16_t PacketCount = 0;
+
+char CodedBuffer[APRS_MAX_PACKET_LEN]; // TODO: change size
+uint16_t BufferLen;
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
@@ -98,10 +122,14 @@ static void MX_TIM6_Init(void);
 static void MX_TIM21_Init(void);
 /* USER CODE BEGIN PFP */
 void GPS_Handler(void);
+#if LED_MODE == 2
 void LED_Handler(void);
+#endif
 void main_loop(void);
 void DelayWithIWDG(uint16_t time);
+#if GPS_TYPE == 1
 void GpsAirborne(void);
+#endif
 
 #ifdef DEBUG
 #ifdef __GNUC__
@@ -139,78 +167,39 @@ void main_loop(void) {
 
 #ifdef DEBUG
   // Frame number
-  printf("\r\nFrame: %d\r\n", HorusPacket.PacketCount);
-#endif
-
-// GPS type 1 data
-#if GPS_TYPE == 1
-  HorusPacket.Hours = NmeaData.Hours;
-  HorusPacket.Minutes = NmeaData.Minutes;
-  HorusPacket.Seconds = NmeaData.Seconds;
-  HorusPacket.Lat = NmeaData.Lat;
-  HorusPacket.Lon = NmeaData.Lon;
-  HorusPacket.Speed = (uint8_t)NmeaData.Speed;
-  HorusPacket.AscentRate = (int16_t)Round(NmeaData.AscentRate * 100.0);
-  HorusPacket.Alt = NmeaData.Alt;
-  HorusPacket.Sats = NmeaData.Sats;
-#ifdef DEBUG
-  printf("Fix: %d, Lat: %ld, Lon: %ld, Alt: %d m, Speed: %d km/h, Ascent rate: "
-         "%d m/s Satellites: %d, Time: %d:%d:%d\r\n",
-         NmeaData.Fix, (uint32_t)(NmeaData.Lat * 10e6),
-         (uint32_t)(NmeaData.Lon * 10e6), NmeaData.Alt, NmeaData.Speed,
-         (int16_t)Round(NmeaData.AscentRate * 100), NmeaData.Sats,
-         NmeaData.Hours, NmeaData.Minutes, NmeaData.Seconds);
-#endif
-
-// GPS type 2 data
-#elif GPS_TYPE == 2
-  HorusPacket.Hours = GpsData.Hours;
-  HorusPacket.Minutes = GpsData.Minutes;
-  HorusPacket.Seconds = GpsData.Seconds;
-  HorusPacket.Lat = GpsData.Lat;
-  HorusPacket.Lon = GpsData.Lon;
-  HorusPacket.Speed = (uint16_t)GpsData.GroundSpeed; // Doesn't work
-  HorusPacket.Alt = (uint16_t)GpsData.Alt;
-  HorusPacket.Sats = GpsData.Sats;
-  HorusPacket.AscentRate = (int16_t)Round(GpsData.AscentRate * 100.0);
-#ifdef DEBUG
-  printf("Fix: %d, Lat: %d, Lon: %d, Alt: %d, Ascent Rate: %d, GRound Speed: "
-         "%f, Sats: %d, Time: %d: %d:%d:%d\r\n",
-         GpsData.Fix, (int32_t)(GpsData.Lat * 1e6),
-         (int32_t)(GpsData.Lon * 1e6), (uint32_t)(GpsData.Alt * 1e6),
-         (int16_t)(GpsData.AscentRate * 100.0), GpsData.GRoundSpeed,
-         GpsData.Sats, GpsData.Time, GpsData.Hours, GpsData.Minutes,
-         GpsData.Seconds);
-#endif
+  printf("\r\nFrame: %d\r\n", PacketCount);
 #endif
 
   // LPS22HB sensor
+#if LPS22_ENABLE
   if (lps_init == 0) {
-    HorusPacket.Temp = (int8_t)Round(LPS22_GetTemp());
-    HorusPacket.Press = (uint16_t)Round(LPS22_GetPress() * 10.0);
+    LpsTemp = (int8_t)Round(LPS22_GetTemp());
+    LpsPress = (uint16_t)Round(LPS22_GetPress() * 10.0);
   }
 #ifdef DEBUG
-  printf("temp: %d, press: %d\r\n", HorusPacket.Temp, HorusPacket.Press);
+  printf("LPS22: Temp: %d C, press: %d /10 hPa\r\n", LpsTemp, LpsPress);
+#endif
 #endif
 
   // Bat voltage
+#if BAT_ADC_ENABLE
   LL_ADC_REG_SetSequencerChannels(ADC1, LL_ADC_CHANNEL_8);
   LL_ADC_REG_StartConversion(ADC1);
-  while (LL_ADC_IsActiveFlag_EOC(ADC1) == 0) {
-  }
+  while (LL_ADC_IsActiveFlag_EOC(ADC1) == 0) {}
   // ADC voltage: 3.3V, divided by ADC max value 4095 (2^12-1). That gives a
   // range between 0 for 0V and 1 for 3.3V. Than it's multiplied by max
   // variable value: 255, and divided by corresponding voltage: 5V, simplified
   // gives 187/4550 Note: this value will not go higher than 168 corresponding
   // to 3.3V max value of ADC
-  HorusPacket.BatVoltage = (LL_ADC_REG_ReadConversionData12(ADC1) * 187) / 4550;
+  BatVoltage = LL_ADC_REG_ReadConversionData12(ADC1);
   LL_ADC_ClearFlag_EOS(ADC1);
-
 #ifdef DEBUG
-  printf("Bat voltage: %d\r\n", HorusPacket.BatVoltage);
+  printf("Bat voltage value: %d\r\n", BatVoltage);
+#endif
 #endif
 
   // NTC temp reading
+#if NTC_ENABLE
   LL_GPIO_SetOutputPin(NTC_36K_GPIO_Port, NTC_36K_Pin);
   LL_mDelay(5);
 
@@ -229,19 +218,13 @@ void main_loop(void) {
   float NTC_T = 1 / (-0.000400644 + (0.000490078 * Log(NTC_R)) +
                      (-0.000000720 * Log(NTC_R)*Log(NTC_R)*Log(NTC_R))) -
                 273.15;
-  HorusPacket.ExtTemp = (int16_t)Round(NTC_T * 10.0);
+  ExtTemp = (int16_t)Round(NTC_T * 10.0);
 #ifdef DEBUG
-  printf("NTC: raw: %d, Temp: %d\r\n", temp_adc_raw, HorusPacket.ExtTemp);
+  printf("NTC: raw: %d, Temp: %d /10 C\r\n", temp_adc_raw, ExtTemp);
+#endif
 #endif
 
-  // Horus checksum
-  HorusPacket.Checksum =
-      (uint16_t)crc16((char *)&HorusPacket, sizeof(HorusPacket) - 2);
-  HorusCodedLen = horus_l2_encode_tx_packet((unsigned char *)HorusCodedBuffer,
-                                            (unsigned char *)&HorusPacket,
-                                            sizeof(HorusPacket));
-
-#ifdef GPS_WATCHDOG
+#if GPS_WATCHDOG
 // Set a flag if we have initial fix.
 #if GPS_TYPE == 1
   if (NmeaData.Fix > 1 && NmeaData.Sats > 0) {
@@ -312,20 +295,132 @@ void main_loop(void) {
   }
 #endif
 
-  // Transmit
-  FSK4_start_TX(HorusCodedBuffer, HorusCodedLen);
+#if HORUS_ENABLE
+  HorusPacket.PacketCount = PacketCount;
 
-#ifdef GPS_WATCHDOG
+// GPS type 1 data
+#if GPS_TYPE == 1
+  HorusPacket.Hours = NmeaData.Hours;
+  HorusPacket.Minutes = NmeaData.Minutes;
+  HorusPacket.Seconds = NmeaData.Seconds;
+  HorusPacket.Lat = NmeaData.Lat;
+  HorusPacket.Lon = NmeaData.Lon;
+  HorusPacket.Speed = (uint8_t)NmeaData.Speed;
+  HorusPacket.AscentRate = (int16_t)Round(NmeaData.AscentRate * 100.0);
+  HorusPacket.Alt = NmeaData.Alt;
+  HorusPacket.Sats = NmeaData.Sats;
+#ifdef DEBUG
+  printf("Fix: %d, Lat: %ld, Lon: %ld, Alt: %d m, Speed: %d km/h, Ascent rate: "
+         "%d m/s Satellites: %d, Time: %d:%d:%d\r\n",
+         NmeaData.Fix, (uint32_t)(NmeaData.Lat * 10e6),
+         (uint32_t)(NmeaData.Lon * 10e6), NmeaData.Alt, NmeaData.Speed,
+         (int16_t)Round(NmeaData.AscentRate * 100), NmeaData.Sats,
+         NmeaData.Hours, NmeaData.Minutes, NmeaData.Seconds);
+#endif
+
+// GPS type 2 data
+#elif GPS_TYPE == 2
+  HorusPacket.Hours = GpsData.Hours;
+  HorusPacket.Minutes = GpsData.Minutes;
+  HorusPacket.Seconds = GpsData.Seconds;
+  HorusPacket.Lat = GpsData.Lat;
+  HorusPacket.Lon = GpsData.Lon;
+  HorusPacket.Speed = (uint16_t)GpsData.GroundSpeed; // Doesn't work
+  HorusPacket.Alt = (uint16_t)GpsData.Alt;
+  HorusPacket.Sats = GpsData.Sats;
+  HorusPacket.AscentRate = (int16_t)Round(GpsData.AscentRate * 100.0);
+#ifdef DEBUG
+  printf("Fix: %d, Lat: %d, Lon: %d, Alt: %d, Ascent Rate: %d, GRound Speed: "
+         "%f, Sats: %d, Time: %d: %d:%d:%d\r\n",
+         GpsData.Fix, (int32_t)(GpsData.Lat * 1e6),
+         (int32_t)(GpsData.Lon * 1e6), (uint32_t)(GpsData.Alt * 1e6),
+         (int16_t)(GpsData.AscentRate * 100.0), GpsData.GRoundSpeed,
+         GpsData.Sats, GpsData.Time, GpsData.Hours, GpsData.Minutes,
+         GpsData.Seconds);
+#endif
+#endif
+
+  HorusPacket.Temp = LpsTemp;
+  HorusPacket.BatVoltage = (BatVoltage * 187) / 4550;
+  HorusPacket.ExtTemp = ExtTemp;
+  HorusPacket.Hum = 0; // Not implemented
+  HorusPacket.Press = LpsPress;
+  HorusPacket.GpsResetCount = GpsResetCount;
+
+  // Horus checksum
+  HorusPacket.Checksum =
+      (uint16_t)crc16((char *)&HorusPacket, sizeof(HorusPacket) - 2);
+  BufferLen = horus_l2_encode_tx_packet((unsigned char *)CodedBuffer,
+                                            (unsigned char *)&HorusPacket,
+                                            sizeof(HorusPacket));
+
+  // Transmit
+  FSK4_start_TX(CodedBuffer, BufferLen);
+#endif
+
+#if APRS_ENABLE
+  AprsPacket.PacketCount = PacketCount;
+
+// GPS type 1 data
+#if GPS_TYPE == 1
+  AprsPacket.Hours = NmeaData.Hours;
+  AprsPacket.Minutes = NmeaData.Minutes;
+  AprsPacket.Seconds = NmeaData.Seconds;
+  AprsPacket.Lat = NmeaData.Lat;
+  AprsPacket.Lon = NmeaData.Lon;
+  AprsPacket.Speed = (uint8_t)NmeaData.Speed;
+  AprsPacket.Alt = NmeaData.Alt;
+  AprsPacket.Sats = NmeaData.Sats;
+#ifdef DEBUG
+  printf("Fix: %d, Lat: %ld, Lon: %ld, Alt: %d m, Speed: %d km/h, Ascent rate: "
+         "%d m/s Satellites: %d, Time: %d:%d:%d\r\n",
+         NmeaData.Fix, (uint32_t)(NmeaData.Lat * 10e6),
+         (uint32_t)(NmeaData.Lon * 10e6), NmeaData.Alt, NmeaData.Speed,
+         (int16_t)Round(NmeaData.AscentRate * 100), NmeaData.Sats,
+         NmeaData.Hours, NmeaData.Minutes, NmeaData.Seconds);
+#endif
+
+// GPS type 2 data
+#elif GPS_TYPE == 2
+  AprsPacket.Hours = GpsData.Hours;
+  AprsPacket.Minutes = GpsData.Minutes;
+  AprsPacket.Seconds = GpsData.Seconds;
+  AprsPacket.Lat = GpsData.Lat;
+  AprsPacket.Lon = GpsData.Lon;
+  AprsPacket.Speed = (uint16_t)GpsData.GroundSpeed; // Doesn't work
+  AprsPacket.Alt = (uint16_t)GpsData.Alt;
+  AprsPacket.Sats = GpsData.Sats;
+#ifdef DEBUG
+  printf("Fix: %d, Lat: %d, Lon: %d, Alt: %d, Ascent Rate: %d, GRound Speed: "
+         "%f, Sats: %d, Time: %d: %d:%d:%d\r\n",
+         GpsData.Fix, (int32_t)(GpsData.Lat * 1e6),
+         (int32_t)(GpsData.Lon * 1e6), (uint32_t)(GpsData.Alt * 1e6),
+         (int16_t)(GpsData.AscentRate * 100.0), GpsData.GroundSpeed,
+         GpsData.Sats, GpsData.Time, GpsData.Hours, GpsData.Minutes,
+         GpsData.Seconds);
+#endif
+#endif
+
+  AprsPacket.GpsResetCount = GpsResetCount;
+  AprsPacket.Temp = LpsTemp;
+  AprsPacket.ExtTemp = ExtTemp;
+  AprsPacket.Press = LpsPress;
+  AprsPacket.BatVoltage = Round((BatVoltage*3300.0f)/4095);
+
+  BufferLen = encode_APRS_packet(AprsPacket, CodedBuffer);
+
+  // Transmit
+  AFSK_start_TX(CodedBuffer, BufferLen);
+#endif
+
+#if GPS_WATCHDOG
   if (GpsWatchdog.TriggerRestart) {
 #if GPS_TYPE == 1
-    while (FSK4_is_active()) {
+    while (false) { // todo fix
       LL_IWDG_ReloadCounter(IWDG);
       LL_mDelay(100);
     } // Wait for end of transmission (and for GPS module to start).
-    LL_LPUART_DisableIT_RXNE(
-        LPUART1);  // disable UART RX interrupt to not occure while mode change
     GpsAirborne(); // Send a command to GPS module to change to airborne mode.
-    LL_LPUART_EnableIT_RXNE(LPUART1); // reenable UART RX interrupt
     // clear GPS buffer needed?
 #endif
     // GPS type 2 doesn't need mode change
@@ -336,12 +431,12 @@ void main_loop(void) {
     GpsWatchdog.AfterRestartCounter = 0;
     //GpsWatchdog.LastTime = 0;
 
-    HorusPacket.GpsResetCount++;
+    GpsResetCount++;
   }
 #endif
 
   // Packet counter
-  HorusPacket.PacketCount++;
+  PacketCount++;
 
 // LED
 #if LED_MODE == 1
@@ -389,76 +484,77 @@ int main(void)
   MX_TIM2_Init();
   MX_TIM22_Init();
   MX_ADC_Init();
-  //MX_IWDG_Init();
+  MX_IWDG_Init();
   MX_TIM6_Init();
   MX_TIM21_Init();
   /* USER CODE BEGIN 2 */
 
   // Power on modules
   LL_GPIO_SetOutputPin(POWER_ON_GPIO_Port, POWER_ON_Pin);
-  //LL_GPIO_SetOutputPin(GPS_ON_GPIO_Port, GPS_ON_Pin);
+  LL_GPIO_SetOutputPin(GPS_ON_GPIO_Port, GPS_ON_Pin);
   LL_GPIO_SetOutputPin(RADIO_EN_GPIO_Port, RADIO_EN_Pin);
-  adf_setup();
+  adf_setup(); // Radio module setup
 
-  LL_GPIO_SetOutputPin(LED_GPIO_Port, LED_Pin); // LED
+  LL_GPIO_SetOutputPin(LED_GPIO_Port, LED_Pin); // LED ON
 
-  HorusPacket.PayloadID = PAYLOAD_ID;
+#if DEBUG
+printf("Startup\r\n");
+#endif
 
+#if HORUS_ENABLE
+  HorusPacket.PayloadID = HORUS_PAYLOAD_ID;
   HorusPacket.Unused = 32; // number in unused packet space, can be used to identify M20 transmitter durring flight, value is not important
+#endif
 
   // Init of LPS22 sensor, try 5 times
-  //for (uint8_t i = 0; i < 5; i++) {
-  //  lps_init = LPS22_Init();
-  //  if (lps_init == 0)
-  //    break;
-  //}
+#if LPS22_ENABLE
+  for (uint8_t i = 0; i < 5; i++) {
+    lps_init = LPS22_Init();
+  if (lps_init == 0) break;
+  }
 #ifdef DEBUG
   printf("LPS init: %d\r\n", lps_init);
 #endif
+#endif
 
   // ADC init
+#if NTC_ENABLE || BAT_ADC_ENABLE
   LL_ADC_ClearFlag_ADRDY(ADC1);
   LL_ADC_Enable(ADC1);
-  while (LL_ADC_IsActiveFlag_ADRDY(ADC1) == 0) {
-  }
+  while (LL_ADC_IsActiveFlag_ADRDY(ADC1) == 0) {}
+#endif
 
   // GPS UART init
-  //LL_LPUART_Enable(LPUART1);
+  LL_LPUART_Enable(LPUART1); // Disable interrupt for sending command
+  LL_LPUART_EnableIT_RXNE(LPUART1);
 
 #if GPS_TYPE == 1
   // u-blox change mode to airborne
-  //DelayWithIWDG(2000); // Wait for full GPS start
-  //GpsAirborne(); // Send a command to GPS module to change to airborne mode.
-  //DelayWithIWDG(100);
+  DelayWithIWDG(2000); // Wait for full GPS start
+  GpsAirborne(); // Send a command to GPS module to change to airborne mode.
+  DelayWithIWDG(100);
 #endif
 
-  // GPS UART RX interrupt enable after mode change
-  //LL_LPUART_EnableIT_RXNE(LPUART1);
-
-  LL_GPIO_ResetOutputPin(LED_GPIO_Port, LED_Pin);
+  LL_GPIO_ResetOutputPin(LED_GPIO_Port, LED_Pin); // LED OFF
 
   // main loop timer
-  //LL_TIM_EnableCounter(TIM22);
-  //LL_TIM_EnableIT_UPDATE(TIM22);
+  LL_TIM_EnableCounter(TIM22);
+  LL_TIM_EnableIT_UPDATE(TIM22);
 
   // LED timer
-  //LL_TIM_EnableCounter(TIM6);
-  //LL_TIM_EnableIT_UPDATE(TIM6);
+#if LED_MODE == 2
+  LL_TIM_EnableCounter(TIM6);
+  LL_TIM_EnableIT_UPDATE(TIM6);
+#endif
 
   /* Interrupt priorites:
-   * TIM2 - modulation timer: 0
+   * TIM2 - modulation timer: 0 remove this
+   * TIM21 - modulation timer: 0
    * LPUART1 - GPS UART RX: 1
    * TIM22 - main loop: 2
    * TIM6 - LED timer: 3
    * SysTick: 4
    */
-  AprsPacket.Alt = 18523;
-  AprsPacket.Lat = 52.23155200841942;
-  AprsPacket.Lon = 21.006077015968078;
-  AprsPacket.Hours = 12;
-  AprsPacket.Minutes = 34;
-  AprsPacket.Seconds = 56;
-  AprsPacket.Speed = 89;
 
   /* USER CODE END 2 */
 
@@ -468,12 +564,21 @@ int main(void)
     /* USER CODE END WHILE */
 
     /* USER CODE BEGIN 3 */
-    uint16_t bufflen = encode_APRS_packet(AprsPacket, HorusCodedBuffer);
-    AFSK_start_TX(HorusCodedBuffer, bufflen);
-    LL_GPIO_TogglePin(LED_GPIO_Port, LED_Pin);
-    while(AFSK_Active) LL_mDelay(100);
-    LL_GPIO_TogglePin(LED_GPIO_Port, LED_Pin);
-    LL_mDelay(5000);
+    LL_IWDG_ReloadCounter(IWDG);
+    if (GpsBufferReady) {
+#if GPS_TYPE == 1
+      ParseNMEA(&NmeaData, GpsRxBuffer);
+#elif GPS_TYPE == 2
+      parseXMframe(&GpsData, GpsRxBuffer);
+#endif
+#if GPS_DEBUG
+#if GPS_TYPE == 1
+      printf("Correct gps frames: %d\r\n", NmeaData.Corr);
+#endif
+#endif
+      GpsBufferReady = false;
+    }
+    LL_mDelay(10);
   }
   /* USER CODE END 3 */
 }
@@ -1243,8 +1348,8 @@ void GPS_Handler(void) {
 #endif
   }
 }
-void LED_Handler(void) {
 #if LED_MODE == 2
+void LED_Handler(void) {
 #if GPS_TYPE == 1
   uint8_t fix = NmeaData.Fix;
   if (LED_DISABLE_ALT != 0) {
@@ -1268,8 +1373,8 @@ void LED_Handler(void) {
     LL_GPIO_ResetOutputPin(LED_GPIO_Port, LED_Pin);
     LL_mDelay(100);
   }
-#endif
 }
+#endif
 void DelayWithIWDG(uint16_t time) {
   for (uint8_t i = 0; i < time / 100; i++) {
     LL_IWDG_ReloadCounter(IWDG);
@@ -1278,6 +1383,7 @@ void DelayWithIWDG(uint16_t time) {
 }
 #if GPS_TYPE == 1
 void GpsAirborne(void) {
+  LL_LPUART_DisableIT_RXNE(LPUART1);  // disable UART RX interrupt to not occure while mode change
   for (uint8_t ih = 0; ih < 2; ih++) {
     for (uint8_t ig = 0; ig < 44; ig++) {
       while (!LL_LPUART_IsActiveFlag_TXE(LPUART1)) {
@@ -1289,6 +1395,7 @@ void GpsAirborne(void) {
     if (ih == 0)
       DelayWithIWDG(900);
   }
+  LL_LPUART_EnableIT_RXNE(LPUART1); // reenable UART RX interrupt
 }
 #endif
 /* USER CODE END 4 */

@@ -22,6 +22,7 @@
 #include "stm32l0xx_it.h"
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
+#include "config.h"
 #include "fsk4.h"
 #include "afsk.h"
 /* USER CODE END Includes */
@@ -145,12 +146,14 @@ void SysTick_Handler(void)
 void TIM2_IRQHandler(void)
 {
   /* USER CODE BEGIN TIM2_IRQn 0 */
-  	if(LL_TIM_IsActiveFlag_UPDATE(TIM2) == 1)
+  	if(LL_TIM_IsActiveFlag_UPDATE(TIM2))
 	{
 		LL_TIM_ClearFlag_UPDATE(TIM2);
+    #if HORUS_ENABLE
     if (FSK4_is_active()) {     //check if we are transmitting in 4FSK mode
       FSK4_timer_handler();
     }
+    #endif
 	}
   /* USER CODE END TIM2_IRQn 0 */
   /* USER CODE BEGIN TIM2_IRQn 1 */
@@ -164,10 +167,12 @@ void TIM2_IRQHandler(void)
 void TIM6_DAC_IRQHandler(void)
 {
   /* USER CODE BEGIN TIM6_DAC_IRQn 0 */
-  if(LL_TIM_IsActiveFlag_UPDATE(TIM6) == 1){
+#if LED_MODE == 2
+  if(LL_TIM_IsActiveFlag_UPDATE(TIM6)){
     LL_TIM_ClearFlag_UPDATE(TIM6);
     LED_Handler();
   }
+#endif
   /* USER CODE END TIM6_DAC_IRQn 0 */
   /* USER CODE BEGIN TIM6_DAC_IRQn 1 */
 
@@ -196,7 +201,7 @@ void TIM21_IRQHandler(void)
 void TIM22_IRQHandler(void)
 {
   /* USER CODE BEGIN TIM22_IRQn 0 */
-  if(LL_TIM_IsActiveFlag_UPDATE(TIM22) == 1)
+  if(LL_TIM_IsActiveFlag_UPDATE(TIM22))
 	{
 		LL_TIM_ClearFlag_UPDATE(TIM22);
     main_loop();

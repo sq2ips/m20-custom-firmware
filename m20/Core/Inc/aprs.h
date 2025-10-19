@@ -7,8 +7,9 @@
 #define APRS_PROTOCOL_ID 0xf0
 #define APRS_SPACE_SYMBOL 0x20
 
-#define APRS_MAX_INFO_LEN 61
-#define APRS_MAX_PACKET_LEN 93
+//#define APRS_MAX_INFO_LEN 61
+#define APRS_MAX_INFO_LEN 100
+#define APRS_MAX_PACKET_LEN APRS_MAX_INFO_LEN+32
 
 #define KNOTS_TO_KMPH 1.852f // exact
 #define FEET_TO_M 0.3048f // exact

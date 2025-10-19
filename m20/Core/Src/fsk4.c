@@ -83,9 +83,8 @@ void FSK4_start_TX(char *buff, uint8_t len) {
   buffer_len = len;
   // adf_setup();
   current_2_bit = 0; // reset counter of current position of bit address
-  adf_RF_on(QRG_FSK4[QRGCounter++], PA_FSK4); // turn on radio TX
-  if (QRGCounter >= sizeof(QRG_FSK4) / sizeof(QRG_FSK4[0]))
-    QRGCounter = 0;
+  adf_RF_on(QRG_FSK4[QRGCounter++], FSK4_POWER); // turn on radio TX
+  if (QRGCounter >= sizeof(QRG_FSK4) / sizeof(QRG_FSK4[0])) QRGCounter = 0;
   FSK_Active = true;                                 // change status
   TIM2->CR1 &= (uint16_t)(~((uint16_t)TIM_CR1_CEN)); // Disable the TIM Counter
   uint16_t timer2StartValue =

@@ -118,25 +118,25 @@ static uint8_t encode_comment_telemetry(APRSPacket Packet, uint8_t *buff){
     uint8_t cnt = 0;
     
     buff[cnt++] = 'C'; // Packet count
-    cnt += int_to_string(Packet.PacketCount, buff, 5); // 16 bit, 5 digits max
+    cnt += int_to_string(Packet.PacketCount, buff+cnt, 5); // 16 bit, 5 digits max
 
     buff[cnt++] = 'S'; // GNSS sat count
-    cnt += int_to_string(Packet.Sats, buff, 2); // 2 digits max
+    cnt += int_to_string(Packet.Sats, buff+cnt, 2); // 2 digits max
 
     buff[cnt++] = 'R'; // GNSS restart count
-    cnt += int_to_string(Packet.GpsResetCount, buff, 3); // 8 bit, 3 digits max
+    cnt += int_to_string(Packet.GpsResetCount, buff+cnt, 3); // 8 bit, 3 digits max
 
     buff[cnt++] = 'T'; // Internal temp
-    cnt += int_to_string(Packet.Temp, buff, 2); // 2 digits (+ sign)
+    cnt += int_to_string(Packet.Temp, buff+cnt, 2); // 2 digits (+ sign)
 
     buff[cnt++] = 'E'; // External temp
-    cnt += int_to_string(Packet.ExtTemp, buff, 3); // *10, 2+1 digits (+ sign)
+    cnt += int_to_string(Packet.ExtTemp, buff+cnt, 3); // *10, 2+1 digits (+ sign)
 
     buff[cnt++] = 'P'; // Pressure
-    cnt += int_to_string(Packet.Press, buff, 5); // *10, 4+1 digits
+    cnt += int_to_string(Packet.Press, buff+cnt, 5); // *10, 4+1 digits
 
     buff[cnt++] = 'V'; // Battery voltage
-    cnt += int_to_string(Round(Packet.BatVoltage), buff, 4); // *1000, 4 digits
+    cnt += int_to_string(Packet.BatVoltage, buff+cnt, 4); // *1000, 4 digits
 
     return cnt;
 }
@@ -176,14 +176,18 @@ uint8_t encode_APRS_packet(APRSPacket Packet, uint8_t *buff){
     uint32_t alt_ft = (uint32_t)Round(Packet.Alt/FEET_TO_M); // convert m to feet
     pos+=int_to_string(alt_ft, info_field+pos, 6);
 
-#ifdef APRS_COMMENT_TELEMETRY
+#if APRS_COMMENT_TELEMETRY
     pos+=encode_comment_telemetry(Packet, info_field+pos);
 #endif
 
 #ifdef APRS_COMMENT_TEXT
     info_field[pos++] = ' '; // Space before comment;
     memcpy(info_field+pos, APRS_COMMENT_TEXT, APRS_MAX_INFO_LEN-pos);
-    pos+=sizeof(APRS_COMMENT_TEXT)-1;
+    if(sizeof(APRS_COMMENT_TEXT)-1 > APRS_MAX_INFO_LEN-pos-1){
+        pos+=APRS_MAX_INFO_LEN-pos-1;
+    }else{
+        pos+=sizeof(APRS_COMMENT_TEXT)-1;
+    }
 #endif
 
     return generate_ax25_frame(info_field, pos, buff);
