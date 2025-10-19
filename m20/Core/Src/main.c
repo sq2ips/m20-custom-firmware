@@ -80,7 +80,7 @@ HorusBinaryPacket HorusPacket;
 
 APRSPacket AprsPacket;
 
-char HorusCodedBuffer[250]; // TODO: change size
+char HorusCodedBuffer[86]; // TODO: change size
 uint16_t HorusCodedLen;
 /* USER CODE END PV */
 
@@ -453,12 +453,12 @@ int main(void)
    * SysTick: 4
    */
   AprsPacket.Alt = 18523;
-  AprsPacket.Lat = 54.123;
-  AprsPacket.Lon = 18.456;
+  AprsPacket.Lat = 52.23155200841942;
+  AprsPacket.Lon = 21.006077015968078;
   AprsPacket.Hours = 12;
   AprsPacket.Minutes = 34;
   AprsPacket.Seconds = 56;
-  AprsPacket.Speed = 123;
+  AprsPacket.Speed = 89;
 
   /* USER CODE END 2 */
 
