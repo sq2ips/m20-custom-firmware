@@ -33,27 +33,36 @@ static uint8_t generate_ax25_frame(uint8_t *info_field, uint8_t info_field_size,
     uint8_t d_pos = 0;
     
     for(; pos<6; pos++){ // Destination adress
-        if(pos >= sizeof(APRS_D_CALL)-1){
+        if(pos >= sizeof(APRS_DESTINATION)-1){
             buff[pos] = APRS_SPACE_SYMBOL<<1;
-        }else buff[pos] = APRS_D_CALL[pos]<<1;
+        }else buff[pos] = APRS_DESTINATION[pos]<<1;
     }
-    buff[pos++] = (APRS_D_CALL_SSID<<1) | 0b11100000; // Destination adress SSID
+    buff[pos++] = (APRS_DESTINATION_SSID<<1) | 0b11100000; // Destination adress SSID
     
     d_pos = pos;
     for(; pos-d_pos<6; pos++){ // Source adress
-        if(pos-d_pos >= sizeof(APRS_S_CALL)-1){
+        if(pos-d_pos >= sizeof(APRS_CALLSING)-1){
             buff[pos] = APRS_SPACE_SYMBOL<<1;
-        }else buff[pos] = APRS_S_CALL[pos-d_pos]<<1;
+        }else buff[pos] = APRS_CALLSING[pos-d_pos]<<1;
     }
-    buff[pos++] = (APRS_S_CALL_SSID<<1) | 0b11100000; // Source adress SSID
+    buff[pos++] = (APRS_SSID<<1) | 0b11100000; // Source adress SSID
     
     d_pos = pos;
-    for(; pos-d_pos<6; pos++){ // Path
-        if(pos-d_pos >= sizeof(APRS_PATH)-1){
+    for(; pos-d_pos<6; pos++){ // Path 1
+        if(pos-d_pos >= sizeof(APRS_PATH_1)-1){
             buff[pos] = APRS_SPACE_SYMBOL<<1;
-        }else buff[pos] = APRS_PATH[pos-d_pos]<<1;
+        }else buff[pos] = APRS_PATH_1[pos-d_pos]<<1;
     }
-    buff[pos++] = (APRS_PATH_SSID<<1) | 0b11100001; // Path SSID (1 at end as last adress)
+    buff[pos++] = (APRS_PATH_1_SSID<<1) | 0b11100000; // Path 1 SSID
+
+    d_pos = pos;
+    for(; pos-d_pos<6; pos++){ // Path 2
+        if(pos-d_pos >= sizeof(APRS_PATH_2)-1){
+            buff[pos] = APRS_SPACE_SYMBOL<<1;
+        }else buff[pos] = APRS_PATH_2[pos-d_pos]<<1;
+    }
+    buff[pos++] = (APRS_PATH_2_SSID<<1) | 0b11100001; // Path SSID (1 at end as last adress)
+
     
     buff[pos++] = APRS_CONTROL_FIELD; // Control field
     buff[pos++] = APRS_PROTOCOL_ID; // Protocol ID
@@ -84,6 +93,50 @@ static uint8_t compress_pos(float lat, float lon, uint8_t *buff){ // position co
     buff[cnt++] = ((lon_base10 % 753571) / 8281) + 33;
     buff[cnt++] = ((lon_base10 % 753571) % 8281) / 91 + 33;
     buff[cnt++] = ((lon_base10 % 753571) % 8281) % 91 + 33;
+
+    return cnt;
+}
+
+static uint8_t int_to_string(int32_t num, uint8_t *buff, uint8_t digits){
+    uint8_t pos = 0;
+
+    uint32_t a = 1;
+    for(; digits>1; digits--) a*=10;
+
+    if(num<0){
+        buff[pos++] = '-';
+        num*=-1;
+    }
+    while(a>=1){ // add altitude number in feet as string (6 digits)
+        buff[pos++] = (num%(a*10))/a+'0';
+        a/=10;
+    }
+    return pos;
+}
+
+static uint8_t encode_comment_telemetry(APRSPacket Packet, uint8_t *buff){
+    uint8_t cnt = 0;
+    
+    buff[cnt++] = 'C'; // Packet count
+    cnt += int_to_string(Packet.PacketCount, buff, 5); // 16 bit, 5 digits max
+
+    buff[cnt++] = 'S'; // GNSS sat count
+    cnt += int_to_string(Packet.Sats, buff, 2); // 2 digits max
+
+    buff[cnt++] = 'R'; // GNSS restart count
+    cnt += int_to_string(Packet.GpsResetCount, buff, 3); // 8 bit, 3 digits max
+
+    buff[cnt++] = 'T'; // Internal temp
+    cnt += int_to_string(Packet.Temp, buff, 2); // 2 digits (+ sign)
+
+    buff[cnt++] = 'E'; // External temp
+    cnt += int_to_string(Packet.ExtTemp, buff, 3); // *10, 2+1 digits (+ sign)
+
+    buff[cnt++] = 'P'; // Pressure
+    cnt += int_to_string(Packet.Press, buff, 5); // *10, 4+1 digits
+
+    buff[cnt++] = 'V'; // Battery voltage
+    cnt += int_to_string(Round(Packet.BatVoltage), buff, 4); // *1000, 4 digits
 
     return cnt;
 }
@@ -121,14 +174,17 @@ uint8_t encode_APRS_packet(APRSPacket Packet, uint8_t *buff){
     info_field[pos++] = 'A';
     info_field[pos++] = '=';
     uint32_t alt_ft = (uint32_t)Round(Packet.Alt/FEET_TO_M); // convert m to feet
-    uint32_t a = 1000000;
-    while(a>=10){ // add altitude number in feet as string
-        info_field[pos++] = (alt_ft%(a*10))/a+'0';
-        a/=10;
-    }
+    pos+=int_to_string(alt_ft, info_field+pos, 6);
 
-    memcpy(info_field+pos, "test", 4);
-    pos+=4;
+#ifdef APRS_COMMENT_TELEMETRY
+    pos+=encode_comment_telemetry(Packet, info_field+pos);
+#endif
+
+#ifdef APRS_COMMENT_TEXT
+    info_field[pos++] = ' '; // Space before comment;
+    memcpy(info_field+pos, APRS_COMMENT_TEXT, APRS_MAX_INFO_LEN-pos);
+    pos+=sizeof(APRS_COMMENT_TEXT)-1;
+#endif
 
     return generate_ax25_frame(info_field, pos, buff);
 }

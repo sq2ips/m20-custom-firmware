@@ -31,16 +31,23 @@ const static float QRG_FSK4[] = {435100000}; // Transmitted frequencies array, s
 #define LED_PERIOD 5            // time between LED lighting
 #define LED_DISABLE_ALT 1000    // disable led when certain altitude is reached, 0 for always enable
 
-#define APRS_D_CALL "APRS"
-#define APRS_D_CALL_SSID 0
+#define APRS_DESTINATION "APZM20"
+#define APRS_DESTINATION_SSID 0
 
-#define APRS_S_CALL "SQ2IPS"
-#define APRS_S_CALL_SSID 1
+#define APRS_CALLSING "SQ2IPS"
+#define APRS_SSID 11
 
-#define APRS_PATH "WIDE1"
-#define APRS_PATH_SSID 1
+#define APRS_PATH_1 "WIDE1"
+#define APRS_PATH_1_SSID 1
+
+#define APRS_PATH_2 "WIDE2"
+#define APRS_PATH_2_SSID 1
 
 #define APRS_SYMBOL "/O"        // baloon symbol, all symbols: https://www.aprs.org/symbols.html
+
+#define APRS_COMMENT_TELEMETRY
+
+#define APRS_COMMENT_TEXT "M20 radiosonde test"
 
 /*-----------------------------------------------------------------*/
 //  the rest of parameters should not be changed normally

@@ -80,7 +80,7 @@ HorusBinaryPacket HorusPacket;
 
 APRSPacket AprsPacket;
 
-char HorusCodedBuffer[86]; // TODO: change size
+char HorusCodedBuffer[93]; // TODO: change size
 uint16_t HorusCodedLen;
 /* USER CODE END PV */
 

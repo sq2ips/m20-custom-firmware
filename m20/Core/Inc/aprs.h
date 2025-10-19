@@ -8,12 +8,13 @@
 #define APRS_SPACE_SYMBOL 0x20
 
 #define APRS_MAX_INFO_LEN 61
-#define APRS_MAX_PACKET_LEN 86
+#define APRS_MAX_PACKET_LEN 93
 
 #define KNOTS_TO_KMPH 1.852f // exact
 #define FEET_TO_M 0.3048f // exact
 
 typedef struct TAPRSPacket {
+    // Base data
     uint8_t Hours;
     uint8_t Minutes;
     uint8_t Seconds;
@@ -21,6 +22,14 @@ typedef struct TAPRSPacket {
     float Lon;
     uint16_t Alt;
     uint8_t Speed;
+    // Telemetry in comment
+    uint16_t PacketCount;
+    uint8_t Sats;
+    uint8_t GpsResetCount;
+    int8_t Temp;
+    int16_t ExtTemp;
+    uint16_t Press;
+    uint8_t BatVoltage;
 } APRSPacket;
 
 uint8_t encode_APRS_packet(APRSPacket Packet, uint8_t *buff);
