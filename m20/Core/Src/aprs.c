@@ -79,7 +79,7 @@ static uint8_t compress_pos(float lat, float lon, uint8_t *buff){ // position co
     buff[cnt++] = ((lat_base10 % 753571) % 8281) % 91 + 33;
 
 
-    uint32_t lon_base10 = Round(190463 * (180+lat));
+    uint32_t lon_base10 = Round(190463 * (180+lon));
     buff[cnt++] = (lon_base10 / 753571) + 33;
     buff[cnt++] = ((lon_base10 % 753571) / 8281) + 33;
     buff[cnt++] = ((lon_base10 % 753571) % 8281) / 91 + 33;
