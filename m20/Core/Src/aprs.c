@@ -94,14 +94,14 @@ uint8_t encode_APRS_packet(APRSPacket Packet, uint8_t *buff){
 
     info_field[pos++] = '@'; // data type identifier
     
-    info_field[pos++] = Packet.Hours%10+'0'; // Hours
     info_field[pos++] = Packet.Hours/10+'0';
+    info_field[pos++] = Packet.Hours%10+'0'; // Hours
 
-    info_field[pos++] = Packet.Minutes%10+'0'; // Minutes
     info_field[pos++] = Packet.Minutes/10+'0';
+    info_field[pos++] = Packet.Minutes%10+'0'; // Minutes
 
-    info_field[pos++] = Packet.Seconds%10+'0'; // Seconds
     info_field[pos++] = Packet.Seconds/10+'0';
+    info_field[pos++] = Packet.Seconds%10+'0'; // Seconds
 
     info_field[pos++] = 'z'; // Zullu time
 
