@@ -69,7 +69,8 @@ static uint16_t buff_len;
 void AFSK_stop_TX()
 {                                                       // Disable TX
     TIM21->DIER &= ~(TIM_DIER_UIE);                     // Disable the interrupt
-    TIM21->CR1 &= (uint16_t)(~((uint16_t)TIM_CR1_CEN)); // Disable the PWM counter
+    TIM21->CCER &= ~(LL_TIM_CHANNEL_CH1); // Reset PWM channel
+    TIM21->CR1 &= ~(TIM_CR1_CEN); // Disable the PWM counter
     adf_RF_off();                                       // turn TX off
     AFSK_Active = false;                                // turn off activty flag
 }
@@ -107,6 +108,7 @@ static bool get_next_bit()
 
 void AFSK_timer_handler()
 { // sampling and PWM timer (TIM21) changing duty cycle acoording to phase (and increasing it according to current tone)
+    LL_GPIO_SetOutputPin(LED_GPIO_Port, LED_Pin);
     TIM21->CCR1 = sine_table[(phase >> 7) + ((phase & (1 << 6)) >> 6)]; // Set the duty cycle to index from phase, rounding fixed point 9.7 to int
 
     phase += phase_inc; // increase phase for generating wanted frequency
@@ -143,6 +145,7 @@ void AFSK_timer_handler()
         sample_in_baud -= SAMPLES_PER_BAUD;
         bit_pos++; // increase bit counter
     }
+    LL_GPIO_ResetOutputPin(LED_GPIO_Port, LED_Pin);
 }
 
 void AFSK_start_TX(uint8_t *buffer, uint16_t buffer_len)

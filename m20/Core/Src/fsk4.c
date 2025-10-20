@@ -24,15 +24,17 @@
  */
 
 static uint16_t current_2_bit = 0;
-static bool FSK_Active = false;
 static char *buffer;
 static uint8_t buffer_len;
 static uint8_t QRGCounter = 0;
 
+bool FSK4_Active = false;
+
 void FSK4_stop_TX() {
-  TIM2->DIER &= ~(TIM_DIER_UIE); // Disable the interrupt
+  TIM21->DIER &= ~(TIM_DIER_UIE); // Disable the interrupt
+  TIM21->CR1 &= ~(TIM_CR1_CEN); // Disable the counter
   adf_RF_off();                  // turn TX off
-  FSK_Active = false;
+  FSK4_Active = false;
 }
 
 static void FSK4_send_2bit(uint8_t bits_to_send) { // sends 2 bit value
@@ -40,10 +42,6 @@ static void FSK4_send_2bit(uint8_t bits_to_send) { // sends 2 bit value
       (bits_to_send & 3); // make sure to take only 2 last bites of value - we
                           // cannot send more than 2 bits at the same time
   adf_4fsk_fone(bits_to_send * FSK4_SPACE_MULTIPLIER);
-}
-
-bool FSK4_is_active() { // returns 1 if transmitter is active for 4FSK
-  return FSK_Active;
 }
 
 static void FSK4_write(char *buff, uint16_t address_2bit) {
@@ -59,7 +57,7 @@ static void FSK4_write(char *buff, uint16_t address_2bit) {
 void FSK4_timer_handler() { // called out by interrupt handling procedure in
                             // main
 
-  TIM2->CNT = 0; // reset timer  - make sure to have it at the beginning of
+  TIM21->CNT = 0; // reset timer  - make sure to have it at the beginning of
                  // procedure, otherwise there will be some delays.
   if (current_2_bit < (FSK4_HEADER_LENGTH * 4)) { // we are still in header
     uint8_t tmp_offset = ((0xD8 >> current_2_bit % 4) & 3);
@@ -85,15 +83,16 @@ void FSK4_start_TX(char *buff, uint8_t len) {
   current_2_bit = 0; // reset counter of current position of bit address
   adf_RF_on(QRG_FSK4[QRGCounter++], FSK4_POWER); // turn on radio TX
   if (QRGCounter >= sizeof(QRG_FSK4) / sizeof(QRG_FSK4[0])) QRGCounter = 0;
-  FSK_Active = true;                                 // change status
-  TIM2->CR1 &= (uint16_t)(~((uint16_t)TIM_CR1_CEN)); // Disable the TIM Counter
+  FSK4_Active = true;                                 // change status
+  TIM21->CR1 &= ~(TIM_CR1_CEN); // Disable the counter
   uint16_t timer2StartValue =
       (100000 / FSK4_BAUD) -
       1; // timer value calculated according to baud rate 999 for 100bd
-  TIM2->ARR = timer2StartValue; // set timer counter max value to pre-set value
+  TIM21->PSC = FSK4_TIM_PSC;
+  TIM21->ARR = timer2StartValue; // set timer counter max value to pre-set value
                                 // for baudrate (auto-reload register)
-  TIM2->CR1 |= TIM_CR1_CEN;     // enable timer again
-  TIM2->DIER |= TIM_DIER_UIE;   // Enable the interrupt
+  TIM21->CR1 |= TIM_CR1_CEN;     // enable timer again
+  TIM21->DIER |= TIM_DIER_UIE;   // Enable the interrupt
   FSK4_timer_handler();         // force execution of procedure responsible for
                                 // interrupt handling
 }

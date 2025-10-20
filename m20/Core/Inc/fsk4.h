@@ -3,8 +3,11 @@
 
 #include <stdint.h>
 
+#define FSK4_TIM_PSC 119
+
+extern bool FSK4_Active;
+
 void FSK4_stop_TX();
-bool FSK4_is_active();
 void FSK4_timer_handler();
 void FSK4_start_TX(char *buff, uint8_t len);
 

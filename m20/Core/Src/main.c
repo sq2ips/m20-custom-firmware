@@ -104,7 +104,7 @@ APRSPacket AprsPacket;
 
 uint16_t PacketCount = 0;
 
-char CodedBuffer[APRS_MAX_PACKET_LEN]; // TODO: change size
+char CodedBuffer[100]; // TODO: change size
 uint16_t BufferLen;
 /* USER CODE END PV */
 
@@ -114,7 +114,6 @@ static void MX_GPIO_Init(void);
 static void MX_LPUART1_UART_Init(void);
 static void MX_USART1_UART_Init(void);
 static void MX_SPI1_Init(void);
-static void MX_TIM2_Init(void);
 static void MX_TIM22_Init(void);
 static void MX_ADC_Init(void);
 static void MX_IWDG_Init(void);
@@ -295,6 +294,62 @@ void main_loop(void) {
   }
 #endif
 
+#if APRS_ENABLE
+  AprsPacket.PacketCount = PacketCount;
+
+// GPS type 1 data
+#if GPS_TYPE == 1
+  AprsPacket.Hours = NmeaData.Hours;
+  AprsPacket.Minutes = NmeaData.Minutes;
+  AprsPacket.Seconds = NmeaData.Seconds;
+  AprsPacket.Lat = NmeaData.Lat;
+  AprsPacket.Lon = NmeaData.Lon;
+  AprsPacket.Speed = (uint8_t)NmeaData.Speed;
+  AprsPacket.Alt = NmeaData.Alt;
+  AprsPacket.Sats = NmeaData.Sats;
+#ifdef DEBUG
+  printf("Fix: %d, Lat: %ld, Lon: %ld, Alt: %d m, Speed: %d km/h, Ascent rate: "
+         "%d m/s Satellites: %d, Time: %d:%d:%d\r\n",
+         NmeaData.Fix, (uint32_t)(NmeaData.Lat * 10e6),
+         (uint32_t)(NmeaData.Lon * 10e6), NmeaData.Alt, NmeaData.Speed,
+         (int16_t)Round(NmeaData.AscentRate * 100), NmeaData.Sats,
+         NmeaData.Hours, NmeaData.Minutes, NmeaData.Seconds);
+#endif
+
+// GPS type 2 data
+#elif GPS_TYPE == 2
+  AprsPacket.Hours = GpsData.Hours;
+  AprsPacket.Minutes = GpsData.Minutes;
+  AprsPacket.Seconds = GpsData.Seconds;
+  AprsPacket.Lat = GpsData.Lat;
+  AprsPacket.Lon = GpsData.Lon;
+  AprsPacket.Speed = (uint16_t)GpsData.GroundSpeed; // Doesn't work
+  AprsPacket.Alt = (uint16_t)GpsData.Alt;
+  AprsPacket.Sats = GpsData.Sats;
+#ifdef DEBUG
+  printf("Fix: %d, Lat: %d, Lon: %d, Alt: %d, Ascent Rate: %d, GRound Speed: "
+         "%f, Sats: %d, Time: %d: %d:%d:%d\r\n",
+         GpsData.Fix, (int32_t)(GpsData.Lat * 1e6),
+         (int32_t)(GpsData.Lon * 1e6), (uint32_t)(GpsData.Alt * 1e6),
+         (int16_t)(GpsData.AscentRate * 100.0), GpsData.GroundSpeed,
+         GpsData.Sats, GpsData.Time, GpsData.Hours, GpsData.Minutes,
+         GpsData.Seconds);
+#endif
+#endif
+
+  AprsPacket.GpsResetCount = GpsResetCount;
+  AprsPacket.Temp = LpsTemp;
+  AprsPacket.ExtTemp = ExtTemp;
+  AprsPacket.Press = LpsPress;
+  AprsPacket.BatVoltage = Round((BatVoltage*3300.0f)/4095);
+
+  BufferLen = encode_APRS_packet(AprsPacket, CodedBuffer);
+
+  // Transmit
+  AFSK_start_TX(CodedBuffer, BufferLen);
+  while (AFSK_Active) DelayWithIWDG(100);
+#endif
+DelayWithIWDG(1000);
 #if HORUS_ENABLE
   HorusPacket.PacketCount = PacketCount;
 
@@ -355,62 +410,9 @@ void main_loop(void) {
                                             sizeof(HorusPacket));
 
   // Transmit
+  LL_GPIO_ResetOutputPin(ADF_TX_Data_GPIO_Port, ADF_TX_Data_Pin);
   FSK4_start_TX(CodedBuffer, BufferLen);
-#endif
-
-#if APRS_ENABLE
-  AprsPacket.PacketCount = PacketCount;
-
-// GPS type 1 data
-#if GPS_TYPE == 1
-  AprsPacket.Hours = NmeaData.Hours;
-  AprsPacket.Minutes = NmeaData.Minutes;
-  AprsPacket.Seconds = NmeaData.Seconds;
-  AprsPacket.Lat = NmeaData.Lat;
-  AprsPacket.Lon = NmeaData.Lon;
-  AprsPacket.Speed = (uint8_t)NmeaData.Speed;
-  AprsPacket.Alt = NmeaData.Alt;
-  AprsPacket.Sats = NmeaData.Sats;
-#ifdef DEBUG
-  printf("Fix: %d, Lat: %ld, Lon: %ld, Alt: %d m, Speed: %d km/h, Ascent rate: "
-         "%d m/s Satellites: %d, Time: %d:%d:%d\r\n",
-         NmeaData.Fix, (uint32_t)(NmeaData.Lat * 10e6),
-         (uint32_t)(NmeaData.Lon * 10e6), NmeaData.Alt, NmeaData.Speed,
-         (int16_t)Round(NmeaData.AscentRate * 100), NmeaData.Sats,
-         NmeaData.Hours, NmeaData.Minutes, NmeaData.Seconds);
-#endif
-
-// GPS type 2 data
-#elif GPS_TYPE == 2
-  AprsPacket.Hours = GpsData.Hours;
-  AprsPacket.Minutes = GpsData.Minutes;
-  AprsPacket.Seconds = GpsData.Seconds;
-  AprsPacket.Lat = GpsData.Lat;
-  AprsPacket.Lon = GpsData.Lon;
-  AprsPacket.Speed = (uint16_t)GpsData.GroundSpeed; // Doesn't work
-  AprsPacket.Alt = (uint16_t)GpsData.Alt;
-  AprsPacket.Sats = GpsData.Sats;
-#ifdef DEBUG
-  printf("Fix: %d, Lat: %d, Lon: %d, Alt: %d, Ascent Rate: %d, GRound Speed: "
-         "%f, Sats: %d, Time: %d: %d:%d:%d\r\n",
-         GpsData.Fix, (int32_t)(GpsData.Lat * 1e6),
-         (int32_t)(GpsData.Lon * 1e6), (uint32_t)(GpsData.Alt * 1e6),
-         (int16_t)(GpsData.AscentRate * 100.0), GpsData.GroundSpeed,
-         GpsData.Sats, GpsData.Time, GpsData.Hours, GpsData.Minutes,
-         GpsData.Seconds);
-#endif
-#endif
-
-  AprsPacket.GpsResetCount = GpsResetCount;
-  AprsPacket.Temp = LpsTemp;
-  AprsPacket.ExtTemp = ExtTemp;
-  AprsPacket.Press = LpsPress;
-  AprsPacket.BatVoltage = Round((BatVoltage*3300.0f)/4095);
-
-  BufferLen = encode_APRS_packet(AprsPacket, CodedBuffer);
-
-  // Transmit
-  AFSK_start_TX(CodedBuffer, BufferLen);
+  while (FSK4_Active) DelayWithIWDG(100);
 #endif
 
 #if GPS_WATCHDOG
@@ -463,7 +465,7 @@ int main(void)
   LL_APB1_GRP1_EnableClock(LL_APB1_GRP1_PERIPH_PWR);
 
   /* SysTick_IRQn interrupt configuration */
-  NVIC_SetPriority(SysTick_IRQn, 4);
+  NVIC_SetPriority(SysTick_IRQn, 3);
 
   /* USER CODE BEGIN Init */
 
@@ -481,7 +483,6 @@ int main(void)
   MX_LPUART1_UART_Init();
   MX_USART1_UART_Init();
   MX_SPI1_Init();
-  MX_TIM2_Init();
   MX_TIM22_Init();
   MX_ADC_Init();
   MX_IWDG_Init();
@@ -548,12 +549,11 @@ printf("Startup\r\n");
 #endif
 
   /* Interrupt priorites:
-   * TIM2 - modulation timer: 0 remove this
    * TIM21 - modulation timer: 0
    * LPUART1 - GPS UART RX: 1
-   * TIM22 - main loop: 2
-   * TIM6 - LED timer: 3
-   * SysTick: 4
+   * TIM6 - LED timer: 2
+   * SysTick: 3
+   * TIM22 - main loop: 4
    */
 
   /* USER CODE END 2 */
@@ -960,44 +960,6 @@ static void MX_SPI1_Init(void)
 }
 
 /**
-  * @brief TIM2 Initialization Function
-  * @param None
-  * @retval None
-  */
-static void MX_TIM2_Init(void)
-{
-
-  /* USER CODE BEGIN TIM2_Init 0 */
-  /* USER CODE END TIM2_Init 0 */
-
-  LL_TIM_InitTypeDef TIM_InitStruct = {0};
-
-  /* Peripheral clock enable */
-  LL_APB1_GRP1_EnableClock(LL_APB1_GRP1_PERIPH_TIM2);
-
-  /* TIM2 interrupt Init */
-  NVIC_SetPriority(TIM2_IRQn, 0);
-  NVIC_EnableIRQ(TIM2_IRQn);
-
-  /* USER CODE BEGIN TIM2_Init 1 */
-
-  /* USER CODE END TIM2_Init 1 */
-  TIM_InitStruct.Prescaler = 119;
-  TIM_InitStruct.CounterMode = LL_TIM_COUNTERMODE_UP;
-  TIM_InitStruct.Autoreload = 999;
-  TIM_InitStruct.ClockDivision = LL_TIM_CLOCKDIVISION_DIV1;
-  LL_TIM_Init(TIM2, &TIM_InitStruct);
-  LL_TIM_DisableARRPreload(TIM2);
-  LL_TIM_SetClockSource(TIM2, LL_TIM_CLOCKSOURCE_INTERNAL);
-  LL_TIM_SetTriggerOutput(TIM2, LL_TIM_TRGO_RESET);
-  LL_TIM_DisableMasterSlaveMode(TIM2);
-  /* USER CODE BEGIN TIM2_Init 2 */
-
-  /* USER CODE END TIM2_Init 2 */
-
-}
-
-/**
   * @brief TIM6 Initialization Function
   * @param None
   * @retval None
@@ -1015,7 +977,7 @@ static void MX_TIM6_Init(void)
   LL_APB1_GRP1_EnableClock(LL_APB1_GRP1_PERIPH_TIM6);
 
   /* TIM6 interrupt Init */
-  NVIC_SetPriority(TIM6_DAC_IRQn, 3);
+  NVIC_SetPriority(TIM6_DAC_IRQn, 2);
   NVIC_EnableIRQ(TIM6_DAC_IRQn);
 
   /* USER CODE BEGIN TIM6_Init 1 */
@@ -1057,6 +1019,7 @@ static void MX_TIM21_Init(void)
   /* TIM21 interrupt Init */
   NVIC_SetPriority(TIM21_IRQn, 0);
   NVIC_EnableIRQ(TIM21_IRQn);
+
   /* USER CODE BEGIN TIM21_Init 1 */
 
   /* USER CODE END TIM21_Init 1 */

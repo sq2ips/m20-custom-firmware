@@ -7,10 +7,10 @@
 //  Sonde configuration, parameters that should be changed
 #define DEBUG 0
 
-#define TIME_PERIOD 6           // Time betwen starts of transmissions (in seconds) (must be more than 3)
+#define TIME_PERIOD 12           // Time betwen starts of transmissions (in seconds) (must be more than 3)
 
 // Horus Binary V2 4FSK mode
-#define HORUS_ENABLE 0
+#define HORUS_ENABLE 1
 
 const static float QRG_FSK4[] = {435100000}; // Transmitted frequencies array, switched in a loop, add new frequencies (in Hz) after a comma in braces.
 #define FSK4_POWER 10              // RF power setting for horus transmission values 0-63
@@ -46,12 +46,12 @@ const static float QRG_AFSK[] = {435100000};
 #define APRS_COMMENT_TEXT "M20 radiosonde test"
 
 // LED settings
-#define LED_MODE 2              // 0 - disabled, 1 - flashes when prepairing tx data before transmit, 2 - GPS fix indication
+#define LED_MODE 0              // 0 - disabled, 1 - flashes when prepairing tx data before transmit, 2 - GPS fix indication
 #define LED_PERIOD 5            // time between LED lighting
 #define LED_DISABLE_ALT 1000    // disable led when certain altitude is reached, 0 for always enable
 
 // Radio settings
-#define RF_BOOST 1       // RF booster enabled for transmissions about 15dB gain, but more power consumed - normally should be ON(1).
+#define RF_BOOST 0       // RF booster enabled for transmissions about 15dB gain, but more power consumed - normally should be ON(1).
 
 #define ADF_FREQ_CORRECTION 19  // correction of frequency from crystal inaccuracy in 244Hz steps. To be individually set for each sonde.
 #define ADF_FSK_DEVIATION 5  // Deviation parameter used in AFSK modem, don't change it without a reason, 5= about 5k5Hz, 10=11kHz
