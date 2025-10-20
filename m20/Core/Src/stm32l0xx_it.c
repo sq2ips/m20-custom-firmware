@@ -141,6 +141,24 @@ void SysTick_Handler(void)
 /******************************************************************************/
 
 /**
+  * @brief This function handles TIM2 global interrupt.
+  */
+void TIM2_IRQHandler(void)
+{
+  /* USER CODE BEGIN TIM2_IRQn 0 */
+  if(LL_TIM_IsActiveFlag_UPDATE(TIM2)){
+		LL_TIM_ClearFlag_UPDATE(TIM2);
+    #if HORUS_ENABLE
+    if (FSK4_Active) FSK4_timer_handler();
+    #endif
+  }
+  /* USER CODE END TIM2_IRQn 0 */
+  /* USER CODE BEGIN TIM2_IRQn 1 */
+
+  /* USER CODE END TIM2_IRQn 1 */
+}
+
+/**
   * @brief This function handles TIM6 global interrupt and DAC1/DAC2 underrun error interrupts.
   */
 void TIM6_DAC_IRQHandler(void)
@@ -168,9 +186,6 @@ void TIM21_IRQHandler(void)
 		LL_TIM_ClearFlag_UPDATE(TIM21);
     #if APRS_ENABLE
     if(AFSK_Active) AFSK_timer_handler();
-    #endif
-    #if HORUS_ENABLE
-    if (FSK4_Active) FSK4_timer_handler();
     #endif
   }
   /* USER CODE END TIM21_IRQn 0 */

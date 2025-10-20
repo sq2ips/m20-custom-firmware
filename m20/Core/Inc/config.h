@@ -27,7 +27,7 @@ const static float QRG_FSK4[] = {435100000}; // Transmitted frequencies array, s
 const static float QRG_AFSK[] = {435100000};
 #define AFSK_POWER 10              // RF power setting for horus transmission values 0-63
 
-#define APRS_CALLSING "SQ2IPS"
+#define APRS_CALLSING "NO0CALL"
 #define APRS_SSID 11
 
 #define APRS_DESTINATION "APZM20"
@@ -46,7 +46,7 @@ const static float QRG_AFSK[] = {435100000};
 #define APRS_COMMENT_TEXT "M20 radiosonde test"
 
 // LED settings
-#define LED_MODE 0              // 0 - disabled, 1 - flashes when prepairing tx data before transmit, 2 - GPS fix indication
+#define LED_MODE 2              // 0 - disabled, 1 - flashes when prepairing tx data before transmit, 2 - GPS fix indication
 #define LED_PERIOD 5            // time between LED lighting
 #define LED_DISABLE_ALT 1000    // disable led when certain altitude is reached, 0 for always enable
 

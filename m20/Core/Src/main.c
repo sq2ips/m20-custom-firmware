@@ -29,7 +29,7 @@
 #include "lps22hb.h"
 #endif
 
-#ifdef DEBUG
+#if DEBUG
 #include <stdio.h>
 #include <string.h>
 #endif
@@ -102,8 +102,6 @@ HorusBinaryPacket HorusPacket;
 APRSPacket AprsPacket;
 #endif
 
-uint16_t PacketCount = 0;
-
 char CodedBuffer[100]; // TODO: change size
 uint16_t BufferLen;
 /* USER CODE END PV */
@@ -119,6 +117,7 @@ static void MX_ADC_Init(void);
 static void MX_IWDG_Init(void);
 static void MX_TIM6_Init(void);
 static void MX_TIM21_Init(void);
+static void MX_TIM2_Init(void);
 /* USER CODE BEGIN PFP */
 void GPS_Handler(void);
 #if LED_MODE == 2
@@ -130,7 +129,7 @@ void DelayWithIWDG(uint16_t time);
 void GpsAirborne(void);
 #endif
 
-#ifdef DEBUG
+#if DEBUG
 #ifdef __GNUC__
 /* With GCC/RAISONANCE, small printf (option LD Linker->Libraries->Small printf
    set to 'Yes') calls __io_putchar() */
@@ -164,18 +163,13 @@ void main_loop(void) {
   LL_GPIO_TogglePin(LED_GPIO_Port, LED_Pin);
 #endif
 
-#ifdef DEBUG
-  // Frame number
-  printf("\r\nFrame: %d\r\n", PacketCount);
-#endif
-
   // LPS22HB sensor
 #if LPS22_ENABLE
   if (lps_init == 0) {
     LpsTemp = (int8_t)Round(LPS22_GetTemp());
     LpsPress = (uint16_t)Round(LPS22_GetPress() * 10.0);
   }
-#ifdef DEBUG
+#if DEBUG
   printf("LPS22: Temp: %d C, press: %d /10 hPa\r\n", LpsTemp, LpsPress);
 #endif
 #endif
@@ -192,7 +186,7 @@ void main_loop(void) {
   // to 3.3V max value of ADC
   BatVoltage = LL_ADC_REG_ReadConversionData12(ADC1);
   LL_ADC_ClearFlag_EOS(ADC1);
-#ifdef DEBUG
+#if DEBUG
   printf("Bat voltage value: %d\r\n", BatVoltage);
 #endif
 #endif
@@ -218,7 +212,7 @@ void main_loop(void) {
                      (-0.000000720 * Log(NTC_R)*Log(NTC_R)*Log(NTC_R))) -
                 273.15;
   ExtTemp = (int16_t)Round(NTC_T * 10.0);
-#ifdef DEBUG
+#if DEBUG
   printf("NTC: raw: %d, Temp: %d /10 C\r\n", temp_adc_raw, ExtTemp);
 #endif
 #endif
@@ -295,8 +289,6 @@ void main_loop(void) {
 #endif
 
 #if APRS_ENABLE
-  AprsPacket.PacketCount = PacketCount;
-
 // GPS type 1 data
 #if GPS_TYPE == 1
   AprsPacket.Hours = NmeaData.Hours;
@@ -307,7 +299,7 @@ void main_loop(void) {
   AprsPacket.Speed = (uint8_t)NmeaData.Speed;
   AprsPacket.Alt = NmeaData.Alt;
   AprsPacket.Sats = NmeaData.Sats;
-#ifdef DEBUG
+#if DEBUG
   printf("Fix: %d, Lat: %ld, Lon: %ld, Alt: %d m, Speed: %d km/h, Ascent rate: "
          "%d m/s Satellites: %d, Time: %d:%d:%d\r\n",
          NmeaData.Fix, (uint32_t)(NmeaData.Lat * 10e6),
@@ -326,7 +318,7 @@ void main_loop(void) {
   AprsPacket.Speed = (uint16_t)GpsData.GroundSpeed; // Doesn't work
   AprsPacket.Alt = (uint16_t)GpsData.Alt;
   AprsPacket.Sats = GpsData.Sats;
-#ifdef DEBUG
+#if DEBUG
   printf("Fix: %d, Lat: %d, Lon: %d, Alt: %d, Ascent Rate: %d, GRound Speed: "
          "%f, Sats: %d, Time: %d: %d:%d:%d\r\n",
          GpsData.Fix, (int32_t)(GpsData.Lat * 1e6),
@@ -345,14 +337,16 @@ void main_loop(void) {
 
   BufferLen = encode_APRS_packet(AprsPacket, CodedBuffer);
 
+  AprsPacket.PacketCount++;
+
   // Transmit
   AFSK_start_TX(CodedBuffer, BufferLen);
   while (AFSK_Active) DelayWithIWDG(100);
 #endif
-DelayWithIWDG(1000);
+#if HORUS_ENABLE && APRS_ENABLE
+DelayWithIWDG(2000); // ???
+#endif
 #if HORUS_ENABLE
-  HorusPacket.PacketCount = PacketCount;
-
 // GPS type 1 data
 #if GPS_TYPE == 1
   HorusPacket.Hours = NmeaData.Hours;
@@ -364,7 +358,7 @@ DelayWithIWDG(1000);
   HorusPacket.AscentRate = (int16_t)Round(NmeaData.AscentRate * 100.0);
   HorusPacket.Alt = NmeaData.Alt;
   HorusPacket.Sats = NmeaData.Sats;
-#ifdef DEBUG
+#if DEBUG
   printf("Fix: %d, Lat: %ld, Lon: %ld, Alt: %d m, Speed: %d km/h, Ascent rate: "
          "%d m/s Satellites: %d, Time: %d:%d:%d\r\n",
          NmeaData.Fix, (uint32_t)(NmeaData.Lat * 10e6),
@@ -384,12 +378,12 @@ DelayWithIWDG(1000);
   HorusPacket.Alt = (uint16_t)GpsData.Alt;
   HorusPacket.Sats = GpsData.Sats;
   HorusPacket.AscentRate = (int16_t)Round(GpsData.AscentRate * 100.0);
-#ifdef DEBUG
+#if DEBUG
   printf("Fix: %d, Lat: %d, Lon: %d, Alt: %d, Ascent Rate: %d, GRound Speed: "
          "%f, Sats: %d, Time: %d: %d:%d:%d\r\n",
          GpsData.Fix, (int32_t)(GpsData.Lat * 1e6),
          (int32_t)(GpsData.Lon * 1e6), (uint32_t)(GpsData.Alt * 1e6),
-         (int16_t)(GpsData.AscentRate * 100.0), GpsData.GRoundSpeed,
+         (int16_t)(GpsData.AscentRate * 100.0), GpsData.GroundSpeed,
          GpsData.Sats, GpsData.Time, GpsData.Hours, GpsData.Minutes,
          GpsData.Seconds);
 #endif
@@ -408,9 +402,8 @@ DelayWithIWDG(1000);
   BufferLen = horus_l2_encode_tx_packet((unsigned char *)CodedBuffer,
                                             (unsigned char *)&HorusPacket,
                                             sizeof(HorusPacket));
-
+  HorusPacket.PacketCount++;
   // Transmit
-  LL_GPIO_ResetOutputPin(ADF_TX_Data_GPIO_Port, ADF_TX_Data_Pin);
   FSK4_start_TX(CodedBuffer, BufferLen);
   while (FSK4_Active) DelayWithIWDG(100);
 #endif
@@ -436,9 +429,6 @@ DelayWithIWDG(1000);
     GpsResetCount++;
   }
 #endif
-
-  // Packet counter
-  PacketCount++;
 
 // LED
 #if LED_MODE == 1
@@ -488,6 +478,7 @@ int main(void)
   MX_IWDG_Init();
   MX_TIM6_Init();
   MX_TIM21_Init();
+  MX_TIM2_Init();
   /* USER CODE BEGIN 2 */
 
   // Power on modules
@@ -513,7 +504,7 @@ printf("Startup\r\n");
     lps_init = LPS22_Init();
   if (lps_init == 0) break;
   }
-#ifdef DEBUG
+#if DEBUG
   printf("LPS init: %d\r\n", lps_init);
 #endif
 #endif
@@ -549,7 +540,8 @@ printf("Startup\r\n");
 #endif
 
   /* Interrupt priorites:
-   * TIM21 - modulation timer: 0
+   * TIM2 - 4FSK modulation timer: 0
+   * TIM21 - AFSK modulation timer: 0
    * LPUART1 - GPS UART RX: 1
    * TIM6 - LED timer: 2
    * SysTick: 3
@@ -960,6 +952,45 @@ static void MX_SPI1_Init(void)
 }
 
 /**
+  * @brief TIM2 Initialization Function
+  * @param None
+  * @retval None
+  */
+static void MX_TIM2_Init(void)
+{
+
+  /* USER CODE BEGIN TIM2_Init 0 */
+
+  /* USER CODE END TIM2_Init 0 */
+
+  LL_TIM_InitTypeDef TIM_InitStruct = {0};
+
+  /* Peripheral clock enable */
+  LL_APB1_GRP1_EnableClock(LL_APB1_GRP1_PERIPH_TIM2);
+
+  /* TIM2 interrupt Init */
+  NVIC_SetPriority(TIM2_IRQn, 0);
+  NVIC_EnableIRQ(TIM2_IRQn);
+
+  /* USER CODE BEGIN TIM2_Init 1 */
+
+  /* USER CODE END TIM2_Init 1 */
+  TIM_InitStruct.Prescaler = 0;
+  TIM_InitStruct.CounterMode = LL_TIM_COUNTERMODE_UP;
+  TIM_InitStruct.Autoreload = 65535;
+  TIM_InitStruct.ClockDivision = LL_TIM_CLOCKDIVISION_DIV1;
+  LL_TIM_Init(TIM2, &TIM_InitStruct);
+  LL_TIM_DisableARRPreload(TIM2);
+  LL_TIM_SetClockSource(TIM2, LL_TIM_CLOCKSOURCE_INTERNAL);
+  LL_TIM_SetTriggerOutput(TIM2, LL_TIM_TRGO_RESET);
+  LL_TIM_DisableMasterSlaveMode(TIM2);
+  /* USER CODE BEGIN TIM2_Init 2 */
+
+  /* USER CODE END TIM2_Init 2 */
+
+}
+
+/**
   * @brief TIM6 Initialization Function
   * @param None
   * @retval None
@@ -1072,7 +1103,7 @@ static void MX_TIM22_Init(void)
   LL_APB2_GRP1_EnableClock(LL_APB2_GRP1_PERIPH_TIM22);
 
   /* TIM22 interrupt Init */
-  NVIC_SetPriority(TIM22_IRQn, 2);
+  NVIC_SetPriority(TIM22_IRQn, 3);
   NVIC_EnableIRQ(TIM22_IRQn);
 
   /* USER CODE BEGIN TIM22_Init 1 */
@@ -1306,7 +1337,7 @@ void GPS_Handler(void) {
     GpsBufferCounter++;
   } else if (LL_LPUART_IsActiveFlag_ORE(LPUART1)) {
     LL_LPUART_ClearFlag_ORE(LPUART1);
-#ifdef DEBUG
+#if DEBUG
     printf("ORE!\r\n");
 #endif
   }
