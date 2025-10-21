@@ -167,7 +167,7 @@ void main_loop(void) {
 #if LPS22_ENABLE
   if (lps_init == 0) {
     LpsTemp = (int8_t)Round(LPS22_GetTemp());
-    LpsPress = (uint16_t)Round(LPS22_GetPress() * 10.0);
+    LpsPress = (uint16_t)Round(LPS22_GetPress() * 10.0f);
   }
 #if DEBUG
   printf("LPS22: Temp: %d C, press: %d /10 hPa\r\n", LpsTemp, LpsPress);

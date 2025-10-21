@@ -98,6 +98,11 @@ static uint8_t compress_pos(float lat, float lon, uint8_t *buff){ // position co
 }
 
 static uint8_t int_to_string(int32_t num, uint8_t *buff, uint8_t digits, bool cut_zeros){
+    if(num == 0 && cut_zeros){
+         buff[0] = '0';
+        return 1;
+    }
+
     uint8_t pos = 0;
 
     uint32_t a = 1;
@@ -109,7 +114,8 @@ static uint8_t int_to_string(int32_t num, uint8_t *buff, uint8_t digits, bool cu
     }
     while(a>=1){ // add altitude number in feet as string (6 digits)
         uint8_t chr = (num%(a*10))/a+'0';
-        if (chr != '0' || !cut_zeros){
+        if (!(chr == '0' && cut_zeros)){
+            cut_zeros = false;
             buff[pos++] = chr;
         }
         a/=10;
@@ -120,7 +126,7 @@ static uint8_t int_to_string(int32_t num, uint8_t *buff, uint8_t digits, bool cu
 static uint8_t encode_comment_telemetry(APRSPacket Packet, uint8_t *buff){
     uint8_t cnt = 0;
     
-    buff[cnt++] = 'P'; // Packet count
+    buff[cnt++] = 'C'; // Packet count
     cnt += int_to_string(Packet.PacketCount, buff+cnt, 5, true); // 16 bit, 5 digits max
 
     buff[cnt++] = 'S'; // GNSS sat count

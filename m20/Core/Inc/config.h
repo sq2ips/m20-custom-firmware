@@ -26,7 +26,7 @@ const static float QRG_FSK4[] = {435100000}; // 4FSK transmitted frequencies arr
 const static float QRG_AFSK[] = {435100000}; // AFSK transmitted frequencies array, switched in a loop, add new frequencies (in Hz) after a comma in braces.
 #define AFSK_POWER 10              // RF power setting AFSK transmission values 0-63
 
-#define APRS_CALLSIGN "NO0CALL" // Sonde callsign, max 6 digits, change this for your callsign for real flight
+#define APRS_CALLSIGN "NOCALL" // Sonde callsign, max 6 digits, change this for your callsign for real flight
 #define APRS_SSID 11 // Sonde SSID, 11 is "balloons, aircraft, spacecraft, etc", refer to https://www.aprs.org/aprs11/SSIDs.txt
 
 #define APRS_DESTINATION "APZM20" // Destination adress, characterizing a M20 transmitter, max 6 digits
