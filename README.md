@@ -217,7 +217,7 @@ Parameters list:
 
 
 ## Power setting
-Power setting for `PA_FSK4`, mesured at 437.600MHz, directly at output.
+Power setting, `RF_BOOST` is on, mesured at 437.600MHz, directly at output.
 | power setting | power |
 | ------------- | ----- |
 | 8  | 0,005W |
