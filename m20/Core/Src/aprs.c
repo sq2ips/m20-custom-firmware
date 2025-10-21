@@ -97,7 +97,7 @@ static uint8_t compress_pos(float lat, float lon, uint8_t *buff){ // position co
     return cnt;
 }
 
-static uint8_t int_to_string(int32_t num, uint8_t *buff, uint8_t digits){
+static uint8_t int_to_string(int32_t num, uint8_t *buff, uint8_t digits, bool cut_zeros){
     uint8_t pos = 0;
 
     uint32_t a = 1;
@@ -108,7 +108,10 @@ static uint8_t int_to_string(int32_t num, uint8_t *buff, uint8_t digits){
         num*=-1;
     }
     while(a>=1){ // add altitude number in feet as string (6 digits)
-        buff[pos++] = (num%(a*10))/a+'0';
+        uint8_t chr = (num%(a*10))/a+'0';
+        if (chr != '0' || !cut_zeros){
+            buff[pos++] = chr;
+        }
         a/=10;
     }
     return pos;
@@ -117,26 +120,34 @@ static uint8_t int_to_string(int32_t num, uint8_t *buff, uint8_t digits){
 static uint8_t encode_comment_telemetry(APRSPacket Packet, uint8_t *buff){
     uint8_t cnt = 0;
     
-    buff[cnt++] = 'C'; // Packet count
-    cnt += int_to_string(Packet.PacketCount, buff+cnt, 5); // 16 bit, 5 digits max
+    buff[cnt++] = 'P'; // Packet count
+    cnt += int_to_string(Packet.PacketCount, buff+cnt, 5, true); // 16 bit, 5 digits max
 
     buff[cnt++] = 'S'; // GNSS sat count
-    cnt += int_to_string(Packet.Sats, buff+cnt, 2); // 2 digits max
+    cnt += int_to_string(Packet.Sats, buff+cnt, 2, true); // 2 digits max
 
+#if GPS_WATCHDOG
     buff[cnt++] = 'R'; // GNSS restart count
-    cnt += int_to_string(Packet.GpsResetCount, buff+cnt, 3); // 8 bit, 3 digits max
+    cnt += int_to_string(Packet.GpsResetCount, buff+cnt, 3, true); // 8 bit, 3 digits max
+#endif
 
+#if LPS22_ENABLE
     buff[cnt++] = 'T'; // Internal temp
-    cnt += int_to_string(Packet.Temp, buff+cnt, 2); // 2 digits (+ sign)
-
-    buff[cnt++] = 'E'; // External temp
-    cnt += int_to_string(Packet.ExtTemp, buff+cnt, 3); // *10, 2+1 digits (+ sign)
+    cnt += int_to_string(Packet.Temp, buff+cnt, 2, true); // 2 digits (+ sign)
 
     buff[cnt++] = 'P'; // Pressure
-    cnt += int_to_string(Packet.Press, buff+cnt, 5); // *10, 4+1 digits
+    cnt += int_to_string(Packet.Press, buff+cnt, 5, true); // *10, 4+1 digits
+#endif
 
+#if NTC_ENABLE
+    buff[cnt++] = 'E'; // External temp
+    cnt += int_to_string(Packet.ExtTemp, buff+cnt, 3, true); // *10, 2+1 digits (+ sign)
+#endif
+
+#if BAT_ADC_ENABLE
     buff[cnt++] = 'V'; // Battery voltage
-    cnt += int_to_string(Packet.BatVoltage, buff+cnt, 4); // *1000, 4 digits
+    cnt += int_to_string(Packet.BatVoltage, buff+cnt, 4, true); // *1000, 4 digits
+#endif
 
     return cnt;
 }
@@ -174,7 +185,7 @@ uint8_t encode_APRS_packet(APRSPacket Packet, uint8_t *buff){
     info_field[pos++] = 'A';
     info_field[pos++] = '=';
     uint32_t alt_ft = (uint32_t)Round(Packet.Alt/FEET_TO_M); // convert m to feet
-    pos+=int_to_string(alt_ft, info_field+pos, 6);
+    pos+=int_to_string(alt_ft, info_field+pos, 6, false);
 
 #if APRS_COMMENT_TELEMETRY
     pos+=encode_comment_telemetry(Packet, info_field+pos);

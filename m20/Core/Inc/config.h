@@ -5,17 +5,16 @@
 
 /*-----------------------------------------------------------------*/
 //  Sonde configuration, parameters that should be changed
-#define DEBUG 0
 
 #define TIME_PERIOD 12           // Time betwen starts of transmissions (in seconds) (must be more than 3)
 
 // Horus Binary V2 4FSK mode
 #define HORUS_ENABLE 1
 
-const static float QRG_FSK4[] = {435100000}; // Transmitted frequencies array, switched in a loop, add new frequencies (in Hz) after a comma in braces.
+const static float QRG_FSK4[] = {435100000}; // 4FSK transmitted frequencies array, switched in a loop, add new frequencies (in Hz) after a comma in braces. Commonly used frequencies: https://github.com/projecthorus/horusdemodlib/wiki#commonly-used-frequencies
 #define FSK4_POWER 10              // RF power setting for horus transmission values 0-63
 
-#define HORUS_PAYLOAD_ID 256          // Sonde payload ID 256 - for 4FSKTEST-V2
+#define HORUS_PAYLOAD_ID 256          // Sonde payload ID 256 - for 4FSKTEST-V2, change this for real flight, refer to https://github.com/projecthorus/horusdemodlib/wiki#how-do-i-transmit-it
 
 #define FSK4_BAUD 100           // Baudrate for horus 4FSK
 #define FSK4_SPACE_MULTIPLIER 1 // Tone spacing multiplier - 1 for 244Hz, 2 for 488, etc.
@@ -24,26 +23,26 @@ const static float QRG_FSK4[] = {435100000}; // Transmitted frequencies array, s
 // APRS (AX.25 AFSK HDLC Bell 202)
 #define APRS_ENABLE 1
 
-const static float QRG_AFSK[] = {435100000};
-#define AFSK_POWER 10              // RF power setting for horus transmission values 0-63
+const static float QRG_AFSK[] = {435100000}; // AFSK transmitted frequencies array, switched in a loop, add new frequencies (in Hz) after a comma in braces.
+#define AFSK_POWER 10              // RF power setting AFSK transmission values 0-63
 
-#define APRS_CALLSING "NO0CALL"
-#define APRS_SSID 11
+#define APRS_CALLSIGN "NO0CALL" // Sonde callsign, max 6 digits, change this for your callsign for real flight
+#define APRS_SSID 11 // Sonde SSID, 11 is "balloons, aircraft, spacecraft, etc", refer to https://www.aprs.org/aprs11/SSIDs.txt
 
-#define APRS_DESTINATION "APZM20"
-#define APRS_DESTINATION_SSID 0
+#define APRS_DESTINATION "APZM20" // Destination adress, characterizing a M20 transmitter, max 6 digits
+#define APRS_DESTINATION_SSID 0 // Default 0 SSID
 
-#define APRS_PATH_1 "WIDE1"
-#define APRS_PATH_1_SSID 1
+#define APRS_PATH_1 "WIDE1" // Path 1, max 6 digits
+#define APRS_PATH_1_SSID 1 // Path 1 SSID
 
-#define APRS_PATH_2 "WIDE2"
-#define APRS_PATH_2_SSID 1
+#define APRS_PATH_2 "WIDE2" // Path 2, max 6 digits
+#define APRS_PATH_2_SSID 1  // Path 2 SSID
 
-#define APRS_SYMBOL "/O"        // baloon symbol, all symbols: https://www.aprs.org/symbols.html
+#define APRS_SYMBOL "/O"        // baloon symbol, all symbols: https://www.aprs.org/symbols.html, needs to be /O for showing on Sondehub
 
-#define APRS_COMMENT_TELEMETRY 1
+#define APRS_COMMENT_TELEMETRY 1 // Telemetry in coment field
 
-#define APRS_COMMENT_TEXT "M20 radiosonde test"
+#define APRS_COMMENT_TEXT "M20 radiosonde test" // Additional text in comment field
 
 // LED settings
 #define LED_MODE 2              // 0 - disabled, 1 - flashes when prepairing tx data before transmit, 2 - GPS fix indication
@@ -74,5 +73,7 @@ const static float QRG_AFSK[] = {435100000};
 #define NTC_ENABLE 1
 
 #define BAT_ADC_ENABLE 1
+
+#define DEBUG 0
 
 #endif /* INC_CONFIG_H_ */
