@@ -41,9 +41,9 @@ static uint8_t generate_ax25_frame(uint8_t *info_field, uint8_t info_field_size,
     
     d_pos = pos;
     for(; pos-d_pos<6; pos++){ // Source adress
-        if(pos-d_pos >= sizeof(APRS_CALLSING)-1){
+        if(pos-d_pos >= sizeof(APRS_CALLSIGN)-1){
             buff[pos] = APRS_SPACE_SYMBOL<<1;
-        }else buff[pos] = APRS_CALLSING[pos-d_pos]<<1;
+        }else buff[pos] = APRS_CALLSIGN[pos-d_pos]<<1;
     }
     buff[pos++] = (APRS_SSID<<1) | 0b11100000; // Source adress SSID
     
