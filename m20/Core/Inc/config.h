@@ -29,7 +29,7 @@ const static float QRG_AFSK[] = {435100000}; // AFSK transmitted frequencies arr
 #define APRS_CALLSIGN "NOCALL" // Sonde callsign, max 6 digits, change this for your callsign for real flight
 #define APRS_SSID 11 // Sonde SSID, 11 is "balloons, aircraft, spacecraft, etc", refer to https://www.aprs.org/aprs11/SSIDs.txt
 
-#define APRS_DESTINATION "APZM20" // Destination adress, characterizing a M20 transmitter, max 6 digits
+#define APRS_DESTINATION "APRM20" // Destination adress, characterizing a M20 transmitter, max 6 digits
 #define APRS_DESTINATION_SSID 0 // Default 0 SSID
 
 #define APRS_PATH_1 "WIDE1" // Path 1, max 6 digits
