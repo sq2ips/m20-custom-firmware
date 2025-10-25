@@ -10,7 +10,7 @@
 
 #include <string.h>
 
-static uint16_t calculateFcs(uint8_t *input_data, uint16_t len) { // Checksum calculator
+static uint16_t calculateFcs(char *input_data, uint16_t len) { // Checksum calculator
   uint16_t crc = 0xFFFF;
   uint16_t crc16_table[] = {0x0000, 0x1081, 0x2102, 0x3183, 0x4204, 0x5285,
                             0x6306, 0x7387, 0x8408, 0x9489, 0xa50a, 0xb58b,
@@ -28,7 +28,7 @@ static uint16_t calculateFcs(uint8_t *input_data, uint16_t len) { // Checksum ca
   return (~crc);
 }
 
-static uint8_t generate_ax25_frame(uint8_t *info_field, uint8_t info_field_size, uint8_t *buff){
+static uint8_t generate_ax25_frame(char *info_field, uint8_t info_field_size, char *buff){
     uint8_t pos = 0;
     uint8_t d_pos = 0;
     
@@ -78,7 +78,7 @@ static uint8_t generate_ax25_frame(uint8_t *info_field, uint8_t info_field_size,
     return pos;
 }
 
-static uint8_t compress_pos(float lat, float lon, uint8_t *buff){ // position compression
+static uint8_t compress_pos(float lat, float lon, char *buff){ // position compression
     uint32_t lat_base10 = Round(380926 * (90-lat));
     uint8_t cnt = 0;
 
@@ -97,7 +97,7 @@ static uint8_t compress_pos(float lat, float lon, uint8_t *buff){ // position co
     return cnt;
 }
 
-static uint8_t int_to_string(int32_t num, uint8_t *buff, uint8_t digits, bool cut_zeros){
+static uint8_t int_to_string(int32_t num, char *buff, uint8_t digits, bool cut_zeros){
     if(num == 0 && cut_zeros){
          buff[0] = '0';
         return 1;
@@ -123,7 +123,7 @@ static uint8_t int_to_string(int32_t num, uint8_t *buff, uint8_t digits, bool cu
     return pos;
 }
 
-static uint8_t encode_comment_telemetry(APRSPacket Packet, uint8_t *buff){
+static uint8_t encode_comment_telemetry(APRSPacket Packet, char *buff){ // Comment field telemetry https://github.com/projecthorus/sondehub-aprs-gateway/blob/main/sondehub_aprs_gw/comment_telemetry.py#L242
     uint8_t cnt = 0;
     
     buff[cnt++] = 'C'; // Packet count
@@ -158,8 +158,8 @@ static uint8_t encode_comment_telemetry(APRSPacket Packet, uint8_t *buff){
     return cnt;
 }
 
-uint8_t encode_APRS_packet(APRSPacket Packet, uint8_t *buff){
-    uint8_t info_field[APRS_MAX_INFO_LEN];
+uint8_t encode_APRS_packet(APRSPacket Packet, char *buff){
+    char info_field[APRS_MAX_INFO_LEN];
     uint8_t pos = 0;
 
     info_field[pos++] = '@'; // data type identifier

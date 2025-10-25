@@ -33,6 +33,6 @@ typedef struct TAPRSPacket {
     uint16_t BatVoltage;
 } APRSPacket;
 
-uint8_t encode_APRS_packet(APRSPacket Packet, uint8_t *buff);
+uint8_t encode_APRS_packet(APRSPacket Packet, char *buff);
 
 #endif

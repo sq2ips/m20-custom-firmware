@@ -63,7 +63,7 @@ static bool stuff = false;
 static uint8_t QRGCounter = 0;
 bool AFSK_Active = false; // Activity flag
 
-static uint8_t *buff;
+static char *buff;
 static uint16_t buff_len;
 
 void AFSK_stop_TX()
@@ -147,7 +147,7 @@ void AFSK_timer_handler()
     }
 }
 
-void AFSK_start_TX(uint8_t *buffer, uint16_t buffer_len)
+void AFSK_start_TX(char *buffer, uint16_t buffer_len)
 {
     buff = buffer;         // Set buffer pointer
     buff_len = buffer_len; // Set buffer length

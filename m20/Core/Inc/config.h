@@ -9,7 +9,7 @@
 #define TIME_PERIOD 12           // Time betwen starts of transmissions (in seconds) (must be more than 3)
 
 // Horus Binary V2 4FSK mode
-#define HORUS_ENABLE 1
+#define HORUS_ENABLE 0
 
 const static float QRG_FSK4[] = {435100000}; // 4FSK transmitted frequencies array, switched in a loop, add new frequencies (in Hz) after a comma in braces. Commonly used frequencies: https://github.com/projecthorus/horusdemodlib/wiki#commonly-used-frequencies
 #define FSK4_POWER 10              // RF power setting for horus transmission values 0-63
@@ -50,7 +50,7 @@ const static float QRG_AFSK[] = {435100000}; // AFSK transmitted frequencies arr
 #define LED_DISABLE_ALT 1000    // disable led when certain altitude is reached, 0 for always enable
 
 // Radio settings
-#define RF_BOOST 0       // RF booster enabled for transmissions about 15dB gain, but more power consumed - normally should be ON(1).
+#define RF_BOOST 1       // RF booster enabled for transmissions about 15dB gain, but more power consumed - normally should be ON(1).
 
 #define ADF_FREQ_CORRECTION 19  // correction of frequency from crystal inaccuracy in 244Hz steps. To be individually set for each sonde.
 #define ADF_FSK_DEVIATION 5  // Deviation parameter used in AFSK modem, don't change it without a reason, 5= about 5k5Hz, 10=11kHz
