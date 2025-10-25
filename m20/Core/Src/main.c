@@ -93,7 +93,6 @@ static void MX_IWDG_Init(void);
 static void MX_TIM6_Init(void);
 /* USER CODE BEGIN PFP */
 void GPS_Handler(void);
-void LED_Handler(void);
 void main_loop(void);
 void DelayWithIWDG(uint16_t time);
 void GpsAirborne(void);
@@ -1172,21 +1171,15 @@ void LED_Handler(void) {
 #if LED_MODE == 2
 #if GPS_TYPE == 1
   uint8_t fix = NmeaData.Fix;
-  if (LED_DISABLE_ALT != 0) {
-    if (NmeaData.Alt >= LED_DISABLE_ALT) {
-      LL_TIM_DisableCounter(TIM6);
-      LL_TIM_DisableIT_UPDATE(TIM6);
-    }
-  }
+  uint16_t alt = NmeaData.Alt;
 #elif GPS_TYPE == 2
   uint8_t fix = GpsData.Fix;
-  if (LED_DISABLE_ALT != 0) {
-    if (GpsData.Alt >= LED_DISABLE_ALT) {
-      LL_TIM_DisableCounter(TIM6);
-      LL_TIM_DisableIT_UPDATE(TIM6);
-    }
-  }
+  uint16_t alt = GpsData.Alt;
 #endif
+  if (LED_DISABLE_ALT != 0 && alt >= LED_DISABLE_ALT) {
+    LL_TIM_DisableCounter(TIM6);
+    LL_TIM_DisableIT_UPDATE(TIM6);
+  }
   for (; fix > 0; fix--) {
     LL_GPIO_SetOutputPin(LED_GPIO_Port, LED_Pin);
     LL_mDelay(50);
