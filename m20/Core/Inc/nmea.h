@@ -15,7 +15,7 @@ typedef struct TNMEADATA {
   float Lon;    // longitude in degrees with decimal places
   uint16_t Alt; // altitude in meters
   uint16_t Speed;
-  float AscentRate;
+  int16_t AscentRate; // positive (raising) or negative (falling) vertical speed value in cm/s
   uint8_t Hours;
   uint8_t Minutes;
   uint8_t Seconds;
