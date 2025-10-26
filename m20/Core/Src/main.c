@@ -316,13 +316,13 @@ void main_loop(void) {
   AprsPacket.Lat = GpsData.Lat;
   AprsPacket.Lon = GpsData.Lon;
   AprsPacket.Speed = (uint16_t)GpsData.GroundSpeed; // Doesn't work
-  AprsPacket.Alt = (uint16_t)GpsData.Alt;
+  AprsPacket.Alt = GpsData.Alt;
   AprsPacket.Sats = GpsData.Sats;
 #if DEBUG
   printf("Fix: %d, Lat: %d, Lon: %d, Alt: %d, Ascent Rate: %d, GRound Speed: "
          "%f, Sats: %d, Time: %d: %d:%d:%d\r\n",
          GpsData.Fix, (int32_t)(GpsData.Lat * 1e6),
-         (int32_t)(GpsData.Lon * 1e6), (uint32_t)(GpsData.Alt * 1e6),
+         (int32_t)(GpsData.Lon * 1e6), GpsData.Alt,
          (int16_t)(GpsData.AscentRate * 100.0), GpsData.GroundSpeed,
          GpsData.Sats, GpsData.Time, GpsData.Hours, GpsData.Minutes,
          GpsData.Seconds);
@@ -375,14 +375,14 @@ DelayWithIWDG(2000); // ???
   HorusPacket.Lat = GpsData.Lat;
   HorusPacket.Lon = GpsData.Lon;
   HorusPacket.Speed = (uint16_t)GpsData.GroundSpeed; // Doesn't work
-  HorusPacket.Alt = (uint16_t)GpsData.Alt;
+  HorusPacket.Alt = GpsData.Alt;
   HorusPacket.Sats = GpsData.Sats;
   HorusPacket.AscentRate = (int16_t)Round(GpsData.AscentRate * 100.0);
 #if DEBUG
   printf("Fix: %d, Lat: %d, Lon: %d, Alt: %d, Ascent Rate: %d, GRound Speed: "
          "%f, Sats: %d, Time: %d: %d:%d:%d\r\n",
          GpsData.Fix, (int32_t)(GpsData.Lat * 1e6),
-         (int32_t)(GpsData.Lon * 1e6), (uint32_t)(GpsData.Alt * 1e6),
+         (int32_t)(GpsData.Lon * 1e6), GpsData.Alt,
          (int16_t)(GpsData.AscentRate * 100.0), GpsData.GroundSpeed,
          GpsData.Sats, GpsData.Time, GpsData.Hours, GpsData.Minutes,
          GpsData.Seconds);
