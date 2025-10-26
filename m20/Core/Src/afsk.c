@@ -105,6 +105,8 @@ static bool get_next_bit()
     { // N3 octet sync section
         return (AFSK_SYNC_FLAG >> (7 - (bit_pos % 8))) & 1;
     }
+    
+    return 0; // Default return value for unexpected cases
 }
 
 void AFSK_timer_handler()
