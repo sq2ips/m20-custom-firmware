@@ -107,8 +107,7 @@ void adf_reset_register_two(void) {
   adf_config.r2.mod_control = ADF_MODULATION_FSK;
   adf_config.r2.gook = ADF_OFF;
   adf_config.r2.power_amplifier_level = 0; // power level
-  adf_config.r2.modulation_deviation = 2;  // 5= about 5k5Hz, 10=11kHz
-  // adf_config.r2.modulation_deviation = 11;
+  adf_config.r2.modulation_deviation = ADF_FSK_DEVIATION;
   adf_config.r2.gfsk_modulation_control = 0;
   adf_config.r2.index_counter = 0;
 }
@@ -323,7 +322,7 @@ void adf_RF_on(
   adf_set_pa_enable(ADF_ON);
   adf_set_pa_level(power);
   adf_write_config();
-  if (RF_BOOST_ACTIVE) {
+  if (RF_BOOST) {
     LL_GPIO_ResetOutputPin(RF_Boost_GPIO_Port, RF_Boost_Pin);
   } else {
     LL_GPIO_SetOutputPin(RF_Boost_GPIO_Port, RF_Boost_Pin);

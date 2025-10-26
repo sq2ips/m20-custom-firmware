@@ -3,6 +3,13 @@
 
 #include <stdint.h>
 
+#define DATA_SIZE               35 // Max number of NMEA sentences in one parsing
+#define SENTENCE_SIZE           82+1 // Max lenght of a NMEA sentence is 82 characters
+#define MAX_SENTENCE_ELEMENTS   10 // Max number of NMEA sentence elements (no element with number bigger than 9 is used)
+#define SENTENCE_ELEMENT_LEN    12 // Max lenght of a sentence element
+
+#define GpsRxBuffer_SIZE 512
+
 typedef struct TNMEADATA {
   float Lat;    // latitude in degrees with decimal places + for N - for S
   float Lon;    // longitude in degrees with decimal places

@@ -3,6 +3,9 @@
 
 #include <stdint.h>
 
+#define HORUS_INTERLEAVER 1
+#define HORUS_SCRAMBLER 1
+
 typedef struct TBinaryPacket {
   uint16_t PayloadID;
   uint16_t PacketCount;

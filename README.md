@@ -1,5 +1,5 @@
 # m20-custom-firmware
-The goal of this project is to reverse engineer the [Meteomodem M20](https://www.meteomodem.com/m20) radiosonde and build custom free and open-source firmware for its usage in ham radio baloons based on the [Horus Binary V2](https://github.com/projecthorus/horusdemodlib/wiki) radio protocol.
+The goal of this project is to reverse engineer the [Meteomodem M20](https://www.meteomodem.com/m20) radiosonde and build custom free and open-source firmware for its usage in ham radio balloons based on the [Horus Binary V2](https://github.com/projecthorus/horusdemodlib/wiki) radio protocol.
 
 # Code
 The code is writen in C using STM32CubeMX (not to be confused with STM32CubeIDE) generated project and Low Layer (LL) libraries, compiled using arm-none-eabi toolchain (version 15.1.0 is used). Now it fits into the original STM32L051R6T6 chip.
@@ -12,6 +12,7 @@ In this stage the code works to the point where it gets GPS and sensors data, th
 - GPS (NMEA): :heavy_check_mark:
 - GPS (XM1110) :heavy_check_mark:
 - Radio (Horus): :heavy_check_mark:
+- Radio (APRS): In progress
 - LPS22 barometer + temp sensor: :heavy_check_mark:
 - Uart: :heavy_check_mark:
 - Outside temperature sensor: :heavy_check_mark:
@@ -27,14 +28,13 @@ The currently implemented features are:
 - Getting external temperature
 - Watchdog timer
 - GPS watchdog for no fix (useful in GPS jamming/spoofing areas)
+- implementing transmission frequency switching
 
 # Planned work
-- implementing transmission frequency switching
 - implementing resistor divider voltage mesurement to overcome [issues with ADC voltage reference](#battery-voltage-reading)
 - making use of STM32 energy saving states
 - Implementing XM1110 GPS speed data
 - implementing humidity sensors
-- implementing APRS (using hadrware PWM based on the method from here https://github.com/mikaelnousiainen/RS41ng/tree/main#si4032-bell-fsk-modulation-hack-for-aprs)
 
 ## APRS implementation in progress on branch develop
 
@@ -46,8 +46,8 @@ The currently implemented features are:
 # Horus 4FSK tone spacing
 Due to hardware limitations (system clock PLL setting options) it is not possible to generate a clock signal for the radio module whose frequency is divisible by 9. That results in no possibility of having a 270Hz tone spacing standardized by the RS41ng project. The tone spacing is set to 244Hz acquired by an 8MHz clock signal. The limitation is directly connected with the method of implementing FSK and there seems to be no way to overcome it without hardware intervention. The effect is that receiving stations must set a different from standard tone spacing or the SNR will be very low, for comparison:
 
-![snr270](https://github.com/sq2ips/m20-custom-firmware/blob/main/img/snr270.png?raw=true)
-![snr244](https://github.com/sq2ips/m20-custom-firmware/blob/main/img/snr244.png?raw=true)
+![snr270](./img/snr270.png?raw=true)
+![snr244](./img/snr244.png?raw=true)
 
 # Authors
 - Paweł SQ2IPS
@@ -58,9 +58,9 @@ See LICENSE
 
 # Images
 
-![alt text](https://github.com/sq2ips/m20-custom-firmware/blob/main/img/side.jpg?raw=true)
-![alt text](https://github.com/sq2ips/m20-custom-firmware/blob/main/img/pcb.jpg?raw=true)
-![alt text](https://github.com/sq2ips/m20-custom-firmware/blob/main/img/pcb2.jpg?raw=true)
+![alt text](./img/side.jpg?raw=true)
+![alt text](./img/pcb.jpg?raw=true)
+![alt text](./img/pcb2.jpg?raw=true)
 
 # Schematics
 Great pcb reverse enginering work was made by [joyel24](https://github.com/joyel24/M20-radiosonde-firmware-alt), [PDF link](https://www.egimoto.com/dwld/17528ed1858138.pdf) (although there are some errors in it)
@@ -78,7 +78,7 @@ In newer M20 sondes u-blox [MAX-M10M](https://content.u-blox.com/sites/default/f
 
 The module has normal altitude limit to 12000m, that's why mode change is needed for stratospheric flights (to around 30000m). After startup a command is sent to the module to change its mode. Then the altitude limit is 80000m in exchange for lower max acceleration that is not needed anyway.
 
-![alt text](https://github.com/sq2ips/m20-custom-firmware/blob/main/img/gps_new.jpg?raw=true)
+![alt text](./img/gps_new.jpg?raw=true)
 
 ## Old GPS (XM1110)
 In older M20 sondes XM1110 GPS module is used. It transmits data over UART but with custom firmware that transmits only binary protocol data.
@@ -87,11 +87,11 @@ The module doesn't seem to have any altitude limit lower than 30000m.
 
 Vertical speed from this module is not implemented yet due to weird frame format.
 
-![alt text](https://github.com/sq2ips/m20-custom-firmware/blob/main/img/gps_old.jpg?raw=true)
+![alt text](./img/gps_old.jpg?raw=true)
 
 Data format:
 
-![alt text](https://github.com/sq2ips/m20-custom-firmware/blob/main/img/GPS.png?raw=true)
+![alt text](./img/GPS.png?raw=true)
 
 ## GPS Watchdog
 This is a feature meant to reset the GPS module when it stops working because of jamming/spoofling. https://gpsjam.org/ It is mainly implemented because of high level of interference present at north part of Poland.
@@ -103,7 +103,7 @@ LPS22HB sensor is used with SPI interface, it sends pressure data, and additiona
 # External temperature sensor
 A NTC is used for external temperature measuring with addable resistors, the schematic looks like this:
 
-![alt text](https://github.com/sq2ips/m20-custom-firmware/blob/main/img/NTC.jpg?raw=true)
+![alt text](./img/NTC.jpg?raw=true)
 
 # Battery voltage reading
 Battery is directly connected to one of the ADC pins, without any resistor divider, the voltage reference of ADC is 3.3V so it can't mesure voltages higher than that.
@@ -111,8 +111,9 @@ Battery is directly connected to one of the ADC pins, without any resistor divid
 # Radio
 The [ADF7012B](https://www.analog.com/media/en/technical-documentation/data-sheets/ADF7012.pdf) radio module is used.
 
-The only supported format for now is [Horus Binary V2](https://github.com/projecthorus/horusdemodlib/wiki/5-Customising-a-Horus-Binary-v2-Packet) with default custom format.
-Sent data (implemented in [`horus.h`](https://github.com/sq2ips/m20-custom-firmware/blob/main/m20/Core/Inc/horus.h)):
+## Horus Binary V2
+[Horus Binary V2](https://github.com/projecthorus/horusdemodlib/wiki/5-Customising-a-Horus-Binary-v2-Packet) is implemented with default custom format to be used with the [amateur Somdehub](https://amateur.sondehub.org/) infrastructure.
+Sent data (implemented in [`horus.h`](./m20/Core/Inc/horus.h)):
 | Byte No. | Data Type | Description |
 |-|-|-|
 | 0-1 | uint16 | Payload ID (0-65535) |
@@ -134,6 +135,12 @@ Sent data (implemented in [`horus.h`](https://github.com/sq2ips/m20-custom-firmw
 | 28-29 | - | not used (yet?) |
 | 30-31 |	uint16 | CRC16-CCITT Checksum |
 
+## APRS
+The Automatic Packet Reporting System (APRS) is also commonly used for ham balloon flights because of the big network of internet forwarding ground stations together with the [amateur Sondehub](https://amateur.sondehub.org/) infrastructure. Frames are collected from the APRS-IS, parsed by [sondehub-aprs-gateway](https://github.com/projecthorus/sondehub-aprs-gateway) and sent to the map.
+
+The AFSK modulation used by APRS is implemented just like in [Trackduino](https://github.com/trackuino/trackuino/blob/1.52/trackuino/afsk.cpp).
+The AFSK Bell 202 tones are not supported in the radio module, so another method needed to be developed. It works by using direct mode, where the TX_DATA pin is fed by a high-frequency PWM signal of a sine wave, where phase is increased by values corresponding to the Bell 202 tones, creating a 1-bit DAC. That method also allows continuous phase change, which is critical for AFSK. More on the implementation is in the comments of [`afsk.c`](./m20/Core/Src/afsk.c). On top of AFSK AX.25 the APRS standard is used for routing packages, formatting and compressing position, and adding a comment field. In it telemetry is inserted to be parsed by [sondehub-aprs-gateway](https://github.com/projecthorus/sondehub-aprs-gateway). The implementation is in [`aprs.c`](./m20/Core/Src/aprs.c).
+
 # Running the firmware
 ## What you will need
 Hardware requirements:
@@ -150,11 +157,11 @@ Hardware requirements:
 If you have a sonde with new GPS module, there is a additional parallel 62 Ohm resistor added at the output of the voltage converter, all it does it drawing ~53mA from the line and converting it to heat. I have no idea why it was added, removing it does not make the power supply unstable or anything like that, maybe it was added for draining the battery quicker or heating up the board. You can safely remove this resistor to save some energy from the battery.
 This is the resistor:
 
-![alt text](https://github.com/sq2ips/m20-custom-firmware/blob/main/img/rezystor.jpg?raw=true)
+![alt text](./img/rezystor.jpg?raw=true)
 
 Thermal camera image:
 
-![alt text](https://github.com/sq2ips/m20-custom-firmware/blob/main/img/termo.jpg?raw=true)
+![alt text](./img/termo.jpg?raw=true)
 
 (Image from SP9AOB)
 
@@ -165,25 +172,52 @@ git clone https://github.com/sq2ips/m20-custom-firmware.git
 ```
 From github website "code" button, or directly from [here](https://github.com/sq2ips/m20-custom-firmware/archive/refs/heads/main.zip), and then unzip the file.
 # Configuration
-Before building the firmware you fist need to configure parameters located in the [`config.h`](https://github.com/sq2ips/m20-custom-firmware/blob/main/m20/Core/Inc/config.h) file.
+Before building the firmware you fist need to configure parameters located in the [`config.h`](./m20/Core/Inc/config.h) file. The most important parameters to change are in bold.
 Parameters list:
 | parameter | type (and unit) | description |
 |-----------|------|-------------|
-| `QRG_FSK4` | float[] (in Hz) | Transmitted frequencies array, switched in a loop, add new frequencies after a comma in braces. Refer to [Horus wiki](https://github.com/projecthorus/horusdemodlib/wiki#commonly-used-frequencies) for commonly used frequencies. |
-| `PAYLOAD_ID` | uint16 | Payload ID transmitted in Horus Binary frame, in order to conduct a flight you need to request one for your callsign, more information in the [Protocol documentation](https://github.com/projecthorus/horusdemodlib/wiki#how-do-i-transmit-it). For testing ID 256 is used. |
-| `TIME_PERIOD` | uint (in seconds) | Time between transmition of frames. Should not be lower than 4. |
-| `GPS_TYPE` | uint | Type of GPS module, eather 1 for u-blox MAX-M10M, 2 for XM1110 module. For identifying the module see [GPS](#gps) section. |
-| `GPS_WATCHDOG` | bool | Enable [GPS Watchdog](#gps-watchdog)
-| `GPS_WATCHDOG` | uint | Number of main loop iterations without GPS fix that will trigger restart (Only if there was fix before). |
-| `PA_FSK4` | uint | Number from 0 to 63. See the table bellow. |
-| `RF_BOOST_ACTIVE` | bool | State of RF TX boost, amplifies signal by around 15dB. (In off state the boost cricut is attenuating the signal, when less output power is needed it's better to decrease `PA_FSK4` than turning it off.) |
-| `ADF_FREQ_CORRECTION` | uint (multiples of 244Hz) | Frequency correction for transmitted signal. |
+| **`TIME_PERIOD`** | uint (in seconds) | Time between transmition of frames. Should not be lower than 4. |
+| `HORUS_ENABLE` | bool | Enables the 4-FSK Horus Binary V2 transmission.
+| **`QRG_FSK4`** | float[] (in Hz) | Transmitted frequencies array of Horus 4-FSK, switched in a loop, add new frequencies after a comma in braces. Refer to [Horus wiki](https://github.com/projecthorus/horusdemodlib/wiki#commonly-used-frequencies) for commonly used frequencies. |
+| **`FSK4_POWER`** | uint | Number from 0 to 63. See the table bellow. |
+| **`HORUS_PAYLOAD_ID`** | uint16 | Payload ID transmitted in Horus Binary frame, in order to conduct a flight you need to request one for your callsign, more information in the [Protocol documentation](https://github.com/projecthorus/horusdemodlib/wiki#how-do-i-transmit-it). For testing ID 256 is used. |
+| `HORUS_BAUD` | uint | Baudrate of the 4-FSK transmission. |
+| `FSK4_SPACE_MULTIPLIER` | uint | Tone spacing multiplier - 1 for 244Hz, 2 for 488, etc. |
+| `APRS_ENABLE` | bool | Enables the APRS AFSK transmission. |
+| **`QRG_AFSK`** | float[] (in Hz) | Just like `QRG_4FSK`, commonly used in europe is 432.500MHz. |
+| **`AFSK_POWER`** | uint | Just like `FSK4_POWER`. |
+| **`APRS_CALLSIGN`** | string | Callsign of the sonde, put your callsign here (max 6 digits). |
+| `APRS_SSID` | uint | Sonde callsign SSID, 11 is "balloons, aircraft, spacecraft, etc", refer to https://www.aprs.org/aprs11/SSIDs.txt. |
+| `APRS_DESTINATION` | string | Destination adress, characterizing a M20 transmitter (max 6 digits). |
+| `APRS_DESTINATION_SSID` | uint | Destination adress SSID. |
+| `APRS_PATH_1` | string | APRS path 1, refer to https://blog.aprs.fi/2020/02/how-aprs-paths-work.html, (max 6 digits). |
+| `APRS_PATH_1_SSID` | string | APRS path 1 SSID, note example WIDE1-2, will be "WIDE1" as `APRS_PATH_1` and 2 as `APRS_PATH_1_SSID`. |
+| `APRS_PATH_2` | string | Just like `APRS_PATH_1`. |
+| `APRS_PATH_2_SSID` | string | Just like `APRS_PATH_2_SSID`. |
+| `APRS_SYMBOL` | string (2 characters) | First character is symbol table ID, eather / or \\, second character is the symbol. /O is balloon, [all symbols](https://www.aprs.org/symbols.html). Needs to be /O for showing on Sondehub. |
+| `APRS_COMMENT_TELEMETRY` | bool | Enable telemetry in APRS comment field. |
+| **`APRS_COMMENT_TEXT`** | string | Additional text in comment field. |
 | `LED_MODE` | uint | 0 - disabled, 1 - LED on while getting data before transmission, 2 - Fix type indication (1 flash for no fix, 2 flashes for 2D fix, 3 flashed 3D fix). |
-| `LED_PERIOD` | uint | only for `LED_MODE` 3, time between fix indication. |
-| `LED_DISABLE_ALT` | uint (in meters) | only for `LED_MODE` 3, disables LED when prompted altitude is reached. |
+| `LED_PERIOD` | uint | only for `LED_MODE` 2, time between fix indication. |
+| `LED_DISABLE_ALT` | uint (in meters) | only for `LED_MODE` 2, disables LED when prompted altitude is reached. |
+| `RF_BOOST` | bool | State of RF TX boost, amplifies signal by around 15dB. (In off state the boost cricut is attenuating the signal, when less output power is needed it's better to decrease `PA_FSK4` than turning it off.) |
+| `ADF_FREQ_CORRECTION` | uint (multiples of 244Hz) | Frequency correction for transmitted signal. |
+| `ADF_FSK_DEVIATION` | uint (multiples of 244Hz) | Deviation parameter used in AFSK modem, don't change it without a reason. |
+| `ADF_CLOCK` | uint | Clock speed of adf7012 chip coming from STM32 (in Hz) (set to HSE 8MHz oscilator). |
+| **`GPS_TYPE`** | uint | Type of GPS module, eather 1 for u-blox MAX-M10M, 2 for XM1110 module. For identifying the module see [GPS](#gps) section. |
+| `GPS_WATCHDOG` | bool | Enable [GPS Watchdog](#gps-watchdog). |
+| `GPS_WATCHDOG_ARC` | uint | Number of main loop iterations without GPS fix that will trigger restart (Only if there was fix before). |
+| `AscentRateTime` | uint | Time of ascent rate measure. |
+| `GPS_DEBUG` | bool | Enable GPS debug. |
+| `LPS22_ENABLE` | bool | Enable LPS22 sensor. |
+| `NTC_ENABLE` | bool | Enable NTC external temperature sensor. |
+| `BAT_ADC_ENABLE` | bool | Enable battery voltage measure. |
+| `DEBUG` | bool | Enable debug info over UART. |
+
+
 
 ## Power setting
-Power setting for `PA_FSK4`, mesured at 437.600MHz, directly at output.
+Power setting, `RF_BOOST` is on, mesured at 437.600MHz, directly at output.
 | power setting | power |
 | ------------- | ----- |
 | 8  | 0,005W |
@@ -232,7 +266,7 @@ make
 ```
 After succesful building you should see a memoy usage table like this:
 
-![alt text](https://github.com/sq2ips/m20-custom-firmware/blob/main/img/memory.png?raw=true)
+![alt text](./img/memory.png?raw=true)
 
 ## Building with Docker on Linux
 First you need to get Docker, you can install it from your package manager depending on the linux distro.
@@ -296,7 +330,7 @@ It will build the code and after finishing you should see a memory usage table, 
 Before flashing you first need to connect the sonde to your computer through the ST-LINK programmer.
 You can do it using 5 goldpin cables. This is the sonde pinout:
 
-![alt text](https://github.com/sq2ips/m20-custom-firmware/blob/main/img/pinout.jpg?raw=true)
+![alt text](./img/pinout.jpg?raw=true)
 
 Follow it and the pinout of the programmer printed on the case.
 After connecting it and the programmer to your USB port you are now ready to flash the firmware.

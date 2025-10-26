@@ -24,15 +24,17 @@
  */
 
 static uint16_t current_2_bit = 0;
-static bool FSK_Active = false;
 static char *buffer;
 static uint8_t buffer_len;
 static uint8_t QRGCounter = 0;
 
+bool FSK4_Active = false;
+
 void FSK4_stop_TX() {
   TIM2->DIER &= ~(TIM_DIER_UIE); // Disable the interrupt
+  TIM2->CR1 &= ~(TIM_CR1_CEN); // Disable the counter
   adf_RF_off();                  // turn TX off
-  FSK_Active = false;
+  FSK4_Active = false;
 }
 
 static void FSK4_send_2bit(uint8_t bits_to_send) { // sends 2 bit value
@@ -40,10 +42,6 @@ static void FSK4_send_2bit(uint8_t bits_to_send) { // sends 2 bit value
       (bits_to_send & 3); // make sure to take only 2 last bites of value - we
                           // cannot send more than 2 bits at the same time
   adf_4fsk_fone(bits_to_send * FSK4_SPACE_MULTIPLIER);
-}
-
-bool FSK4_is_active() { // returns 1 if transmitter is active for 4FSK
-  return FSK_Active;
 }
 
 static void FSK4_write(char *buff, uint16_t address_2bit) {
@@ -83,14 +81,14 @@ void FSK4_start_TX(char *buff, uint8_t len) {
   buffer_len = len;
   // adf_setup();
   current_2_bit = 0; // reset counter of current position of bit address
-  adf_RF_on(QRG_FSK4[QRGCounter++], PA_FSK4); // turn on radio TX
-  if (QRGCounter >= sizeof(QRG_FSK4) / sizeof(QRG_FSK4[0]))
-    QRGCounter = 0;
-  FSK_Active = true;                                 // change status
-  TIM2->CR1 &= (uint16_t)(~((uint16_t)TIM_CR1_CEN)); // Disable the TIM Counter
+  adf_RF_on(QRG_FSK4[QRGCounter++], FSK4_POWER); // turn on radio TX
+  if (QRGCounter >= sizeof(QRG_FSK4) / sizeof(QRG_FSK4[0])) QRGCounter = 0;
+  FSK4_Active = true;                                 // change status
+  TIM2->CR1 &= ~(TIM_CR1_CEN); // Disable the counter
   uint16_t timer2StartValue =
       (100000 / FSK4_BAUD) -
       1; // timer value calculated according to baud rate 999 for 100bd
+  TIM2->PSC = FSK4_TIM_PSC;
   TIM2->ARR = timer2StartValue; // set timer counter max value to pre-set value
                                 // for baudrate (auto-reload register)
   TIM2->CR1 |= TIM_CR1_CEN;     // enable timer again

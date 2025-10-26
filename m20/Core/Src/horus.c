@@ -5,7 +5,6 @@
  */
 
 #include "horus.h"
-#include "config.h"
 #include <assert.h>
 #include <string.h>
 
@@ -33,7 +32,7 @@ uint16_t crc16(char *string, uint8_t len) {
   return crc;
 }
 
-#ifdef INTERLEAVER
+#if HORUS_INTERLEAVER
 
 const static uint16_t primes[] = {
     2,   3,   5,   7,   11,  13,  17,  19,  23,  29,  31,  37,  41,
@@ -94,7 +93,7 @@ void interleave(unsigned char *inout, int nbytes, int dir) {
 }
 #endif
 
-#ifdef SCRAMBLER
+#if HORUS_SCRAMBLER
 
 /* 16 bit DVB additive scrambler as per Wikpedia example */
 
@@ -272,14 +271,14 @@ int horus_l2_encode_tx_packet(unsigned char *output_tx_data,
 
   /* optional interleaver - we dont interleave UW */
 
-#ifdef INTERLEAVER
+#if HORUS_INTERLEAVER
   interleave(&output_tx_data[sizeof(uw)], num_tx_data_bytes - 2, 0);
 #endif
 
   /* optional scrambler to prevent long strings of the same symbol
      which upsets the modem - we dont scramble UW */
 
-#ifdef SCRAMBLER
+#if HORUS_SCRAMBLER
   scramble(&output_tx_data[sizeof(uw)], num_tx_data_bytes - 2);
 #endif
 

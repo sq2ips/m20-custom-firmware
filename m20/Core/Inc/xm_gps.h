@@ -3,12 +3,15 @@
 
 #include <stdint.h>
 
+#define GPS_FRAME_LEN 62             // Length of XM1110 (type 2) frame
+#define GpsRxBuffer_SIZE GPS_FRAME_LEN * 2
+
 typedef struct TXMDATA {
   uint8_t
       Fix; // 00 = no data/parsing error, 01 = no fix, 02 = 2D fix, 03 = 3D fix
   float Lat;        // latitude in degrees with decimal places + for N - for S
   float Lon;        // longitude in degrees with decimal places
-  float Alt;        // altitude in meters
+  uint16_t Alt;     // altitude in meters
   float AscentRate; // m/s
   float GroundSpeed;
   uint32_t Time;
