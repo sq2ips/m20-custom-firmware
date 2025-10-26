@@ -296,7 +296,7 @@ void main_loop(void) {
   AprsPacket.Seconds = NmeaData.Seconds;
   AprsPacket.Lat = NmeaData.Lat;
   AprsPacket.Lon = NmeaData.Lon;
-  AprsPacket.Speed = (uint8_t)NmeaData.Speed;
+  AprsPacket.Speed = NmeaData.Speed;
   AprsPacket.Alt = NmeaData.Alt;
   AprsPacket.Sats = NmeaData.Sats;
 #if DEBUG
@@ -315,7 +315,7 @@ void main_loop(void) {
   AprsPacket.Seconds = GpsData.Seconds;
   AprsPacket.Lat = GpsData.Lat;
   AprsPacket.Lon = GpsData.Lon;
-  AprsPacket.Speed = (uint16_t)GpsData.GroundSpeed; // Doesn't work
+  AprsPacket.Speed = GpsData.Speed; // Doesn't work
   AprsPacket.Alt = GpsData.Alt;
   AprsPacket.Sats = GpsData.Sats;
 #if DEBUG
@@ -323,7 +323,7 @@ void main_loop(void) {
          "%f, Sats: %d, Time: %d: %d:%d:%d\r\n",
          GpsData.Fix, (int32_t)(GpsData.Lat * 1e6),
          (int32_t)(GpsData.Lon * 1e6), GpsData.Alt,
-         (int16_t)(GpsData.AscentRate * 100.0), GpsData.GroundSpeed,
+         (int16_t)(GpsData.AscentRate * 100.0), GpsData.Speed,
          GpsData.Sats, GpsData.Time, GpsData.Hours, GpsData.Minutes,
          GpsData.Seconds);
 #endif
@@ -354,7 +354,7 @@ DelayWithIWDG(2000); // ???
   HorusPacket.Seconds = NmeaData.Seconds;
   HorusPacket.Lat = NmeaData.Lat;
   HorusPacket.Lon = NmeaData.Lon;
-  HorusPacket.Speed = (uint8_t)NmeaData.Speed;
+  HorusPacket.Speed = NmeaData.Speed;
   HorusPacket.AscentRate = (int16_t)Round(NmeaData.AscentRate * 100.0);
   HorusPacket.Alt = NmeaData.Alt;
   HorusPacket.Sats = NmeaData.Sats;
@@ -374,7 +374,7 @@ DelayWithIWDG(2000); // ???
   HorusPacket.Seconds = GpsData.Seconds;
   HorusPacket.Lat = GpsData.Lat;
   HorusPacket.Lon = GpsData.Lon;
-  HorusPacket.Speed = (uint16_t)GpsData.GroundSpeed; // Doesn't work
+  HorusPacket.Speed = GpsData.Speed; // Doesn't work
   HorusPacket.Alt = GpsData.Alt;
   HorusPacket.Sats = GpsData.Sats;
   HorusPacket.AscentRate = (int16_t)Round(GpsData.AscentRate * 100.0);
@@ -383,7 +383,7 @@ DelayWithIWDG(2000); // ???
          "%f, Sats: %d, Time: %d: %d:%d:%d\r\n",
          GpsData.Fix, (int32_t)(GpsData.Lat * 1e6),
          (int32_t)(GpsData.Lon * 1e6), GpsData.Alt,
-         (int16_t)(GpsData.AscentRate * 100.0), GpsData.GroundSpeed,
+         (int16_t)(GpsData.AscentRate * 100.0), GpsData.Speed,
          GpsData.Sats, GpsData.Time, GpsData.Hours, GpsData.Minutes,
          GpsData.Seconds);
 #endif
