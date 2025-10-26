@@ -22,7 +22,6 @@ typedef struct TNMEADATA {
   // float HDOP; //horizontal dilution of precision
   uint8_t Sats; // number of satellites used in measurement
   uint8_t Fix;  // 0 = no data, 1 = no fix, 2 = 2D fix, 3 = 3D fix
-  uint8_t Corr; // number of correct frames
 } NMEA;
 
 void ParseNMEA(NMEA *nmea_data, uint8_t *buffer);

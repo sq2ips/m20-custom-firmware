@@ -318,6 +318,5 @@ void ParseNMEA(NMEA *nmea_data, uint8_t *buffer) {
           correct++;
       }
     }
-    nmea_data->Corr = correct;
   }
 }

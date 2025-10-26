@@ -563,11 +563,6 @@ printf("Startup\r\n");
 #elif GPS_TYPE == 2
       parseXMframe(&GpsData, GpsRxBuffer);
 #endif
-#if GPS_DEBUG
-#if GPS_TYPE == 1
-      printf("Correct gps frames: %d\r\n", NmeaData.Corr);
-#endif
-#endif
       GpsBufferReady = false;
     }
     LL_mDelay(10);
