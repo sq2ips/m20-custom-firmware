@@ -296,7 +296,7 @@ void main_loop(void) {
   AprsPacket.Seconds = NmeaData.Seconds;
   AprsPacket.Lat = NmeaData.Lat;
   AprsPacket.Lon = NmeaData.Lon;
-  AprsPacket.Speed = (uint8_t)NmeaData.Speed;
+  AprsPacket.Speed = NmeaData.Speed;
   AprsPacket.Alt = NmeaData.Alt;
   AprsPacket.Sats = NmeaData.Sats;
 #if DEBUG
@@ -315,7 +315,7 @@ void main_loop(void) {
   AprsPacket.Seconds = GpsData.Seconds;
   AprsPacket.Lat = GpsData.Lat;
   AprsPacket.Lon = GpsData.Lon;
-  AprsPacket.Speed = (uint16_t)GpsData.GroundSpeed; // Doesn't work
+  AprsPacket.Speed = GpsData.Speed; // Doesn't work
   AprsPacket.Alt = GpsData.Alt;
   AprsPacket.Sats = GpsData.Sats;
 #if DEBUG
@@ -323,7 +323,7 @@ void main_loop(void) {
          "%f, Sats: %d, Time: %d: %d:%d:%d\r\n",
          GpsData.Fix, (int32_t)(GpsData.Lat * 1e6),
          (int32_t)(GpsData.Lon * 1e6), GpsData.Alt,
-         GpsData.AscentRate, GpsData.GroundSpeed,
+         GpsData.AscentRate, GpsData.Speed,
          GpsData.Sats, GpsData.Time, GpsData.Hours, GpsData.Minutes,
          GpsData.Seconds);
 #endif
@@ -354,7 +354,7 @@ DelayWithIWDG(2000); // ???
   HorusPacket.Seconds = NmeaData.Seconds;
   HorusPacket.Lat = NmeaData.Lat;
   HorusPacket.Lon = NmeaData.Lon;
-  HorusPacket.Speed = (uint8_t)NmeaData.Speed;
+  HorusPacket.Speed = NmeaData.Speed;
   HorusPacket.AscentRate = NmeaData.AscentRate;
   HorusPacket.Alt = NmeaData.Alt;
   HorusPacket.Sats = NmeaData.Sats;
@@ -374,7 +374,7 @@ DelayWithIWDG(2000); // ???
   HorusPacket.Seconds = GpsData.Seconds;
   HorusPacket.Lat = GpsData.Lat;
   HorusPacket.Lon = GpsData.Lon;
-  HorusPacket.Speed = (uint16_t)GpsData.GroundSpeed; // Doesn't work
+  HorusPacket.Speed = GpsData.Speed; // Doesn't work
   HorusPacket.Alt = GpsData.Alt;
   HorusPacket.Sats = GpsData.Sats;
   HorusPacket.AscentRate = GpsData.AscentRate;
@@ -562,11 +562,6 @@ printf("Startup\r\n");
       ParseNMEA(&NmeaData, GpsRxBuffer);
 #elif GPS_TYPE == 2
       parseXMframe(&GpsData, GpsRxBuffer);
-#endif
-#if GPS_DEBUG
-#if GPS_TYPE == 1
-      printf("Correct gps frames: %d\r\n", NmeaData.Corr);
-#endif
 #endif
       GpsBufferReady = false;
     }
@@ -1346,21 +1341,15 @@ void GPS_Handler(void) {
 void LED_Handler(void) {
 #if GPS_TYPE == 1
   uint8_t fix = NmeaData.Fix;
-  if (LED_DISABLE_ALT != 0) {
-    if (NmeaData.Alt >= LED_DISABLE_ALT) {
-      LL_TIM_DisableCounter(TIM6);
-      LL_TIM_DisableIT_UPDATE(TIM6);
-    }
-  }
+  uint16_t alt = NmeaData.Alt;
 #elif GPS_TYPE == 2
   uint8_t fix = GpsData.Fix;
-  if (LED_DISABLE_ALT != 0) {
-    if (GpsData.Alt >= LED_DISABLE_ALT) {
-      LL_TIM_DisableCounter(TIM6);
-      LL_TIM_DisableIT_UPDATE(TIM6);
-    }
-  }
+  uint16_t alt = GpsData.Alt;
 #endif
+  if (LED_DISABLE_ALT != 0 && alt >= LED_DISABLE_ALT) {
+    LL_TIM_DisableCounter(TIM6);
+    LL_TIM_DisableIT_UPDATE(TIM6);
+  }
   for (; fix > 0; fix--) {
     LL_GPIO_SetOutputPin(LED_GPIO_Port, LED_Pin);
     LL_mDelay(50);

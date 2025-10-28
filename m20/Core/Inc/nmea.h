@@ -14,7 +14,7 @@ typedef struct TNMEADATA {
   float Lat;    // latitude in degrees with decimal places + for N - for S
   float Lon;    // longitude in degrees with decimal places
   uint16_t Alt; // altitude in meters
-  uint16_t Speed;
+  uint8_t Speed;
   int16_t AscentRate; // positive (raising) or negative (falling) vertical speed value in cm/s
   uint8_t Hours;
   uint8_t Minutes;
@@ -22,7 +22,6 @@ typedef struct TNMEADATA {
   // float HDOP; //horizontal dilution of precision
   uint8_t Sats; // number of satellites used in measurement
   uint8_t Fix;  // 0 = no data, 1 = no fix, 2 = 2D fix, 3 = 3D fix
-  uint8_t Corr; // number of correct frames
 } NMEA;
 
 void ParseNMEA(NMEA *nmea_data, uint8_t *buffer);
