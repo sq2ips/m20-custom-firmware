@@ -41,8 +41,8 @@ void ParseXM(GPS *GpsData, uint8_t *buffer, uint8_t position) {
   memcpy(&time, buffer + 21 + position,
          sizeof(uint32_t)); // from uint24_t
   time = ((time & 0xFF000000) >> 24) |
-                  ((time & 0x00FF0000) >> 8) |
-                  ((time & 0x0000FF00) << 8);
+         ((time & 0x00FF0000) >> 8) |
+         ((time & 0x0000FF00) << 8);
 
   if (GpsData->Fix == 3 && GpsData->Alt != 0) {
     if (time != 0) {
