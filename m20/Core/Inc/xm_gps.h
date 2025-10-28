@@ -13,7 +13,7 @@ typedef struct TXMDATA {
   float Lon;        // longitude in degrees with decimal places
   uint16_t Alt;     // altitude in meters
   float AscentRate; // m/s
-  float GroundSpeed;
+  uint8_t Speed;
   uint32_t Time;
   uint8_t Hours;
   uint8_t Minutes;
