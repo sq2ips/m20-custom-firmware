@@ -6,6 +6,7 @@
 #include "xm_gps.h"
 #include "config.h"
 #include "main.h"
+#include "utils.h"
 
 #include <string.h>
 
@@ -53,7 +54,8 @@ void ParseXM(XMDATA *GpsData, uint8_t *buffer, uint8_t position) {
       }
       if ((GpsData->Time - oldTime) >= AscentRateTime) {
         GpsData->AscentRate =
-            (float)(GpsData->Alt - oldAlt) / (GpsData->Time - oldTime);
+            (int16_t)Round((float)(GpsData->Alt - oldAlt) / (GpsData->Time - oldTime) * 100);
+
         if ((GpsData->Time - oldTime) < 0) {
           GpsData->Time -= 3600 * 24;
         }

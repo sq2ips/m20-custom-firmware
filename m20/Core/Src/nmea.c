@@ -6,6 +6,7 @@
 #include "nmea.h"
 #include "config.h"
 #include "main.h"
+#include "utils.h"
 
 #if GPS_DEBUG
 #include <stdio.h>
@@ -178,7 +179,7 @@ static bool nmea_GGA(NMEA *nmea_data, char *inputString) {
           }
           if ((currentTime - olddTime) >= AscentRateTime) {
             nmea_data->AscentRate =
-                (float)(nmea_data->Alt - olddAlt) / (currentTime - olddTime);
+                (int16_t)Round((float)(nmea_data->Alt - olddAlt) / (currentTime - olddTime) * 100);
             if ((currentTime - olddTime) < 0) {
               currentTime -= 3600 * 24;
             }

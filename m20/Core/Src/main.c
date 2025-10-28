@@ -301,10 +301,10 @@ void main_loop(void) {
   AprsPacket.Sats = NmeaData.Sats;
 #if DEBUG
   printf("Fix: %d, Lat: %ld, Lon: %ld, Alt: %d m, Speed: %d km/h, Ascent rate: "
-         "%d m/s Satellites: %d, Time: %d:%d:%d\r\n",
+         "%d cm/s Satellites: %d, Time: %d:%d:%d\r\n",
          NmeaData.Fix, (uint32_t)(NmeaData.Lat * 10e6),
          (uint32_t)(NmeaData.Lon * 10e6), NmeaData.Alt, NmeaData.Speed,
-         (int16_t)Round(NmeaData.AscentRate * 100), NmeaData.Sats,
+         NmeaData.AscentRate, NmeaData.Sats,
          NmeaData.Hours, NmeaData.Minutes, NmeaData.Seconds);
 #endif
 
@@ -319,11 +319,11 @@ void main_loop(void) {
   AprsPacket.Alt = GpsData.Alt;
   AprsPacket.Sats = GpsData.Sats;
 #if DEBUG
-  printf("Fix: %d, Lat: %d, Lon: %d, Alt: %d, Ascent Rate: %d, GRound Speed: "
+  printf("Fix: %d, Lat: %d, Lon: %d, Alt: %d, Ascent Rate: %d cm/s, GRound Speed: "
          "%f, Sats: %d, Time: %d: %d:%d:%d\r\n",
          GpsData.Fix, (int32_t)(GpsData.Lat * 1e6),
          (int32_t)(GpsData.Lon * 1e6), GpsData.Alt,
-         (int16_t)(GpsData.AscentRate * 100.0), GpsData.Speed,
+         GpsData.AscentRate, GpsData.Speed,
          GpsData.Sats, GpsData.Time, GpsData.Hours, GpsData.Minutes,
          GpsData.Seconds);
 #endif
@@ -355,15 +355,15 @@ DelayWithIWDG(2000); // ???
   HorusPacket.Lat = NmeaData.Lat;
   HorusPacket.Lon = NmeaData.Lon;
   HorusPacket.Speed = NmeaData.Speed;
-  HorusPacket.AscentRate = (int16_t)Round(NmeaData.AscentRate * 100.0);
+  HorusPacket.AscentRate = NmeaData.AscentRate;
   HorusPacket.Alt = NmeaData.Alt;
   HorusPacket.Sats = NmeaData.Sats;
 #if DEBUG
   printf("Fix: %d, Lat: %ld, Lon: %ld, Alt: %d m, Speed: %d km/h, Ascent rate: "
-         "%d m/s Satellites: %d, Time: %d:%d:%d\r\n",
+         "%d cm/s Satellites: %d, Time: %d:%d:%d\r\n",
          NmeaData.Fix, (uint32_t)(NmeaData.Lat * 10e6),
          (uint32_t)(NmeaData.Lon * 10e6), NmeaData.Alt, NmeaData.Speed,
-         (int16_t)Round(NmeaData.AscentRate * 100), NmeaData.Sats,
+         NmeaData.AscentRate, NmeaData.Sats,
          NmeaData.Hours, NmeaData.Minutes, NmeaData.Seconds);
 #endif
 
@@ -377,13 +377,13 @@ DelayWithIWDG(2000); // ???
   HorusPacket.Speed = GpsData.Speed; // Doesn't work
   HorusPacket.Alt = GpsData.Alt;
   HorusPacket.Sats = GpsData.Sats;
-  HorusPacket.AscentRate = (int16_t)Round(GpsData.AscentRate * 100.0);
+  HorusPacket.AscentRate = GpsData.AscentRate;
 #if DEBUG
-  printf("Fix: %d, Lat: %d, Lon: %d, Alt: %d, Ascent Rate: %d, GRound Speed: "
+  printf("Fix: %d, Lat: %d, Lon: %d, Alt: %d, Ascent Rate: %d cm/s, GRound Speed: "
          "%f, Sats: %d, Time: %d: %d:%d:%d\r\n",
          GpsData.Fix, (int32_t)(GpsData.Lat * 1e6),
          (int32_t)(GpsData.Lon * 1e6), GpsData.Alt,
-         (int16_t)(GpsData.AscentRate * 100.0), GpsData.Speed,
+         GpsData.AscentRate, GpsData.GroundSpeed,
          GpsData.Sats, GpsData.Time, GpsData.Hours, GpsData.Minutes,
          GpsData.Seconds);
 #endif

@@ -20,7 +20,7 @@ typedef struct TBinaryPacket {
   int8_t Temp;
   uint8_t BatVoltage;
   // Custom data, 9 bytes RS41ing data
-  int16_t AscentRate;
+  int16_t AscentRate; // positive (raising) or negative (falling) vertical speed value in cm/s
   int16_t ExtTemp;
   uint8_t Hum;
   uint16_t Press;
