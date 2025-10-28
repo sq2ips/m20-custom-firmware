@@ -16,7 +16,7 @@ float oldAlt = 0;
 
 uint32_t oldTime = 0;
 
-void ParseXM(XMDATA *GpsData, uint8_t *buffer, uint8_t position) {
+void ParseXM(GPS *GpsData, uint8_t *buffer, uint8_t position) {
   GpsData->Fix = *(uint8_t *)(buffer + 4 + position);
 
   int32_t Lat;
@@ -37,39 +37,40 @@ void ParseXM(XMDATA *GpsData, uint8_t *buffer, uint8_t position) {
   GpsData->Lon = Lon / 1e6;
   GpsData->Alt = Alt / 1e2;
 
-  memcpy(&GpsData->Time, buffer + 21 + position,
+  uint32_t time;
+  memcpy(&time, buffer + 21 + position,
          sizeof(uint32_t)); // from uint24_t
-  GpsData->Time = ((GpsData->Time & 0xFF000000) >> 24) |
-                  ((GpsData->Time & 0x00FF0000) >> 8) |
-                  ((GpsData->Time & 0x0000FF00) << 8);
+  time = ((time & 0xFF000000) >> 24) |
+                  ((time & 0x00FF0000) >> 8) |
+                  ((time & 0x0000FF00) << 8);
 
   if (GpsData->Fix == 3 && GpsData->Alt != 0) {
-    if (GpsData->Time != 0) {
+    if (time != 0) {
       if (oldTime == 0) {
         oldAlt = GpsData->Alt;
-        oldTime = GpsData->Time;
+        oldTime = time;
       }
-      if ((GpsData->Time - oldTime) < 0) {
-        GpsData->Time += 3600 * 24;
+      if ((time - oldTime) < 0) {
+        time += 3600 * 24;
       }
-      if ((GpsData->Time - oldTime) >= AscentRateTime) {
+      if ((time - oldTime) >= AscentRateTime) {
         GpsData->AscentRate =
-            (int16_t)Round((float)(GpsData->Alt - oldAlt) / (GpsData->Time - oldTime) * 100);
+            (int16_t)Round((float)(GpsData->Alt - oldAlt) / (time - oldTime) * 100);
 
-        if ((GpsData->Time - oldTime) < 0) {
-          GpsData->Time -= 3600 * 24;
+        if ((time - oldTime) < 0) {
+          time -= 3600 * 24;
         }
         oldAlt = GpsData->Alt;
-        oldTime = GpsData->Time;
+        oldTime = time;
       }
     } else {
       oldTime = 0;
     }
   }
 
-  GpsData->Hours = (GpsData->Time / 3600) % 24;
-  GpsData->Minutes = (GpsData->Time / 60) % 60;
-  GpsData->Seconds = GpsData->Time % 60;
+  GpsData->Hours = (time / 3600) % 24;
+  GpsData->Minutes = (time / 60) % 60;
+  GpsData->Seconds = time % 60;
 
   // memcpy(&GpsData->Sats, buffer + 27 + position, sizeof(uint8_t));
   // not sure of this byte meaning (always 12)
@@ -96,7 +97,7 @@ int8_t getPosition(uint8_t *buffer) {
   return -1;
 }
 
-void parseXMframe(XMDATA *GpsData, uint8_t *buffer) {
+void parseXMframe(GPS *GpsData, uint8_t *buffer) {
   int8_t pos = getPosition(buffer);
   if (pos != -1) {
     ParseXM(GpsData, buffer, pos);

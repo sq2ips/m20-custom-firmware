@@ -1,6 +1,7 @@
 #ifndef INC_NMEA_H_
 #define INC_NMEA_H_
 
+#include "gps.h"
 #include <stdint.h>
 
 #define DATA_SIZE               35 // Max number of NMEA sentences in one parsing
@@ -10,20 +11,12 @@
 
 #define GpsRxBuffer_SIZE 512
 
-typedef struct TNMEADATA {
-  float Lat;    // latitude in degrees with decimal places + for N - for S
-  float Lon;    // longitude in degrees with decimal places
-  uint16_t Alt; // altitude in meters
-  uint8_t Speed;
-  int16_t AscentRate; // positive (raising) or negative (falling) vertical speed value in cm/s
-  uint8_t Hours;
-  uint8_t Minutes;
-  uint8_t Seconds;
-  // float HDOP; //horizontal dilution of precision
-  uint8_t Sats; // number of satellites used in measurement
-  uint8_t Fix;  // 0 = no data, 1 = no fix, 2 = 2D fix, 3 = 3D fix
-} NMEA;
+const static uint8_t GPS_airborne[44] = {
+    0xB5, 0x62, 0x06, 0x24, 0x24, 0x00, 0x01, 0x00, 0x07, 0x00, 0x00,
+    0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+    0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+    0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x56, 0xD6};
 
-void ParseNMEA(NMEA *nmea_data, uint8_t *buffer);
+void ParseNMEA(GPS *GpsData, uint8_t *buffer);
 
 #endif /* INC_NMEA_H_ */

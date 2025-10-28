@@ -111,7 +111,7 @@ getValues(char *inputString,
   return cnt;
 }
 
-static bool nmea_GGA(NMEA *nmea_data, char *inputString) {
+static bool nmea_GGA(GPS *GpsData, char *inputString) {
   char values[MAX_SENTENCE_ELEMENTS][SENTENCE_ELEMENT_LEN];
   memset(values, 0, sizeof(values));
   uint8_t len = getValues(inputString, values);
@@ -123,12 +123,12 @@ static bool nmea_GGA(NMEA *nmea_data, char *inputString) {
   uint8_t s = (values[1][4] - '0') * 10 + (values[1][5] - '0');
 
   if (h < 24 && m <= 60 && s <= 60) {
-    nmea_data->Hours = h;
-    nmea_data->Minutes = m;
-    nmea_data->Seconds = s;
+    GpsData->Hours = h;
+    GpsData->Minutes = m;
+    GpsData->Seconds = s;
   }
 
-  nmea_data->Sats = (values[7][0] - '0') * 10 + (values[7][1] - '0');
+  GpsData->Sats = (values[7][0] - '0') * 10 + (values[7][1] - '0');
 
   uint8_t lonSide = values[5][0];
   uint8_t latSide = values[3][0];
@@ -156,34 +156,34 @@ static bool nmea_GGA(NMEA *nmea_data, char *inputString) {
     float lon = deg + (min / 60.0);
 
     if (lat <= 90.0 && lon <= 180.0) {
-      nmea_data->Lat = lat;
-      nmea_data->Lon = lon;
+      GpsData->Lat = lat;
+      GpsData->Lon = lon;
       if (latSide == 'S')
-        nmea_data->Lat *= -1;
+        GpsData->Lat *= -1;
       if (lonSide == 'W')
-        nmea_data->Lon *= -1;
+        GpsData->Lon *= -1;
 
       uint16_t altitude = a_strtof(values[9]);
 
       if (altitude != 0) {
-        nmea_data->Alt = altitude;
+        GpsData->Alt = altitude;
         uint32_t currentTime = h * 3600 + m * 60 + s;
 
         if (currentTime != 0) {
           if (olddTime == 0) {
-            olddAlt = nmea_data->Alt;
+            olddAlt = GpsData->Alt;
             olddTime = currentTime;
           }
           if ((currentTime - olddTime) < 0) {
             currentTime += 3600 * 24;
           }
           if ((currentTime - olddTime) >= AscentRateTime) {
-            nmea_data->AscentRate =
-                (int16_t)Round((float)(nmea_data->Alt - olddAlt) / (currentTime - olddTime) * 100);
+            GpsData->AscentRate =
+                (int16_t)Round((float)(GpsData->Alt - olddAlt) / (currentTime - olddTime) * 100);
             if ((currentTime - olddTime) < 0) {
               currentTime -= 3600 * 24;
             }
-            olddAlt = nmea_data->Alt;
+            olddAlt = GpsData->Alt;
             olddTime = currentTime;
           }
         } else {
@@ -191,11 +191,7 @@ static bool nmea_GGA(NMEA *nmea_data, char *inputString) {
         }
       }
 
-      // nmea_data->Fix = values[6][0]-'0';
-
-      // float hdop = strtof(values[8], NULL);
-      // if(nmea_data->Fix > 1) nmea_data->HDOP = hdop!=0 ? hdop :
-      // nmea_data->HDOP;
+      // GpsData->Fix = values[6][0]-'0';
 
       return 1;
     }
@@ -204,7 +200,7 @@ static bool nmea_GGA(NMEA *nmea_data, char *inputString) {
   return 0;
 }
 
-static bool nmea_GSA(NMEA *nmea_data, char *inputString) {
+static bool nmea_GSA(GPS *GpsData, char *inputString) {
   char values[MAX_SENTENCE_ELEMENTS][SENTENCE_ELEMENT_LEN];
   memset(values, 0, sizeof(values));
   uint8_t len = getValues(inputString, values);
@@ -213,9 +209,9 @@ static bool nmea_GSA(NMEA *nmea_data, char *inputString) {
 
   uint8_t fix = (values[2][0] - '0');
   if (fix <= 3) {
-    nmea_data->Fix = fix;
+    GpsData->Fix = fix;
   } else {
-    nmea_data->Fix = 0;
+    GpsData->Fix = 0;
     return 0;
   }
 
@@ -225,11 +221,11 @@ static bool nmea_GSA(NMEA *nmea_data, char *inputString) {
           satelliteCount++;
       }
   }
-  nmea_data->Sats = satelliteCount;*/
+  GpsData->Sats = satelliteCount;*/
   return 1;
 }
 
-static bool nmea_GLL(NMEA *nmea_data, char *inputString) {
+static bool nmea_GLL(GPS *GpsData, char *inputString) {
   char values[MAX_SENTENCE_ELEMENTS][SENTENCE_ELEMENT_LEN];
   memset(values, 0, sizeof(values));
   uint8_t len = getValues(inputString, values);
@@ -262,12 +258,12 @@ static bool nmea_GLL(NMEA *nmea_data, char *inputString) {
     float lon = deg + (min / 60.0);
 
     if (lat <= 90.0 && lon <= 180.0) {
-      nmea_data->Lat = lat;
-      nmea_data->Lon = lon;
+      GpsData->Lat = lat;
+      GpsData->Lon = lon;
       if (latSide == 'S')
-        nmea_data->Lat *= -1;
+        GpsData->Lat *= -1;
       if (lonSide == 'W')
-        nmea_data->Lon *= -1;
+        GpsData->Lon *= -1;
       return 1;
     }
   }
@@ -275,18 +271,18 @@ static bool nmea_GLL(NMEA *nmea_data, char *inputString) {
   return 0;
 }
 
-static bool nmea_VTG(NMEA *nmea_data, char *inputString) {
+static bool nmea_VTG(GPS *GpsData, char *inputString) {
   char values[MAX_SENTENCE_ELEMENTS][SENTENCE_ELEMENT_LEN];
   memset(values, 0, sizeof(values));
   uint8_t len = getValues(inputString, values);
   if (len < 7)
     return 0;
 
-  nmea_data->Speed = a_strtof(values[7]); // 5 for knots, 7 for km/h
+  GpsData->Speed = a_strtof(values[7]); // 5 for knots, 7 for km/h
   return 1;
 }
 
-void ParseNMEA(NMEA *nmea_data, uint8_t *buffer) {
+void ParseNMEA(GPS *GpsData, uint8_t *buffer) {
   memset(data, 0, sizeof(data));
   char *token = strtok((char *)buffer, "$");
   uint8_t cnt = 0;
@@ -306,16 +302,16 @@ void ParseNMEA(NMEA *nmea_data, uint8_t *buffer) {
       printf(">%s", data[i]);
 #endif
       if (strstr(data[i], "GNGLL") != NULL) {
-        if (nmea_GLL(nmea_data, data[i]))
+        if (nmea_GLL(GpsData, data[i]))
           correct++;
       } else if (strstr(data[i], "GNGSA") != NULL) {
-        if (nmea_GSA(nmea_data, data[i]))
+        if (nmea_GSA(GpsData, data[i]))
           correct++;
       } else if (strstr(data[i], "GNGGA") != NULL) {
-        if (nmea_GGA(nmea_data, data[i]))
+        if (nmea_GGA(GpsData, data[i]))
           correct++;
       } else if (strstr(data[i], "GNVTG") != NULL) {
-        if (nmea_VTG(nmea_data, data[i]))
+        if (nmea_VTG(GpsData, data[i]))
           correct++;
       }
     }
