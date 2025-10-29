@@ -11,6 +11,7 @@
 #include "config.h"
 #include "utils.h"
 
+#include "gps.h"
 #if GPS_TYPE == 1
 #include "nmea.h"
 #elif GPS_TYPE == 2
@@ -57,16 +58,8 @@ uint8_t GpsRxBuffer[GpsRxBuffer_SIZE];
 uint16_t GpsBufferCounter = 0;
 bool GpsBufferReady = false;
 
-#if GPS_TYPE == 1
-NMEA NmeaData;
-const static uint8_t GPS_airborne[44] = {
-    0xB5, 0x62, 0x06, 0x24, 0x24, 0x00, 0x01, 0x00, 0x07, 0x00, 0x00,
-    0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
-    0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
-    0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x56, 0xD6};
-#elif GPS_TYPE == 2
-XMDATA GpsData;
-#endif
+GPS GpsData;
+
 
 #if GPS_WATCHDOG
 struct GpsWatchdogStruct {
@@ -219,27 +212,12 @@ void main_loop(void) {
 
 #if GPS_WATCHDOG
 // Set a flag if we have initial fix.
-#if GPS_TYPE == 1
-  if (NmeaData.Fix > 1 && NmeaData.Sats > 0) {
-    GpsWatchdog.PreviousFix = true;
-    GpsWatchdog.AfterRestart = false;
-  }
-#elif GPS_TYPE == 2
   if (GpsData.Fix > 1 && GpsData.Sats > 0) {
     GpsWatchdog.PreviousFix = true;
     GpsWatchdog.AfterRestart = false;
   }
-#endif
   // Check GPS reset conditions only if there was initial fix.
   if (GpsWatchdog.PreviousFix) {
-#if GPS_TYPE == 1
-    if (NmeaData.Fix > 1 && NmeaData.Sats > 0) {
-      /*
-        if (NmeaData.AscentRate >= GPS_WATCHDOG_ASCENTRATE) {
-          GpsWatchdog.TriggerRestart = true;
-        }*/ //disable all gps watchdog checks for now, more testing needed
-    }
-#elif GPS_TYPE == 2
     if (GpsData.Fix > 1 && GpsData.Sats > 0) {
       // If there is  fix check spoofing specific conditions.
       // Ascent rate
@@ -265,7 +243,6 @@ void main_loop(void) {
       GpsData.Time-TIME_PERIOD-GpsWatchdog.LastTime<(-1*GPS_WATCHDOG_MAX_TIME))))
       */
     }
-#endif
     else if (GpsWatchdog.AfterRestart) {
       // If there is no fix and gps after a restart give it some time before
       // next restart
@@ -289,27 +266,6 @@ void main_loop(void) {
 #endif
 
 #if APRS_ENABLE
-// GPS type 1 data
-#if GPS_TYPE == 1
-  AprsPacket.Hours = NmeaData.Hours;
-  AprsPacket.Minutes = NmeaData.Minutes;
-  AprsPacket.Seconds = NmeaData.Seconds;
-  AprsPacket.Lat = NmeaData.Lat;
-  AprsPacket.Lon = NmeaData.Lon;
-  AprsPacket.Speed = NmeaData.Speed;
-  AprsPacket.Alt = NmeaData.Alt;
-  AprsPacket.Sats = NmeaData.Sats;
-#if DEBUG
-  printf("Fix: %d, Lat: %ld, Lon: %ld, Alt: %d m, Speed: %d km/h, Ascent rate: "
-         "%d cm/s Satellites: %d, Time: %d:%d:%d\r\n",
-         NmeaData.Fix, (uint32_t)(NmeaData.Lat * 10e6),
-         (uint32_t)(NmeaData.Lon * 10e6), NmeaData.Alt, NmeaData.Speed,
-         NmeaData.AscentRate, NmeaData.Sats,
-         NmeaData.Hours, NmeaData.Minutes, NmeaData.Seconds);
-#endif
-
-// GPS type 2 data
-#elif GPS_TYPE == 2
   AprsPacket.Hours = GpsData.Hours;
   AprsPacket.Minutes = GpsData.Minutes;
   AprsPacket.Seconds = GpsData.Seconds;
@@ -318,15 +274,9 @@ void main_loop(void) {
   AprsPacket.Speed = GpsData.Speed; // Doesn't work
   AprsPacket.Alt = GpsData.Alt;
   AprsPacket.Sats = GpsData.Sats;
+
 #if DEBUG
-  printf("Fix: %d, Lat: %d, Lon: %d, Alt: %d, Ascent Rate: %d cm/s, GRound Speed: "
-         "%f, Sats: %d, Time: %d: %d:%d:%d\r\n",
-         GpsData.Fix, (int32_t)(GpsData.Lat * 1e6),
-         (int32_t)(GpsData.Lon * 1e6), GpsData.Alt,
-         GpsData.AscentRate, GpsData.Speed,
-         GpsData.Sats, GpsData.Time, GpsData.Hours, GpsData.Minutes,
-         GpsData.Seconds);
-#endif
+  gps_debug(GpsData);
 #endif
 
   AprsPacket.GpsResetCount = GpsResetCount;
@@ -347,28 +297,6 @@ void main_loop(void) {
 DelayWithIWDG(2000); // ???
 #endif
 #if HORUS_ENABLE
-// GPS type 1 data
-#if GPS_TYPE == 1
-  HorusPacket.Hours = NmeaData.Hours;
-  HorusPacket.Minutes = NmeaData.Minutes;
-  HorusPacket.Seconds = NmeaData.Seconds;
-  HorusPacket.Lat = NmeaData.Lat;
-  HorusPacket.Lon = NmeaData.Lon;
-  HorusPacket.Speed = NmeaData.Speed;
-  HorusPacket.AscentRate = NmeaData.AscentRate;
-  HorusPacket.Alt = NmeaData.Alt;
-  HorusPacket.Sats = NmeaData.Sats;
-#if DEBUG
-  printf("Fix: %d, Lat: %ld, Lon: %ld, Alt: %d m, Speed: %d km/h, Ascent rate: "
-         "%d cm/s Satellites: %d, Time: %d:%d:%d\r\n",
-         NmeaData.Fix, (uint32_t)(NmeaData.Lat * 10e6),
-         (uint32_t)(NmeaData.Lon * 10e6), NmeaData.Alt, NmeaData.Speed,
-         NmeaData.AscentRate, NmeaData.Sats,
-         NmeaData.Hours, NmeaData.Minutes, NmeaData.Seconds);
-#endif
-
-// GPS type 2 data
-#elif GPS_TYPE == 2
   HorusPacket.Hours = GpsData.Hours;
   HorusPacket.Minutes = GpsData.Minutes;
   HorusPacket.Seconds = GpsData.Seconds;
@@ -378,15 +306,9 @@ DelayWithIWDG(2000); // ???
   HorusPacket.Alt = GpsData.Alt;
   HorusPacket.Sats = GpsData.Sats;
   HorusPacket.AscentRate = GpsData.AscentRate;
+
 #if DEBUG
-  printf("Fix: %d, Lat: %d, Lon: %d, Alt: %d, Ascent Rate: %d cm/s, GRound Speed: "
-         "%f, Sats: %d, Time: %d: %d:%d:%d\r\n",
-         GpsData.Fix, (int32_t)(GpsData.Lat * 1e6),
-         (int32_t)(GpsData.Lon * 1e6), GpsData.Alt,
-         GpsData.AscentRate, GpsData.GroundSpeed,
-         GpsData.Sats, GpsData.Time, GpsData.Hours, GpsData.Minutes,
-         GpsData.Seconds);
-#endif
+  gps_debug(GpsData);
 #endif
 
   HorusPacket.Temp = LpsTemp;
@@ -559,7 +481,7 @@ printf("Startup\r\n");
     LL_IWDG_ReloadCounter(IWDG);
     if (GpsBufferReady) {
 #if GPS_TYPE == 1
-      ParseNMEA(&NmeaData, GpsRxBuffer);
+      ParseNMEA(&GpsData, GpsRxBuffer);
 #elif GPS_TYPE == 2
       parseXMframe(&GpsData, GpsRxBuffer);
 #endif
@@ -1339,13 +1261,8 @@ void GPS_Handler(void) {
 }
 #if LED_MODE == 2
 void LED_Handler(void) {
-#if GPS_TYPE == 1
-  uint8_t fix = NmeaData.Fix;
-  uint16_t alt = NmeaData.Alt;
-#elif GPS_TYPE == 2
   uint8_t fix = GpsData.Fix;
   uint16_t alt = GpsData.Alt;
-#endif
   if (LED_DISABLE_ALT != 0 && alt >= LED_DISABLE_ALT) {
     LL_TIM_DisableCounter(TIM6);
     LL_TIM_DisableIT_UPDATE(TIM6);
