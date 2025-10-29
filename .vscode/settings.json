@@ -63,6 +63,7 @@
     "cstdint": "c",
     "afsk.h": "c",
     "main.h": "c",
-    "lps22hb.h": "c"
+    "lps22hb.h": "c",
+    "config.h": "c"
   }
 }

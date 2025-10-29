@@ -171,12 +171,7 @@ void main_loop(void) {
   LL_ADC_REG_SetSequencerChannels(ADC1, LL_ADC_CHANNEL_8);
   LL_ADC_REG_StartConversion(ADC1);
   while (LL_ADC_IsActiveFlag_EOC(ADC1) == 0) {}
-  // ADC voltage: 3.3V, divided by ADC max value 4095 (2^12-1). That gives a
-  // range between 0 for 0V and 1 for 3.3V. Than it's multiplied by max
-  // variable value: 255, and divided by corresponding voltage: 5V, simplified
-  // gives 187/4550 Note: this value will not go higher than 168 corresponding
-  // to 3.3V max value of ADC
-  BatVoltage = LL_ADC_REG_ReadConversionData12(ADC1);
+  BatVoltage = LL_ADC_REG_ReadConversionData12(ADC1); // Raw ADC value 0-4095
   LL_ADC_ClearFlag_EOS(ADC1);
 #if DEBUG
   printf("Bat voltage value: %d\r\n", BatVoltage);
@@ -311,6 +306,11 @@ DelayWithIWDG(2000); // ???
 #endif
 
   HorusPacket.Temp = LpsTemp;
+  // ADC voltage: 3.3V, divided by ADC max value 4095 (2^12-1). That gives a
+  // range between 0 for 0V and 1 for 3.3V. Than it's multiplied by max
+  // variable value: 255, and divided by corresponding voltage: 5V, simplified
+  // gives 187/4550 Note: this value will not go higher than 168 corresponding
+  // to 3.3V max value of ADC
   HorusPacket.BatVoltage = (BatVoltage * 187) / 4550;
   HorusPacket.ExtTemp = ExtTemp;
   HorusPacket.Hum = 0; // Not implemented
@@ -332,10 +332,6 @@ DelayWithIWDG(2000); // ???
 #if GPS_WATCHDOG
   if (GpsWatchdog.TriggerRestart) {
 #if GPS_TYPE == 1
-    while (false) { // todo fix
-      LL_IWDG_ReloadCounter(IWDG);
-      LL_mDelay(100);
-    } // Wait for end of transmission (and for GPS module to start).
     GpsAirborne(); // Send a command to GPS module to change to airborne mode.
     // clear GPS buffer needed?
 #endif

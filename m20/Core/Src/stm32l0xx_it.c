@@ -23,8 +23,12 @@
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
 #include "config.h"
+#if HORUS_ENABLE
 #include "fsk4.h"
+#endif
+#if APRS_ENABLE
 #include "afsk.h"
+#endif
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -164,12 +168,12 @@ void TIM2_IRQHandler(void)
 void TIM6_DAC_IRQHandler(void)
 {
   /* USER CODE BEGIN TIM6_DAC_IRQn 0 */
-#if LED_MODE == 2
   if(LL_TIM_IsActiveFlag_UPDATE(TIM6)){
     LL_TIM_ClearFlag_UPDATE(TIM6);
+#if LED_MODE == 2
     LED_Handler();
-  }
 #endif
+  }
   /* USER CODE END TIM6_DAC_IRQn 0 */
   /* USER CODE BEGIN TIM6_DAC_IRQn 1 */
 
