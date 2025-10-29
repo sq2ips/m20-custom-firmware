@@ -6,7 +6,7 @@
 #define HORUS_INTERLEAVER 1
 #define HORUS_SCRAMBLER 1
 
-typedef struct TBinaryPacket {
+typedef struct TBinaryPacket { // https://github.com/projecthorus/horusdemodlib/wiki/5-Customising-a-Horus-Binary-v2-Packet
   uint16_t PayloadID;
   uint16_t PacketCount;
   uint8_t Hours;

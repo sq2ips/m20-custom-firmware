@@ -11,7 +11,6 @@
 #include "config.h"
 #include "utils.h"
 
-#include "gps.h"
 #if GPS_TYPE == 1
 #include "nmea.h"
 #elif GPS_TYPE == 2

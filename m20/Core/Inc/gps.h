@@ -1,6 +1,7 @@
 #ifndef INC_GPS_H
 #define INC_GPS_H
 
+#include "config.h"
 #include <stdint.h>
 
 typedef struct {
@@ -10,12 +11,14 @@ typedef struct {
     float Lon;            // longitude in degrees with decimal places
     uint16_t Alt;         // altitude in meters
     int16_t AscentRate;   // positive (raising) or negative (falling) vertical speed value in cm/s
-    uint8_t Speed;        // speed over ground in m/s
+    uint8_t Speed;        // speed over ground in km/h
     uint8_t Hours;        // time in hours
     uint8_t Minutes;      // time in minutes
     uint8_t Seconds;      // time in seconds
 } GPS;
 
+#if DEBUG
 void gps_debug(GPS GpsData);
+#endif
 
 #endif // INC_GPS_H
