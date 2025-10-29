@@ -94,8 +94,12 @@ HorusBinaryPacket HorusPacket;
 APRSPacket AprsPacket;
 #endif
 
-char CodedBuffer[100]; // TODO: change size
-uint16_t BufferLen;
+#if APRS_ENABLE
+char CodedBuffer[APRS_MAX_PACKET_LEN]; // Buffer for both HOURS and APRS frame, since APRS is always bigger, its size is used.
+#else
+char CodedBuffer[HORUS_CODED_SIZE]; // If only HOURS is used, use it's size.
+#endif
+uint8_t BufferLen;
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
@@ -269,7 +273,7 @@ void main_loop(void) {
   AprsPacket.Alt = GpsData.Alt;
   AprsPacket.Sats = GpsData.Sats;
 
-#if DEBUG
+#if GPS_DEBUG
   gps_debug(GpsData);
 #endif
 
@@ -301,7 +305,7 @@ DelayWithIWDG(2000); // ???
   HorusPacket.Sats = GpsData.Sats;
   HorusPacket.AscentRate = GpsData.AscentRate;
 
-#if DEBUG
+#if GPS_DEBUG
   gps_debug(GpsData);
 #endif
 

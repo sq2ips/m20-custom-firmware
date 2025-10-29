@@ -28,7 +28,7 @@
 #define N3_SYNC_COUNT 10 // number of N3 octets
 
 void AFSK_stop_TX();
-void AFSK_start_TX(char *buffer, uint16_t buffer_len);
+void AFSK_start_TX(char *buffer, uint8_t buffer_len);
 
 extern bool AFSK_Active;
 void AFSK_timer_handler();

@@ -66,14 +66,15 @@ const static float QRG_AFSK[] = {435100000}; // AFSK transmitted frequencies arr
 
 #define AscentRateTime TIME_PERIOD/2       // Time of ascent rate mesure
 
-#define GPS_DEBUG 0
-
 #define LPS22_ENABLE 1
 
 #define NTC_ENABLE 1
 
 #define BAT_ADC_ENABLE 1
 
+// Debug
 #define DEBUG 0
+
+#define GPS_DEBUG 0
 
 #endif /* INC_CONFIG_H_ */

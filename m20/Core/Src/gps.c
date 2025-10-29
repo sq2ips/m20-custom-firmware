@@ -1,6 +1,6 @@
 #include "gps.h"
 
-#if DEBUG
+#if GPS_DEBUG
 
 #include <stdio.h>
 
