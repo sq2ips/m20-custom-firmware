@@ -132,7 +132,8 @@ Sent data (implemented in [`horus.h`](./m20/Core/Inc/horus.h)):
 | 23-24 | int16 | External temperature from [NTC](#external-temperature-sensor) sensor |
 | 25 | uint8 | Humidity, not implemented yet |
 | 26-27 | uint16 | Pressure data from [LPS22HB](#barometer-and-temperature-sensor) sensor |
-| 28-29 | - | not used (yet?) |
+| 28 | uint8_t | GPS watchdog restart count |
+| 29 | - | not used (yet?) |
 | 30-31 |	uint16 | CRC16-CCITT Checksum |
 
 ## APRS
