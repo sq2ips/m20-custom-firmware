@@ -1,0 +1,21 @@
+name: CI
+
+on:
+  push:
+    branches: [ "main" ]
+  pull_request:
+    branches: [ "main" ]
+
+jobs:
+  build:
+
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v5
+      - name: Install dependencies
+        run: apk add --no-cache make gcc-arm-none-eabi newlib-arm-none-eabi
+      - name: make clean
+        run: cd m20 && make clean
+      - name: make
+        run: cd m20 && make
