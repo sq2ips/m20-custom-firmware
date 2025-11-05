@@ -1268,9 +1268,9 @@ void LED_Handler(void) {
   }
   for (; fix > 0; fix--) {
     LL_GPIO_SetOutputPin(LED_GPIO_Port, LED_Pin);
-    LL_mDelay(50);
+    LL_mDelay(LED_MODE_2_BLINK_TIME);
     LL_GPIO_ResetOutputPin(LED_GPIO_Port, LED_Pin);
-    LL_mDelay(100);
+    LL_mDelay(LED_MODE_2_BLINK_PAUSE);
   }
 }
 #endif
