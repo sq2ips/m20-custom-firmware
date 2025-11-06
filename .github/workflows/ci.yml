@@ -9,13 +9,11 @@ on:
 jobs:
   build:
 
-    runs-on: alpine-3.22
+    runs-on: ubuntu-latest
 
     steps:
     - uses: actions/checkout@v5
-    - name: Install dependencies
-      run: sudo apk add --no-cache make gcc-arm-none-eabi newlib-arm-none-eabi
-    - name: make clean
-      run: cd m20 && make clean
-    - name: make
-      run: cd m20 && make
+    - name: Build the Docker image
+      run: docker build . --file Dockerfile --tag m20:$(date +%s)
+    - name: Run the image
+      run: docker run --rm -v ./m20:/opt/m20 m20:latest
