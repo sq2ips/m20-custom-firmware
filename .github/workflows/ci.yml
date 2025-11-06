@@ -9,7 +9,7 @@ on:
 jobs:
   build:
 
-    runs-on: alpine:3.22
+    runs-on: alpine-3.22
 
     steps:
       - uses: actions/checkout@v5
