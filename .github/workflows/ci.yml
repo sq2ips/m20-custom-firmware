@@ -12,10 +12,10 @@ jobs:
     runs-on: alpine-3.22
 
     steps:
-      - uses: actions/checkout@v5
-      - name: Install dependencies
-        run: sudo apk add --no-cache make gcc-arm-none-eabi newlib-arm-none-eabi
-      - name: make clean
-        run: cd m20 && make clean
-      - name: make
-        run: cd m20 && make
+    - uses: actions/checkout@v5
+    - name: Install dependencies
+      run: sudo apk add --no-cache make gcc-arm-none-eabi newlib-arm-none-eabi
+    - name: make clean
+      run: cd m20 && make clean
+    - name: make
+      run: cd m20 && make
