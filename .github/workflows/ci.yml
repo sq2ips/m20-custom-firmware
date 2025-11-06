@@ -1,0 +1,19 @@
+name: CI
+
+on:
+  push:
+    branches: [ "main" ]
+  pull_request:
+    branches: [ "main" ]
+
+jobs:
+  build:
+
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v5
+    - name: Build the Docker image
+      run: docker build m20 --file m20/Dockerfile --tag m20:latest
+    - name: Run the image
+      run: docker run --rm -v ./m20:/opt/m20 m20:latest
