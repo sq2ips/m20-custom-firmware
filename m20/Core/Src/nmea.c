@@ -111,16 +111,36 @@ getValues(char *inputString,
   return cnt;
 }
 
+// https://docs.fixposition.com/fd/nmea-gp-gga
+// $GNGGA,090924.00,4724.01791,N,00827.02194,E,4,12,99.99,459.4,M,,,0.3,0000*16*3A\r\n
+//        ^      ^             ^ ^           ^   ^        ^
+// time (hhmmss.ss(ss)): UTC time (hours, minutes and seconds)
+// lat (ddmm.mmmmm(mm)): Latitude
+// lat_ns (char): Latitude north (N) or south (S) indicator
+// lon (dddmm.mmmmm(mm)): Longitude
+// lon_ew (char): Longitude east (E) or west (W) indicator
+// num_sv (decimal): Number of satellites. Range 00-12 in strict NMEA mode, 00-99 in high-precision NMEA mode
+// alt (float): Altitude in meters
 static bool nmea_GGA(GPS *GpsData, char *inputString) {
   char values[MAX_SENTENCE_ELEMENTS][SENTENCE_ELEMENT_LEN];
   memset(values, 0, sizeof(values));
   uint8_t len = getValues(inputString, values);
-  if (len < 9)
+
+  const uint8_t MIN_GGA_FIELDS = 9;
+  const uint8_t GGA_TIME_FIELD_INDEX = 1;
+  const uint8_t GGA_LAT_FIELD_INDEX = 2;
+  const uint8_t GGA_LAT_NS_FIELD_INDEX = 3;
+  const uint8_t GGA_LON_FIELD_INDEX = 4;
+  const uint8_t GGA_LON_EW_FIELD_INDEX = 5;
+  const uint8_t GGA_NUM_SV_FIELD_INDEX = 7;
+  const uint8_t GGA_NUM_ALT_FIELD_INDEX = 9;
+
+  if (len < MIN_GGA_FIELDS)
     return 0;
 
-  uint8_t h = (values[1][0] - '0') * 10 + (values[1][1] - '0');
-  uint8_t m = (values[1][2] - '0') * 10 + (values[1][3] - '0');
-  uint8_t s = (values[1][4] - '0') * 10 + (values[1][5] - '0');
+  uint8_t h = (values[GGA_TIME_FIELD_INDEX][0] - '0') * 10 + (values[GGA_TIME_FIELD_INDEX][1] - '0');
+  uint8_t m = (values[GGA_TIME_FIELD_INDEX][2] - '0') * 10 + (values[GGA_TIME_FIELD_INDEX][3] - '0');
+  uint8_t s = (values[GGA_TIME_FIELD_INDEX][4] - '0') * 10 + (values[GGA_TIME_FIELD_INDEX][5] - '0');
 
   if (h < 24 && m <= 60 && s <= 60) {
     GpsData->Hours = h;
@@ -128,27 +148,27 @@ static bool nmea_GGA(GPS *GpsData, char *inputString) {
     GpsData->Seconds = s;
   }
 
-  GpsData->Sats = (values[7][0] - '0') * 10 + (values[7][1] - '0');
+  GpsData->Sats = (values[GGA_NUM_SV_FIELD_INDEX][0] - '0') * 10 + (values[GGA_NUM_SV_FIELD_INDEX][1] - '0');
 
-  uint8_t lonSide = values[5][0];
-  uint8_t latSide = values[3][0];
+  uint8_t lonSide = values[GGA_LON_EW_FIELD_INDEX][0];
+  uint8_t latSide = values[GGA_LAT_NS_FIELD_INDEX][0];
   if (latSide == 'S' || latSide == 'N') {
-    int deg = (values[2][0] - '0') * 10 + (values[2][1] - '0');
-    double min = (values[2][2] - '0') * 10 + (values[2][3] - '0');
+    int deg = (values[GGA_LAT_FIELD_INDEX][0] - '0') * 10 + (values[GGA_LAT_FIELD_INDEX][1] - '0');
+    double min = (values[GGA_LAT_FIELD_INDEX][2] - '0') * 10 + (values[GGA_LAT_FIELD_INDEX][3] - '0');
     double min_m;
     for (int i = 0; i < 5; i++) {
-      min_m = values[2][i + 5] - '0';
+      min_m = values[GGA_LAT_FIELD_INDEX][i + 5] - '0';
       for (int j = 0; j <= i; j++)
         min_m /= 10;
       min += min_m;
     }
     float lat = deg + (min / 60.0);
 
-    deg = (values[4][0] - '0') * 100 + (values[4][1] - '0') * 10 +
-          (values[4][2] - '0');
-    min = (values[4][3] - '0') * 10 + (values[4][4] - '0');
+    deg = (values[GGA_LON_FIELD_INDEX][0] - '0') * 100 + (values[GGA_LON_FIELD_INDEX][1] - '0') * 10 +
+          (values[GGA_LON_FIELD_INDEX][2] - '0');
+    min = (values[GGA_LON_FIELD_INDEX][3] - '0') * 10 + (values[GGA_LON_FIELD_INDEX][4] - '0');
     for (int i = 0; i < 5; i++) {
-      min_m = values[4][i + 6] - '0';
+      min_m = values[GGA_LON_FIELD_INDEX][i + 6] - '0';
       for (int j = 0; j <= i; j++)
         min_m /= 10;
       min += min_m;
@@ -163,7 +183,7 @@ static bool nmea_GGA(GPS *GpsData, char *inputString) {
       if (lonSide == 'W')
         GpsData->Lon *= -1;
 
-      uint16_t altitude = a_strtof(values[9]);
+      uint16_t altitude = a_strtof(values[GGA_NUM_ALT_FIELD_INDEX]);
 
       if (altitude != 0) {
         GpsData->Alt = altitude;
@@ -191,8 +211,6 @@ static bool nmea_GGA(GPS *GpsData, char *inputString) {
         }
       }
 
-      // GpsData->Fix = values[6][0]-'0';
-
       return 1;
     }
   }
@@ -200,57 +218,75 @@ static bool nmea_GGA(GPS *GpsData, char *inputString) {
   return 0;
 }
 
+// https://docs.fixposition.com/fd/nmea-gp-gsa
+// $GNGSA,A,3,04,06,07,09,11,16,20,30,,,,,0.98,0.49,0.85,1*0A\r\n
+//          ^
+// mode_nav (int): Navigation mode: 1 (fix not available), 2 (2D) or 3 (3D)
 static bool nmea_GSA(GPS *GpsData, char *inputString) {
   char values[MAX_SENTENCE_ELEMENTS][SENTENCE_ELEMENT_LEN];
   memset(values, 0, sizeof(values));
   uint8_t len = getValues(inputString, values);
-  if (len < 2)
+
+  const uint8_t MIN_GSA_FIELDS = 3;
+  const uint8_t GPS_FIX_FIELD_INDEX = 2;
+  const uint8_t MIN_VALID_FIX = 1;
+  const uint8_t MAX_VALID_FIX = 3;
+  const uint8_t NO_FIX = 0;
+
+  if (len < MIN_GSA_FIELDS)
     return 0;
 
-  uint8_t fix = (values[2][0] - '0');
-  if (fix <= 3) {
+  uint8_t fix = (values[GPS_FIX_FIELD_INDEX][0] - '0');
+
+  if (fix >= MIN_VALID_FIX && fix <= MAX_VALID_FIX) {
     GpsData->Fix = fix;
-  } else {
-    GpsData->Fix = 0;
-    return 0;
+    return 1;
   }
 
-  /*int satelliteCount = 0;
-  for(int i=3; i<15; i++){
-      if(values[i][0] != 0){
-          satelliteCount++;
-      }
-  }
-  GpsData->Sats = satelliteCount;*/
-  return 1;
+  GpsData->Fix = NO_FIX;
+  return 0;
 }
 
+// https://docs.fixposition.com/fd/nmea-gp-gll
+// $GNGLL,4724.01791,N,00827.02194,E,090924.00,A,D*62\r\n
+//        ^          ^ ^           ^
+// lat (ddmm.mmmmm(mm)): Latitude
+// lat_ns (char): Latitude north (N) or south (S) indicator
+// lon (dddmm.mmmmm(mm)): Longitude
+// lon_ew (char): Longitude east (E) or west (W) indicator
 static bool nmea_GLL(GPS *GpsData, char *inputString) {
   char values[MAX_SENTENCE_ELEMENTS][SENTENCE_ELEMENT_LEN];
   memset(values, 0, sizeof(values));
   uint8_t len = getValues(inputString, values);
-  if (len < 3)
+
+  const uint8_t MIN_GLL_FIELDS = 3;
+  const uint8_t GLL_LAT_FIELD_INDEX = 1;
+  const uint8_t GLL_LAT_NS_FIELD_INDEX = 2;
+  const uint8_t GLL_LON_FIELD_INDEX = 3;
+  const uint8_t GLL_LON_EW_FIELD_INDEX = 4;
+
+  if (len < MIN_GLL_FIELDS)
     return 0;
 
-  uint8_t lonSide = values[4][0];
-  uint8_t latSide = values[2][0];
+  uint8_t lonSide = values[GLL_LON_EW_FIELD_INDEX][0];
+  uint8_t latSide = values[GLL_LAT_NS_FIELD_INDEX][0];
   if (latSide == 'S' || latSide == 'N') {
-    int deg = (values[1][0] - '0') * 10 + (values[1][1] - '0');
-    double min = (values[1][2] - '0') * 10 + (values[1][3] - '0');
+    int deg = (values[GLL_LAT_FIELD_INDEX][0] - '0') * 10 + (values[GLL_LAT_FIELD_INDEX][1] - '0');
+    double min = (values[GLL_LAT_FIELD_INDEX][2] - '0') * 10 + (values[GLL_LAT_FIELD_INDEX][3] - '0');
     double min_m;
     for (int i = 0; i < 5; i++) {
-      min_m = values[1][i + 5] - '0';
+      min_m = values[GLL_LAT_FIELD_INDEX][i + 5] - '0';
       for (int j = 0; j <= i; j++)
         min_m /= 10;
       min += min_m;
     }
     float lat = deg + (min / 60.0);
 
-    deg = (values[3][0] - '0') * 100 + (values[3][1] - '0') * 10 +
-          (values[3][2] - '0');
-    min = (values[3][3] - '0') * 10 + (values[3][4] - '0');
+    deg = (values[GLL_LON_FIELD_INDEX][0] - '0') * 100 + (values[GLL_LON_FIELD_INDEX][1] - '0') * 10 +
+          (values[GLL_LON_FIELD_INDEX][2] - '0');
+    min = (values[GLL_LON_FIELD_INDEX][3] - '0') * 10 + (values[GLL_LON_FIELD_INDEX][4] - '0');
     for (int i = 0; i < 5; i++) {
-      min_m = values[3][i + 6] - '0';
+      min_m = values[GLL_LON_FIELD_INDEX][i + 6] - '0';
       for (int j = 0; j <= i; j++)
         min_m /= 10;
       min += min_m;
@@ -271,14 +307,24 @@ static bool nmea_GLL(GPS *GpsData, char *inputString) {
   return 0;
 }
 
+// https://docs.fixposition.com/fd/nmea-gp-vtg
+// $GNVTG,0.0000,T,,M,0.01316,N,0.02437,K,D*3F\r\n
+//                    ^ knots   ^ km/h
+// sog_knot (float): Speed over ground in knots
+// sog_kph (float): Speed over ground in km/h
 static bool nmea_VTG(GPS *GpsData, char *inputString) {
   char values[MAX_SENTENCE_ELEMENTS][SENTENCE_ELEMENT_LEN];
   memset(values, 0, sizeof(values));
   uint8_t len = getValues(inputString, values);
-  if (len < 7)
+
+  const uint8_t MIN_VTG_FIELDS = 7;
+  // const uint8_t SPEED_KNOTS_FIELD_INDEX = 5;
+  const uint8_t SPEED_KMH_FIELD_INDEX = 7;
+
+  if (len < MIN_VTG_FIELDS)
     return 0;
 
-  GpsData->Speed = a_strtof(values[7]); // 5 for knots, 7 for km/h
+  GpsData->Speed = a_strtof(values[SPEED_KMH_FIELD_INDEX]);
   return 1;
 }
 
