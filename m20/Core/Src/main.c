@@ -292,7 +292,7 @@ void main_loop(void) {
   while (AFSK_Active) DelayWithIWDG(100);
 #endif
 #if HORUS_ENABLE && APRS_ENABLE
-DelayWithIWDG(2000); // ???
+DelayWithIWDG(3000); // ???
 #endif
 #if HORUS_ENABLE
   HorusPacket.Hours = GpsData.Hours;
@@ -376,7 +376,7 @@ int main(void)
   LL_APB1_GRP1_EnableClock(LL_APB1_GRP1_PERIPH_PWR);
 
   /* SysTick_IRQn interrupt configuration */
-  NVIC_SetPriority(SysTick_IRQn, 3);
+  NVIC_SetPriority(SysTick_IRQn, 4);
 
   /* USER CODE BEGIN Init */
 
