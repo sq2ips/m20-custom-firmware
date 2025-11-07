@@ -202,7 +202,7 @@ uint8_t encode_APRS_packet(APRSPacket Packet, char *buff){
     info_field[pos++] = ' '; // Space before comment;
 
     memcpy(info_field+pos, APRS_COMMENT_TEXT, APRS_MAX_INFO_LEN-pos);
-    pos+=sizeof(APRS_COMMENT_TEXT);
+    pos+=sizeof(APRS_COMMENT_TEXT)-1;
     if(pos>APRS_MAX_INFO_LEN) pos = APRS_MAX_INFO_LEN;
 #endif
 
