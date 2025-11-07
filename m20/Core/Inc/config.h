@@ -42,6 +42,7 @@ const static float QRG_AFSK[] = {435100000}; // AFSK transmitted frequencies arr
 
 #define APRS_COMMENT_TELEMETRY 1 // Telemetry in coment field
 
+#define APRS_COMMENT_TEXT_ENABLE 1
 #define APRS_COMMENT_TEXT "M20 radiosonde test" // Additional text in comment field
 
 // LED settings

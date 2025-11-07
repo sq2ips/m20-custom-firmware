@@ -5,7 +5,6 @@
  */
 
 #include "aprs.h"
-#include "config.h"
 #include "utils.h"
 
 #include <string.h>
@@ -99,7 +98,7 @@ static uint8_t compress_pos(float lat, float lon, char *buff){ // position compr
 
 static uint8_t int_to_string(int32_t num, char *buff, uint8_t digits, bool cut_zeros){
     if(num == 0 && cut_zeros){
-         buff[0] = '0';
+        buff[0] = '0';
         return 1;
     }
 
@@ -112,7 +111,7 @@ static uint8_t int_to_string(int32_t num, char *buff, uint8_t digits, bool cut_z
         buff[pos++] = '-';
         num*=-1;
     }
-    while(a>=1){ // add altitude number in feet as string (6 digits)
+    while(a>=1){
         uint8_t chr = (num%(a*10))/a+'0';
         if (!(chr == '0' && cut_zeros)){
             cut_zeros = false;
@@ -123,6 +122,7 @@ static uint8_t int_to_string(int32_t num, char *buff, uint8_t digits, bool cut_z
     return pos;
 }
 
+#if APRS_COMMENT_TELEMETRY
 static uint8_t encode_comment_telemetry(APRSPacket Packet, char *buff){ // Comment field telemetry https://github.com/projecthorus/sondehub-aprs-gateway/blob/main/sondehub_aprs_gw/comment_telemetry.py#L242
     uint8_t cnt = 0;
     
@@ -157,6 +157,7 @@ static uint8_t encode_comment_telemetry(APRSPacket Packet, char *buff){ // Comme
 
     return cnt;
 }
+#endif
 
 uint8_t encode_APRS_packet(APRSPacket Packet, char *buff){
     char info_field[APRS_MAX_INFO_LEN];
@@ -191,20 +192,18 @@ uint8_t encode_APRS_packet(APRSPacket Packet, char *buff){
     info_field[pos++] = 'A';
     info_field[pos++] = '=';
     uint32_t alt_ft = (uint32_t)Round(Packet.Alt/FEET_TO_M); // convert m to feet
-    pos+=int_to_string(alt_ft, info_field+pos, 6, false);
+    pos+=int_to_string(alt_ft, info_field+pos, 6, false); // add altitude number in feet as string (6 digits)
 
 #if APRS_COMMENT_TELEMETRY
     pos+=encode_comment_telemetry(Packet, info_field+pos);
 #endif
 
-#ifdef APRS_COMMENT_TEXT
+#if APRS_COMMENT_TEXT_ENABLE
     info_field[pos++] = ' '; // Space before comment;
+
     memcpy(info_field+pos, APRS_COMMENT_TEXT, APRS_MAX_INFO_LEN-pos);
-    if(sizeof(APRS_COMMENT_TEXT)-1 > APRS_MAX_INFO_LEN-pos-1){
-        pos+=APRS_MAX_INFO_LEN-pos-1;
-    }else{
-        pos+=sizeof(APRS_COMMENT_TEXT)-1;
-    }
+    pos+=sizeof(APRS_COMMENT_TEXT);
+    if(pos>APRS_MAX_INFO_LEN) pos = APRS_MAX_INFO_LEN;
 #endif
 
     return generate_ax25_frame(info_field, pos, buff);
