@@ -18,6 +18,30 @@ float oldAlt = 0;
 
 uint32_t oldTime = 0;
 
+// buffer = {0x12, 0x34, 0x56, 0x78}, size = 4, result = 0x78563412
+uint32_t changeBytesOrder(const uint8_t *buffer, const uint8_t size) {
+  uint32_t result = 0;
+  for (int i = size - 1; i >= 0; i--) {
+    result <<= 8;
+    result |= buffer[i];
+  }
+  return result;
+}
+
+int16_t timeDifference(uint32_t time1, uint32_t time2) {
+  if (time1 < time2)
+    return time2 - time1;
+  return 24 * 60 * 60 - (time1 - time2);
+}
+
+int16_t calculateAscentRate(uint16_t alt1, uint16_t alt2, uint32_t time1, uint32_t time2) {
+  const int16_t altDiff = alt2 - alt1;
+  const int16_t timeDiff = timeDifference(time1, time2);
+
+  return (int16_t)Round((float)altDiff / timeDiff * 100);
+}
+
+
 // indoor
 // AA AA AA 03 | 01  | 05 5D 4A 7F | 00 00 00 00 | 00 3A 98 | 00 00   | 00 00   | 00 00   | 05 45 DC | 00 | 13 | 12 | 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 | 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 | 75 6D
 // outdoor first frame
@@ -57,57 +81,31 @@ void ParseXM(GPS *GpsData, const uint8_t *buffer, const uint8_t frameStartPositi
 
   GpsData->Fix = buffer[FIX_OFFSET];
 
-  int32_t Lat;
-  memcpy(&Lat, buffer + LAT_OFFSET, sizeof(int32_t));
-  Lat = ((Lat & 0xFF000000) >> 24) | ((Lat & 0x00FF0000) >> 8) |
-        ((Lat & 0x0000FF00) << 8) | ((Lat & 0x000000FF) << 24);
-  int32_t Lon;
-  memcpy(&Lon, buffer + LON_OFFSET, sizeof(int32_t));
-  Lon = ((Lon & 0xFF000000) >> 24) | ((Lon & 0x00FF0000) >> 8) |
-        ((Lon & 0x0000FF00) << 8) | ((Lon & 0x000000FF) << 24);
+  const uint32_t Lat = changeBytesOrder(buffer + LAT_OFFSET, 4);
+  const uint32_t Lon = changeBytesOrder(buffer + LON_OFFSET, 4);
+  const uint32_t Alt = changeBytesOrder(buffer + ALT_OFFSET, 3);
 
-  uint32_t Alt;
-  memcpy(&Alt, buffer + ALT_OFFSET, sizeof(uint32_t)); // from uint24_t
-  Alt = ((Alt & 0xFF000000) >> 24) | ((Alt & 0x00FF0000) >> 8) |
-        ((Alt & 0x0000FF00) << 8);
+  GpsData->Lat = (float)(Lat / 1e6);    // converts from microdegrees to degrees
+  GpsData->Lon = (float)(Lon / 1e6);    // converts from microdegrees to degrees
+  GpsData->Alt = (uint16_t)(Alt / 100); // converts from centimeters to meters
 
-  GpsData->Lat = Lat / 1e6;
-  GpsData->Lon = Lon / 1e6;
-  GpsData->Alt = Alt / 1e2;
+  const uint32_t Time = changeBytesOrder(buffer + TIME_OFFSET, 3); // number of seconds from midnight
 
-  uint32_t time;
-  memcpy(&time, buffer + TIME_OFFSET, sizeof(uint32_t)); // from uint24_t
-  time = ((time & 0xFF000000) >> 24) |
-         ((time & 0x00FF0000) >> 8) |
-         ((time & 0x0000FF00) << 8);
+  GpsData->Hours = (Time / 3600) % 24;
+  GpsData->Minutes = (Time / 60) % 60;
+  GpsData->Seconds = Time % 60;
 
-  if (GpsData->Fix == 3 && GpsData->Alt != 0) {
-    if (time != 0) {
+  if (GpsData->Fix == 3 && GpsData->Alt > 0) {
+    if (Time > 0) {
       if (oldTime == 0) {
         oldAlt = GpsData->Alt;
-        oldTime = time;
-      }
-      if ((time - oldTime) < 0) {
-        time += 3600 * 24;
-      }
-      if ((time - oldTime) >= AscentRateTime) {
-        GpsData->AscentRate =
-            (int16_t)Round((float)(GpsData->Alt - oldAlt) / (time - oldTime) * 100);
-
-        if ((time - oldTime) < 0) {
-          time -= 3600 * 24;
-        }
-        oldAlt = GpsData->Alt;
-        oldTime = time;
-      }
-    } else {
+        oldTime = Time;
+      } else
+        if (timeDifference(oldTime, Time) > AscentRateTime)
+          GpsData->AscentRate = calculateAscentRate(oldAlt, GpsData->Alt, oldTime, Time);
+    } else
       oldTime = 0;
-    }
   }
-
-  GpsData->Hours = (time / 3600) % 24;
-  GpsData->Minutes = (time / 60) % 60;
-  GpsData->Seconds = time % 60;
 
   uint8_t sats = 0;
   while (buffer[SATS_OFFSET + sats] != 0 && sats < MAX_SATS)
