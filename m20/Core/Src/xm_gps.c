@@ -18,10 +18,9 @@ float oldAlt = 0;
 
 uint32_t oldTime = 0;
 
-// buffer = {0x12, 0x34, 0x56, 0x78}, size = 4, result = 0x78563412
-uint32_t changeBytesOrder(const uint8_t *buffer, const uint8_t size) {
+uint32_t convert_buffer_to_uint32(const uint8_t *buffer, const uint8_t size) {
   uint32_t result = 0;
-  for (int i = size - 1; i >= 0; i--) {
+  for (int i = 0; i < size; i++) {
     result <<= 8;
     result |= buffer[i];
   }
@@ -64,32 +63,24 @@ void ParseXM(GPS *GpsData, const uint8_t *buffer, const uint8_t frameStartPositi
   const uint8_t MAX_SATS = 16;
 
   #ifdef GPS_DEBUG
-  printf("RAW XM GPS frame: ");
+  printf("XM GPS raw: ");
   for (int i = frameStartPosition; i < frameStartPosition + GPS_FRAME_LEN; i++) {
     printf("%02X ", buffer[i]);
   }
   printf("\r\n");
-  printf("XM GPS Fix: %x\r\n", buffer[FIX_OFFSET]);
-  printf("XM GPS Lat: %x %x %x %x\r\n", buffer[LAT_OFFSET], buffer[LAT_OFFSET + 1], buffer[LAT_OFFSET + 2], buffer[LAT_OFFSET + 3]);
-  printf("XM GPS Lon: %x %x %x %x\r\n", buffer[LON_OFFSET], buffer[LON_OFFSET + 1], buffer[LON_OFFSET + 2], buffer[LON_OFFSET + 3]);
-  printf("XM GPS Alt: %x %x %x\r\n", buffer[ALT_OFFSET], buffer[ALT_OFFSET + 1], buffer[ALT_OFFSET + 2]);
-  printf("XM GPS Lat dir: %x %x\r\n", buffer[LAT_DIR_OFFSET], buffer[LAT_DIR_OFFSET + 1]);
-  printf("XM GPS Lon dir: %x %x\r\n", buffer[LON_DIR_OFFSET], buffer[LON_DIR_OFFSET + 1]);
-  printf("XM GPS Alt dir: %x %x\r\n", buffer[ALT_DIR_OFFSET], buffer[ALT_DIR_OFFSET + 1]);
-  printf("XM GPS Time: %x %x %x\r\n", buffer[TIME_OFFSET], buffer[TIME_OFFSET + 1], buffer[TIME_OFFSET + 2]);
   #endif
 
   GpsData->Fix = buffer[FIX_OFFSET];
 
-  const uint32_t Lat = changeBytesOrder(buffer + LAT_OFFSET, 4);
-  const uint32_t Lon = changeBytesOrder(buffer + LON_OFFSET, 4);
-  const uint32_t Alt = changeBytesOrder(buffer + ALT_OFFSET, 3);
+  const uint32_t Lat = convert_buffer_to_uint32(buffer + LAT_OFFSET, 4);
+  const uint32_t Lon = convert_buffer_to_uint32(buffer + LON_OFFSET, 4);
+  const uint32_t Alt = convert_buffer_to_uint32(buffer + ALT_OFFSET, 3);
 
   GpsData->Lat = (float)(Lat / 1e6);    // converts from microdegrees to degrees
   GpsData->Lon = (float)(Lon / 1e6);    // converts from microdegrees to degrees
   GpsData->Alt = (uint16_t)(Alt / 100); // converts from centimeters to meters
 
-  const uint32_t Time = changeBytesOrder(buffer + TIME_OFFSET, 3); // number of seconds from midnight
+  const uint32_t Time = convert_buffer_to_uint32(buffer + TIME_OFFSET, 3); // number of seconds from midnight
 
   GpsData->Hours = (Time / 3600) % 24;
   GpsData->Minutes = (Time / 60) % 60;
@@ -111,6 +102,12 @@ void ParseXM(GPS *GpsData, const uint8_t *buffer, const uint8_t frameStartPositi
   while (buffer[SATS_OFFSET + sats] != 0 && sats < MAX_SATS)
     sats++;
   GpsData->Sats = sats;
+
+  #ifdef GPS_DEBUG
+  printf("XM GPS dat: ");
+  printf("%d:%d:%d (fix: %d, sats: %d) ", GpsData->Hours, GpsData->Minutes, GpsData->Seconds, GpsData->Fix, GpsData->Sats);
+  printf("%f, %f, alt: %d m, %d m/s\r\n", GpsData->Lat, GpsData->Lon, GpsData->Alt, GpsData->AscentRate);
+  #endif
 }
 
 int8_t getFrameStartPosition(const uint8_t *buffer) {

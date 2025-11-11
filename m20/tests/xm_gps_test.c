@@ -1,37 +1,39 @@
 #include <stdio.h>
 #include <stdint.h>
+#include "gps.h"
 
-extern uint32_t changeBytesOrder(const uint8_t *buffer, const uint8_t size);
+extern uint32_t convert_buffer_to_uint32(const uint8_t *buffer, const uint8_t size);
 extern int16_t calculateAscentRate(uint16_t alt1, uint16_t alt2, uint32_t time1, uint32_t time2);
+extern void ParseXM(GPS *GpsData, const uint8_t *buffer, const uint8_t frameStartPosition);
 
 int tests_passed = 0;
 int tests_failed = 0;
 
 #define TEST_ASSERT(condition, message) \
     if (condition) { \
-        printf("✓ PASS: %s\n", message); \
+        printf("\033[32m✓ PASS\033[0m: %s\n", message); \
         tests_passed++; \
     } else { \
-        printf("✗ FAIL: %s\n", message); \
+        printf("\033[31m✗ FAIL\033[0m: %s\n", message); \
         tests_failed++; \
     }
 
-void test_changeBytesOrder_basic() {
+void test_convert_buffer_to_uint32_basic() {
     uint8_t buffer[] = {0x12, 0x34, 0x56, 0x78};
-    uint32_t result = changeBytesOrder(buffer, 4);
-    TEST_ASSERT(result == 0x78563412, "changeBytesOrder basic test: {0x12, 0x34, 0x56, 0x78} -> 0x78563412");
+    uint32_t result = convert_buffer_to_uint32(buffer, 4);
+    TEST_ASSERT(result == 0x12345678, "convert_buffer_to_uint32 basic test: {0x12, 0x34, 0x56, 0x78} -> 0x12345678");
 }
 
-void test_changeBytesOrder_single_byte() {
+void test_convert_buffer_to_uint32_single_byte() {
     uint8_t buffer[] = {0xAB};
-    uint32_t result = changeBytesOrder(buffer, 1);
-    TEST_ASSERT(result == 0xAB, "changeBytesOrder single byte test");
+    uint32_t result = convert_buffer_to_uint32(buffer, 1);
+    TEST_ASSERT(result == 0xAB, "convert_buffer_to_uint32 single byte test");
 }
 
-void test_changeBytesOrder_two_bytes() {
+void test_convert_buffer_to_uint32_two_bytes() {
     uint8_t buffer[] = {0x12, 0x34};
-    uint32_t result = changeBytesOrder(buffer, 2);
-    TEST_ASSERT(result == 0x3412, "changeBytesOrder two bytes test");
+    uint32_t result = convert_buffer_to_uint32(buffer, 2);
+    TEST_ASSERT(result == 0x1234, "convert_buffer_to_uint32 two bytes test");
 }
 
 void test_calculateAscentRate_basic() {
@@ -45,13 +47,46 @@ void test_calculateAscentRate_basic() {
     TEST_ASSERT(calculateAscentRate(1100, 1000, t1, t2) == -8, "calculateAscentRate basic descent");
 }
 
-int main() {
-    printf("Running tests for changeBytesOrder...\n\n");
 
-    test_changeBytesOrder_basic();
-    test_changeBytesOrder_single_byte();
-    test_changeBytesOrder_two_bytes();
+void test_ParseXM() {
+    uint8_t buffer[] = {
+        0xAA, 0xAA, 0xAA, 0x03, // preambule
+        0x03,                   // fix
+        0x03, 0x40, 0x58, 0x28, // latitude => 54.548519
+        0x01, 0x1A, 0xFA, 0x13, // longitude => 18.545172
+        0x00, 0x1A, 0x31,       // alt => 67
+        0xFF, 0xE6,             // lat dir
+        0xFF, 0xBC,             // lon dir
+        0x00, 0x01,             // alt dir
+        0x07, 0xAE, 0xD0,       // gps time => 19:51:44
+        0x01,                   // ?
+        0x57,                   // ?
+        0x12,                   // 0x12
+        0x11, 0x16, 0x22, 0x28, 0x1C, 0x24, 0x20, 0x20, 0x14, 0x1F, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, // sats
+        0x04, 0x05, 0x10, 0x12, 0x15, 0x19, 0x1A, 0x1C, 0x1D, 0x1F, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, // sats
+        0x24, 0x1C              // checksum
+    };
+    GPS gps;
+    ParseXM(&gps, buffer, 0);
+    TEST_ASSERT(gps.Fix == 3, "ParseXM Fix");
+    TEST_ASSERT(gps.Lat > 54.54 && gps.Lat < 54.55, "ParseXM Lat");
+    TEST_ASSERT(gps.Lon > 18.54 && gps.Lon < 18.55, "ParseXM Lon");
+    TEST_ASSERT(gps.Alt == 67, "ParseXM Alt");
+    TEST_ASSERT(gps.Hours == 19, "ParseXM Hours");
+    TEST_ASSERT(gps.Minutes == 51, "ParseXM Minutes");
+    TEST_ASSERT(gps.Seconds == 44, "ParseXM Seconds");
+    TEST_ASSERT(gps.AscentRate == 1782, "ParseXM AscentRate"); // ???
+    TEST_ASSERT(gps.Sats == 10, "ParseXM Sats");
+}
+
+int main() {
+    printf("Running tests for convert_buffer_to_uint32...\n\n");
+
+    test_convert_buffer_to_uint32_basic();
+    test_convert_buffer_to_uint32_single_byte();
+    test_convert_buffer_to_uint32_two_bytes();
     test_calculateAscentRate_basic();
+    test_ParseXM();
 
     printf("\n===================\n");
     printf("Tests passed: %d\n", tests_passed);
