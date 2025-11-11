@@ -339,4 +339,9 @@ void adf_RF_off(void) {
       RF_Boost_Pin); // boost pin high for RF power off. Reduces power by ~15dB
 }
 
+void adf_set_deviation(uint16_t modulation_deviation){
+  adf_config.r2.modulation_deviation = modulation_deviation;
+  adf_write_register_two();
+}
+
 // MUX pin is not connected in M20

@@ -289,10 +289,10 @@ void main_loop(void) {
 
   // Transmit
   AFSK_start_TX(CodedBuffer, BufferLen);
-  while (AFSK_Active) DelayWithIWDG(100);
+  while (AFSK_Active) {DelayWithIWDG(10);}
 #endif
 #if HORUS_ENABLE && APRS_ENABLE
-DelayWithIWDG(3000); // ???
+DelayWithIWDG(TX_PAUSE); // ???
 #endif
 #if HORUS_ENABLE
   HorusPacket.Hours = GpsData.Hours;
@@ -330,7 +330,7 @@ DelayWithIWDG(3000); // ???
   HorusPacket.PacketCount++;
   // Transmit
   FSK4_start_TX(CodedBuffer, BufferLen);
-  while (FSK4_Active) DelayWithIWDG(100);
+  while (FSK4_Active) {DelayWithIWDG(10);}
 #endif
 
 #if GPS_WATCHDOG
@@ -1275,9 +1275,9 @@ void LED_Handler(void) {
 }
 #endif
 void DelayWithIWDG(uint16_t time) {
-  for (uint8_t i = 0; i < time / 100; i++) {
+  for (uint16_t i = 0; i < time / 10; i++) {
     LL_IWDG_ReloadCounter(IWDG);
-    LL_mDelay(100);
+    LL_mDelay(10);
   }
 }
 #if GPS_TYPE == 1

@@ -29,6 +29,7 @@ void adf_set_pa_enable(uint8_t enable);
 void adf_setup(void);
 void adf_RF_on(float freq, uint8_t power);
 void adf_RF_off(void);
+void adf_set_deviation(uint16_t modulation_deviation);
 
 // General Purpose ===========================================================
 #define ADF_OFF 0
@@ -67,5 +68,7 @@ void adf_RF_off(void);
 #define ADF_MUXOUT_SD_TEST_MODE 15
 #define ADF_LD_PRECISION_3_CYCLES 0
 #define ADF_LD_PRECISION_5_CYCLES 1
+
+#define ADF_CLOCK 8000000       // Clock speed of adf7012 chip coming from STM32 (in Hz) (set to HSE 8MHz oscilator)
 
 #endif

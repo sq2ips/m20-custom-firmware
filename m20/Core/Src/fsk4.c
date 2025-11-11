@@ -84,6 +84,10 @@ void FSK4_start_TX(char *buff, uint8_t len) {
   adf_RF_on(QRG_FSK4[QRGCounter++], FSK4_POWER); // turn on radio TX
   if (QRGCounter >= sizeof(QRG_FSK4) / sizeof(QRG_FSK4[0])) QRGCounter = 0;
   FSK4_Active = true;                                 // change status
+
+  // set ADF deviation to 0 to not disrupt the modulation
+  adf_set_deviation(0);
+
   TIM2->CR1 &= ~(TIM_CR1_CEN); // Disable the counter
   uint16_t timer2StartValue =
       (100000 / FSK4_BAUD) -
