@@ -23,7 +23,7 @@ const static float QRG_FSK4[] = {435100000}; // 4FSK transmitted frequencies arr
 // APRS (AX.25 AFSK HDLC Bell 202)
 #define APRS_ENABLE 1
 
-#define TX_DELAY 1000 // Delay between HORUS and APRS
+#define TX_PAUSE 1000 // Delay between HORUS and APRS
 
 const static float QRG_AFSK[] = {435100000}; // AFSK transmitted frequencies array, switched in a loop, add new frequencies (in Hz) after a comma in braces.
 #define AFSK_POWER 10              // RF power setting AFSK transmission values 0-63
