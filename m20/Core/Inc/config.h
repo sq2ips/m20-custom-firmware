@@ -23,6 +23,8 @@ const static float QRG_FSK4[] = {435100000}; // 4FSK transmitted frequencies arr
 // APRS (AX.25 AFSK HDLC Bell 202)
 #define APRS_ENABLE 1
 
+#define TX_DELAY 1000 // Delay between HORUS and APRS
+
 const static float QRG_AFSK[] = {435100000}; // AFSK transmitted frequencies array, switched in a loop, add new frequencies (in Hz) after a comma in braces.
 #define AFSK_POWER 10              // RF power setting AFSK transmission values 0-63
 
@@ -57,7 +59,6 @@ const static float QRG_AFSK[] = {435100000}; // AFSK transmitted frequencies arr
 
 #define ADF_FREQ_CORRECTION 19  // correction of frequency from crystal inaccuracy in 244Hz steps. To be individually set for each sonde.
 #define ADF_FSK_DEVIATION 5  // Deviation parameter used in AFSK modem, don't change it without a reason, 5= about 5k5Hz, 10=11kHz
-#define ADF_CLOCK 8000000       // Clock speed of adf7012 chip coming from STM32 (in Hz) (set to HSE 8MHz oscilator)
 
 // GPS configuration
 #define GPS_TYPE 1              // Type of GPS module: 1 - u-blox | 2 - XM1110
