@@ -80,7 +80,7 @@ void test_ParseXM() {
 }
 
 int main() {
-    printf("Running tests for convert_buffer_to_uint32...\n\n");
+    printf("Running tests...\n\n");
 
     test_convert_buffer_to_uint32_basic();
     test_convert_buffer_to_uint32_single_byte();

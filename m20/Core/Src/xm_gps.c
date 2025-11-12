@@ -1,15 +1,25 @@
 /*
- *  xm_gps.c
- *  By SQ2IPS
+ * xm_gps.c
+ * By SQ2IPS & SP2IML
+ *  
+ * Example real data frames
+ *  1. indoor
+ * AA AA AA 03 | 01  | 05 5D 4A 7F | 00 00 00 00 | 00 3A 98 | 00 00   | 00 00   | 00 00   | 05 45 DC | 00 | 13 | 12 | 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 | 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 | 75 6D
+ * 2. first outdoor frame
+ * AA AA AA 03 | 01  | 05 5D 4A 7F | 00 00 00 00 | 00 3A 98 | 00 00   | 00 00   | 00 00   | 05 45 B8 | 00 | 13 | 12 | 28 2A 00 00 00 00 00 00 00 00 00 00 00 00 00 00 | 12 19 00 00 00 00 00 00 00 00 00 00 00 00 00 00 | 9A 80
+ * 3. last outdoor frame
+ * AA AA AA 03 | 03  | 03 40 58 28 | 01 1A FA 13 | 00 1A 31 | FF E6   | FF BC   | 00 01   | 07 AE D0 | 01 | 57 | 12 | 11 16 22 28 1C 24 20 20 14 1F 00 00 00 00 00 00 | 04 05 10 12 15 19 1A 1C 1D 1F 00 00 00 00 00 00 | 24 1C
+ * offset      | 0   | 1           | 5           | 9        | 12      | 14      | 16      | 18       | 21 | 22 | 23 | 24                                              | 40                                              | 56
+ * preambule   | fix | latitude    | longitude   | alt      | lat dir | lon dir | alt dir | gps time | ?  | ?  | 12 | satelites s/n ratio                             | satelites names (numbers)                       | checksum
  */
 
 #include "config.h"
 #include "xm_gps.h"
 #include "utils.h"
 
-#include <string.h>
-#include <stdbool.h>
+#ifdef GPS_DEBUG
 #include <stdio.h>
+#endif
 
 #define XM_PREAMBULE_LEN 4
 const uint8_t preambule[XM_PREAMBULE_LEN] = {0xAA, 0xAA, 0xAA, 0x03};
@@ -40,15 +50,6 @@ int16_t calculateAscentRate(uint16_t alt1, uint16_t alt2, uint32_t time1, uint32
   return (int16_t)Round((float)altDiff / timeDiff * 100);
 }
 
-
-// indoor
-// AA AA AA 03 | 01  | 05 5D 4A 7F | 00 00 00 00 | 00 3A 98 | 00 00   | 00 00   | 00 00   | 05 45 DC | 00 | 13 | 12 | 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 | 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 | 75 6D
-// outdoor first frame
-// AA AA AA 03 | 01  | 05 5D 4A 7F | 00 00 00 00 | 00 3A 98 | 00 00   | 00 00   | 00 00   | 05 45 B8 | 00 | 13 | 12 | 28 2A 00 00 00 00 00 00 00 00 00 00 00 00 00 00 | 12 19 00 00 00 00 00 00 00 00 00 00 00 00 00 00 | 9A 80
-// outdoor last frame
-// AA AA AA 03 | 03  | 03 40 58 28 | 01 1A FA 13 | 00 1A 31 | FF E6   | FF BC   | 00 01   | 07 AE D0 | 01 | 57 | 12 | 11 16 22 28 1C 24 20 20 14 1F 00 00 00 00 00 00 | 04 05 10 12 15 19 1A 1C 1D 1F 00 00 00 00 00 00 | 24 1C
-// offset      | 0   | 1           | 5           | 9        | 12      | 14      | 16      | 18       | 21 | 22 | 23 | 24                                              | 40                                              | 56
-// preambule   | fix | latitude    | longitude   | alt      | lat dir | lon dir | alt dir | gps time | ?  | ?  | 12 | satelites s/n ratio                             | satelites names (numbers)                       | checksum
 void ParseXM(GPS *GpsData, const uint8_t *buffer, const uint8_t frameStartPosition) {
   const uint8_t pos = frameStartPosition + XM_PREAMBULE_LEN;
   const uint8_t FIX_OFFSET = pos + 0;
@@ -102,12 +103,6 @@ void ParseXM(GPS *GpsData, const uint8_t *buffer, const uint8_t frameStartPositi
   while (buffer[SATS_OFFSET + sats] != 0 && sats < MAX_SATS)
     sats++;
   GpsData->Sats = sats;
-
-  #ifdef GPS_DEBUG
-  printf("XM GPS dat: ");
-  printf("%d:%d:%d (fix: %d, sats: %d) ", GpsData->Hours, GpsData->Minutes, GpsData->Seconds, GpsData->Fix, GpsData->Sats);
-  printf("%f, %f, alt: %d m, %d m/s\r\n", GpsData->Lat, GpsData->Lon, GpsData->Alt, GpsData->AscentRate);
-  #endif
 }
 
 int8_t getFrameStartPosition(const uint8_t *buffer) {
@@ -123,7 +118,7 @@ int8_t getFrameStartPosition(const uint8_t *buffer) {
   return -1;
 }
 
-void parseXMframe(GPS *GpsData, uint8_t *buffer) {
+void parseXMframe(GPS *GpsData, const uint8_t *buffer) {
   const int8_t frameStartPosition = getFrameStartPosition(buffer);
   if (frameStartPosition != -1)
     ParseXM(GpsData, buffer, frameStartPosition);
