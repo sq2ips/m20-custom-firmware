@@ -23,6 +23,8 @@ const static float QRG_FSK4[] = {435100000}; // 4FSK transmitted frequencies arr
 // APRS (AX.25 AFSK HDLC Bell 202)
 #define APRS_ENABLE 1
 
+#define TX_PAUSE 1000 // Delay between HORUS and APRS
+
 const static float QRG_AFSK[] = {435100000}; // AFSK transmitted frequencies array, switched in a loop, add new frequencies (in Hz) after a comma in braces.
 #define AFSK_POWER 10              // RF power setting AFSK transmission values 0-63
 
@@ -32,16 +34,14 @@ const static float QRG_AFSK[] = {435100000}; // AFSK transmitted frequencies arr
 #define APRS_DESTINATION "APRM20" // Destination adress, characterizing a M20 transmitter, max 6 digits
 #define APRS_DESTINATION_SSID 0 // Default 0 SSID
 
-#define APRS_PATH_1 "WIDE1" // Path 1, max 6 digits
-#define APRS_PATH_1_SSID 1 // Path 1 SSID
-
-#define APRS_PATH_2 "WIDE2" // Path 2, max 6 digits
-#define APRS_PATH_2_SSID 1  // Path 2 SSID
+#define APRS_PATH "WIDE2" // Path, max 6 digits according to https://www.aprs.org/balloons.html
+#define APRS_PATH_SSID 1 // Path SSID
 
 #define APRS_SYMBOL "/O"        // baloon symbol, all symbols: https://www.aprs.org/symbols.html, needs to be /O for showing on Sondehub
 
 #define APRS_COMMENT_TELEMETRY 1 // Telemetry in coment field
 
+#define APRS_COMMENT_TEXT_ENABLE 1
 #define APRS_COMMENT_TEXT "M20 radiosonde test" // Additional text in comment field
 
 // LED settings
@@ -56,7 +56,6 @@ const static float QRG_AFSK[] = {435100000}; // AFSK transmitted frequencies arr
 
 #define ADF_FREQ_CORRECTION 19  // correction of frequency from crystal inaccuracy in 244Hz steps. To be individually set for each sonde.
 #define ADF_FSK_DEVIATION 5  // Deviation parameter used in AFSK modem, don't change it without a reason, 5= about 5k5Hz, 10=11kHz
-#define ADF_CLOCK 8000000       // Clock speed of adf7012 chip coming from STM32 (in Hz) (set to HSE 8MHz oscilator)
 
 // GPS configuration
 #define GPS_TYPE 1              // Type of GPS module: 1 - u-blox | 2 - XM1110

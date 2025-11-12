@@ -164,6 +164,9 @@ void AFSK_start_TX(char *buffer, uint8_t buffer_len)
     bit_pos = 0;                  // reset bit position counter
     stuffing_cnt = 0;
 
+    // ADF module set deviation
+    adf_set_deviation(ADF_FSK_DEVIATION);
+
     // TIM21 - PWM timer generating tones and sampling interrupts
     TIM21->CR1 &= ~(TIM_CR1_CEN); // Disable the TIM Counter
     TIM21->PSC = AFSK_PWM_TIM_PSC;                      // Set prescaler
