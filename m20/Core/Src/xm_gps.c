@@ -24,11 +24,20 @@
 #define XM_PREAMBULE_LEN 4
 const uint8_t preambule[XM_PREAMBULE_LEN] = {0xAA, 0xAA, 0xAA, 0x03};
 
-float oldAlt = 0;
+typedef struct {
+  uint8_t Fix;
+  uint32_t Lat;
+  uint32_t Lon;
+  uint16_t CurrentAlt;
+  uint16_t PreviousAlt;
+  uint32_t CurrentTime;
+  uint32_t PreviousTime;
+  uint8_t Sats;
+} XmFrame;
 
-uint32_t oldTime = 0;
+XmFrame Xm;
 
-void ParseXM(GPS *GpsData, const uint8_t *buffer, const uint8_t frameStartPosition) {
+void ParseXmFrame(const uint8_t *buffer, const uint8_t frameStartPosition) {
   const uint8_t pos = frameStartPosition + XM_PREAMBULE_LEN;
   const uint8_t FIX_OFFSET = pos + 0;
   const uint8_t LAT_OFFSET = pos + 1;
@@ -42,45 +51,39 @@ void ParseXM(GPS *GpsData, const uint8_t *buffer, const uint8_t frameStartPositi
   const uint8_t MAX_SATS = 16;
 
   #ifdef GPS_DEBUG
-  printf("XM GPS raw: ");
+  printf("XM GPS raw frame: ");
   for (int i = frameStartPosition; i < frameStartPosition + GPS_FRAME_LEN; i++) {
     printf("%02X ", buffer[i]);
   }
   printf("\r\n");
   #endif
 
-  GpsData->Fix = buffer[FIX_OFFSET];
+  Xm.Fix = buffer[FIX_OFFSET];
+  Xm.Lat = convert_buffer_to_uint32(buffer + LAT_OFFSET, 4);
+  Xm.Lon = convert_buffer_to_uint32(buffer + LON_OFFSET, 4);
+  Xm.CurrentAlt = convert_buffer_to_uint32(buffer + ALT_OFFSET, 3) / 100; // convert centimeters to meters
+  Xm.CurrentTime = convert_buffer_to_uint32(buffer + TIME_OFFSET, 3); // number of seconds from midnight
 
-  const uint32_t Lat = convert_buffer_to_uint32(buffer + LAT_OFFSET, 4);
-  const uint32_t Lon = convert_buffer_to_uint32(buffer + LON_OFFSET, 4);
-  const uint32_t Alt = convert_buffer_to_uint32(buffer + ALT_OFFSET, 3);
+  Xm.Sats = 0;
+  while (buffer[SATS_OFFSET + Xm.Sats] != 0 && Xm.Sats < MAX_SATS)
+    Xm.Sats++;
 
-  GpsData->Lat = (float)(Lat / 1e6);    // converts from microdegrees to degrees
-  GpsData->Lon = (float)(Lon / 1e6);    // converts from microdegrees to degrees
-  GpsData->Alt = (uint16_t)(Alt / 100); // converts from centimeters to meters
-
-  const uint32_t Time = convert_buffer_to_uint32(buffer + TIME_OFFSET, 3); // number of seconds from midnight
-
-  GpsData->Hours = (Time / 3600) % 24;
-  GpsData->Minutes = (Time / 60) % 60;
-  GpsData->Seconds = Time % 60;
-
-  if (GpsData->Fix == 3 && GpsData->Alt > 0) {
-    if (Time > 0) {
-      if (oldTime == 0) {
-        oldAlt = GpsData->Alt;
-        oldTime = Time;
-      } else
-        if (timeDifference(oldTime, Time) > AscentRateTime)
-          GpsData->AscentRate = calculateAscentRate(oldAlt, GpsData->Alt, oldTime, Time);
-    } else
-      oldTime = 0;
+  if (Xm.Fix == 3 && Xm.CurrentAlt > 0 && Xm.CurrentTime > 0) {
+    Xm.PreviousAlt = Xm.CurrentAlt;
+    Xm.PreviousTime = Xm.CurrentTime;
   }
+}
 
-  uint8_t sats = 0;
-  while (buffer[SATS_OFFSET + sats] != 0 && sats < MAX_SATS)
-    sats++;
-  GpsData->Sats = sats;
+void ConvertXmToGpsData(GPS *GpsData) {
+  GpsData->Fix = Xm.Fix;
+  GpsData->Lat = (float)(Xm.Lat / 1e6);    // converts from microdegrees to degrees
+  GpsData->Lon = (float)(Xm.Lon / 1e6);    // converts from microdegrees to degrees
+  GpsData->Alt = Xm.CurrentAlt;
+  GpsData->Hours = (Xm.CurrentTime / 3600) % 24;
+  GpsData->Minutes = (Xm.CurrentTime / 60) % 60;
+  GpsData->Seconds = Xm.CurrentTime % 60;
+  GpsData->Sats = Xm.Sats;
+  GpsData->AscentRate = calculateAscentRate(Xm.PreviousAlt, Xm.CurrentAlt, Xm.PreviousTime, Xm.CurrentTime);
 }
 
 int8_t getFrameStartPosition(const uint8_t *buffer) {
@@ -98,8 +101,10 @@ int8_t getFrameStartPosition(const uint8_t *buffer) {
 
 void parseXM(GPS *GpsData, const uint8_t *buffer) {
   const int8_t frameStartPosition = getFrameStartPosition(buffer);
-  if (frameStartPosition != -1)
-    ParseXM(GpsData, buffer, frameStartPosition);
-  else
+  if (frameStartPosition != -1) {
+    ParseXmFrame(buffer, frameStartPosition);
+    ConvertXmToGpsData(GpsData);
+  } else {
     GpsData->Fix = 0;
+  }
 }

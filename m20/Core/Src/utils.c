@@ -1,4 +1,5 @@
 #include "utils.h"
+#include "config.h"
 
 float Log(float x) {
     // Trap illegal values
@@ -50,15 +51,24 @@ uint32_t convert_buffer_to_uint32(const uint8_t *buffer, const uint8_t size) {
     return result;
 }
 
-int16_t timeDifference(uint32_t time1, uint32_t time2) {
-    if (time1 < time2)
-        return time2 - time1;
-    return 24 * 60 * 60 - (time1 - time2);
+int16_t timeDifference(const uint32_t previousTime, const uint32_t currentTime) {
+    if (previousTime < currentTime)
+        return (int16_t)(currentTime - previousTime);
+
+    return (int16_t)(24 * 60 * 60 - (previousTime - currentTime));
 }
 
-int16_t calculateAscentRate(uint16_t alt1, uint16_t alt2, uint32_t time1, uint32_t time2) {
-    const int16_t altDiff = alt2 - alt1;
-    const int16_t timeDiff = timeDifference(time1, time2);
+int16_t calculateAscentRate(
+    const uint16_t previousAlt,
+    const uint16_t currentAlt,
+    const uint32_t previousTime,
+    const uint32_t currentTime
+    ) {
+    const int16_t altDiff = (int16_t)(currentAlt - previousAlt);
+    const int16_t timeDiff = timeDifference(previousTime, currentTime);
 
-    return (int16_t)Round((float)altDiff / timeDiff * 100);
+    if (timeDiff > AscentRateTime)
+        return (int16_t)Round((float)altDiff / timeDiff * 100);
+
+    return 0;
 }
