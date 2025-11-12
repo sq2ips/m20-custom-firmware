@@ -64,7 +64,7 @@ void test_parseXMframe() {
         0x24, 0x1C              // checksum
     };
     GPS gps;
-    parseXMframe(&gps, buffer);
+    parseXM(&gps, buffer);
     TEST_ASSERT(gps.Fix == 3, "ParseXM Fix");
     TEST_ASSERT(gps.Lat > 54.54 && gps.Lat < 54.55, "ParseXM Lat");
     TEST_ASSERT(gps.Lon > 18.54 && gps.Lon < 18.55, "ParseXM Lon");

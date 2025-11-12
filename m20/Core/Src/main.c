@@ -482,7 +482,7 @@ printf("Startup\r\n");
 #if GPS_TYPE == 1
       ParseNMEA(&GpsData, GpsRxBuffer);
 #elif GPS_TYPE == 2
-      parseXMframe(&GpsData, GpsRxBuffer);
+      parseXM(&GpsData, GpsRxBuffer);
 #endif
       GpsBufferReady = false;
     }

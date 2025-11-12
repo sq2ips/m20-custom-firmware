@@ -96,7 +96,7 @@ int8_t getFrameStartPosition(const uint8_t *buffer) {
   return -1;
 }
 
-void parseXMframe(GPS *GpsData, const uint8_t *buffer) {
+void parseXM(GPS *GpsData, const uint8_t *buffer) {
   const int8_t frameStartPosition = getFrameStartPosition(buffer);
   if (frameStartPosition != -1)
     ParseXM(GpsData, buffer, frameStartPosition);
