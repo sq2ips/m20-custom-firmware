@@ -28,37 +28,15 @@ float oldAlt = 0;
 
 uint32_t oldTime = 0;
 
-uint32_t convert_buffer_to_uint32(const uint8_t *buffer, const uint8_t size) {
-  uint32_t result = 0;
-  for (int i = 0; i < size; i++) {
-    result <<= 8;
-    result |= buffer[i];
-  }
-  return result;
-}
-
-int16_t timeDifference(uint32_t time1, uint32_t time2) {
-  if (time1 < time2)
-    return time2 - time1;
-  return 24 * 60 * 60 - (time1 - time2);
-}
-
-int16_t calculateAscentRate(uint16_t alt1, uint16_t alt2, uint32_t time1, uint32_t time2) {
-  const int16_t altDiff = alt2 - alt1;
-  const int16_t timeDiff = timeDifference(time1, time2);
-
-  return (int16_t)Round((float)altDiff / timeDiff * 100);
-}
-
 void ParseXM(GPS *GpsData, const uint8_t *buffer, const uint8_t frameStartPosition) {
   const uint8_t pos = frameStartPosition + XM_PREAMBULE_LEN;
   const uint8_t FIX_OFFSET = pos + 0;
   const uint8_t LAT_OFFSET = pos + 1;
   const uint8_t LON_OFFSET = pos + 5;
   const uint8_t ALT_OFFSET = pos + 9;
-  const uint8_t LAT_DIR_OFFSET = pos + 12;
-  const uint8_t LON_DIR_OFFSET = pos + 14;
-  const uint8_t ALT_DIR_OFFSET = pos + 16;
+  // const uint8_t LAT_DIR_OFFSET = pos + 12;
+  // const uint8_t LON_DIR_OFFSET = pos + 14;
+  // const uint8_t ALT_DIR_OFFSET = pos + 16;
   const uint8_t TIME_OFFSET = pos + 18;
   const uint8_t SATS_OFFSET = pos + 24;
   const uint8_t MAX_SATS = 16;

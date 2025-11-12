@@ -8,6 +8,5 @@
 #define GpsRxBuffer_SIZE (GPS_FRAME_LEN * 2)
 
 void parseXMframe(GPS *GpsData, const uint8_t *buffer);
-void incTimeCountGps();
 
 #endif

@@ -29,6 +29,7 @@ float Log(float x) {
     // Combine the result with the power_adjust value and return
     return t + power_adjust;
 }
+
 int32_t Round(float number) {
     // Get the integer part by truncating the float
     int int_part = (int)number;
@@ -38,4 +39,26 @@ int32_t Round(float number) {
     } else {
         return int_part;
     }
+}
+
+uint32_t convert_buffer_to_uint32(const uint8_t *buffer, const uint8_t size) {
+    uint32_t result = 0;
+    for (int i = 0; i < size; i++) {
+        result <<= 8;
+        result |= buffer[i];
+    }
+    return result;
+}
+
+int16_t timeDifference(uint32_t time1, uint32_t time2) {
+    if (time1 < time2)
+        return time2 - time1;
+    return 24 * 60 * 60 - (time1 - time2);
+}
+
+int16_t calculateAscentRate(uint16_t alt1, uint16_t alt2, uint32_t time1, uint32_t time2) {
+    const int16_t altDiff = alt2 - alt1;
+    const int16_t timeDiff = timeDifference(time1, time2);
+
+    return (int16_t)Round((float)altDiff / timeDiff * 100);
 }
