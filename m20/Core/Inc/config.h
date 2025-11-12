@@ -32,11 +32,8 @@ const static float QRG_AFSK[] = {435100000}; // AFSK transmitted frequencies arr
 #define APRS_DESTINATION "APRM20" // Destination adress, characterizing a M20 transmitter, max 6 digits
 #define APRS_DESTINATION_SSID 0 // Default 0 SSID
 
-#define APRS_PATH_1 "WIDE1" // Path 1, max 6 digits
-#define APRS_PATH_1_SSID 1 // Path 1 SSID
-
-#define APRS_PATH_2 "WIDE2" // Path 2, max 6 digits
-#define APRS_PATH_2_SSID 1  // Path 2 SSID
+#define APRS_PATH "WIDE2" // Path, max 6 digits according to https://www.aprs.org/balloons.html
+#define APRS_PATH_SSID 1 // Path SSID
 
 #define APRS_SYMBOL "/O"        // baloon symbol, all symbols: https://www.aprs.org/symbols.html, needs to be /O for showing on Sondehub
 

@@ -48,21 +48,12 @@ static uint8_t generate_ax25_frame(char *info_field, uint8_t info_field_size, ch
     
     d_pos = pos;
     for(; pos-d_pos<6; pos++){ // Path 1
-        if(pos-d_pos >= sizeof(APRS_PATH_1)-1){
+        if(pos-d_pos >= sizeof(APRS_PATH)-1){
             buff[pos] = APRS_SPACE_SYMBOL<<1;
-        }else buff[pos] = APRS_PATH_1[pos-d_pos]<<1;
+        }else buff[pos] = APRS_PATH[pos-d_pos]<<1;
     }
-    buff[pos++] = (APRS_PATH_1_SSID<<1) | 0b11100000; // Path 1 SSID
+    buff[pos++] = (APRS_PATH_SSID<<1) | 0b11100001; // Path SSID (1 at end as last adress)
 
-    d_pos = pos;
-    for(; pos-d_pos<6; pos++){ // Path 2
-        if(pos-d_pos >= sizeof(APRS_PATH_2)-1){
-            buff[pos] = APRS_SPACE_SYMBOL<<1;
-        }else buff[pos] = APRS_PATH_2[pos-d_pos]<<1;
-    }
-    buff[pos++] = (APRS_PATH_2_SSID<<1) | 0b11100001; // Path SSID (1 at end as last adress)
-
-    
     buff[pos++] = APRS_CONTROL_FIELD; // Control field
     buff[pos++] = APRS_PROTOCOL_ID; // Protocol ID
 
