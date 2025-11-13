@@ -85,6 +85,7 @@ void ConvertXmToGpsData(GPS *GpsData) {
   GpsData->Sats = Xm.Sats;
   if (timeDifference(Xm.PreviousTime, Xm.CurrentTime) > AscentRateTime)
     GpsData->AscentRate = calculateAscentRate(Xm.PreviousAlt, Xm.CurrentAlt, Xm.PreviousTime, Xm.CurrentTime);
+  GpsData->Speed = 0;
 }
 
 int8_t getFrameStartPosition(const uint8_t *buffer) {

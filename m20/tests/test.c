@@ -93,7 +93,7 @@ void test_parseXMframe() {
     TEST_ASSERT(gps.Hours == 19, "ParseXM Hours");
     TEST_ASSERT(gps.Minutes == 51, "ParseXM Minutes");
     TEST_ASSERT(gps.Seconds == 44, "ParseXM Seconds");
-    TEST_ASSERT(gps.AscentRate == 0, "ParseXM AscentRate"); // ???
+    TEST_ASSERT(gps.AscentRate == 0, "ParseXM AscentRate");
     TEST_ASSERT(gps.Sats == 10, "ParseXM Sats");
 }
 
