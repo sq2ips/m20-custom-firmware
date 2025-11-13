@@ -6,7 +6,7 @@
 
 void gps_debug(const GPS GpsData) {
   printf(
-    "GPS DEBUG: %d:%d:%d Fix: %d, Sats: %d, Lat: %ld, Lon: %ld, Alt: %d m, Ascent rate: %d cm/s, Speed: %d km/h\r\n",
+    "GPS DEBUG: %02d:%02d:%02d Fix: %d, Sats: %d, Lat: %ld, Lon: %ld, Alt: %d m, Ascent rate: %d cm/s, Speed: %d km/h\r\n",
     GpsData.Hours, GpsData.Minutes, GpsData.Seconds,
     GpsData.Fix, GpsData.Sats,
     (int32_t)(GpsData.Lat * 1e6), (int32_t)(GpsData.Lon * 1e6),
