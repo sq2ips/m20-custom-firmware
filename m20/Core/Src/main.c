@@ -272,11 +272,6 @@ void main_loop(void) {
   AprsPacket.Speed = GpsData.Speed; // Doesn't work
   AprsPacket.Alt = GpsData.Alt;
   AprsPacket.Sats = GpsData.Sats;
-
-#if GPS_DEBUG
-  gps_debug(GpsData);
-#endif
-
   AprsPacket.GpsResetCount = GpsResetCount;
   AprsPacket.Temp = LpsTemp;
   AprsPacket.ExtTemp = ExtTemp;
@@ -304,11 +299,6 @@ DelayWithIWDG(TX_PAUSE); // ???
   HorusPacket.Alt = GpsData.Alt;
   HorusPacket.Sats = GpsData.Sats;
   HorusPacket.AscentRate = GpsData.AscentRate;
-
-#if GPS_DEBUG
-  gps_debug(GpsData);
-#endif
-
   HorusPacket.Temp = LpsTemp;
   // ADC voltage: 3.3V, divided by ADC max value 4095 (2^12-1). That gives a
   // range between 0 for 0V and 1 for 3.3V. Than it's multiplied by max
@@ -479,11 +469,14 @@ printf("Startup\r\n");
     /* USER CODE BEGIN 3 */
     LL_IWDG_ReloadCounter(IWDG);
     if (GpsBufferReady) {
-#if GPS_TYPE == 1
+      #if GPS_TYPE == 1
       ParseNMEA(&GpsData, GpsRxBuffer);
-#elif GPS_TYPE == 2
+      #elif GPS_TYPE == 2
       parseXM(&GpsData, GpsRxBuffer);
-#endif
+      #endif
+      #if GPS_DEBUG
+      gps_debug(GpsData);
+      #endif
       GpsBufferReady = false;
     }
     LL_mDelay(10);
