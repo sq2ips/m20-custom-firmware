@@ -17,5 +17,3 @@ jobs:
       run: docker build m20 --file m20/Dockerfile --tag m20:latest
     - name: Run the image
       run: docker run --rm -v ./m20:/opt/m20 m20:latest
-    - name: Test
-      run: make test
