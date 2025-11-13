@@ -1,5 +1,4 @@
 #include "utils.h"
-#include "config.h"
 
 float Log(float x) {
     // Trap illegal values

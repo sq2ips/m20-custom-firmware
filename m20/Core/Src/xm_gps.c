@@ -50,7 +50,7 @@ void ParseXmFrame(const uint8_t *buffer, const uint8_t frameStartPosition) {
   const uint8_t SATS_OFFSET = pos + 24;
   const uint8_t MAX_SATS = 16;
 
-  #ifdef GPS_DEBUG
+  #if GPS_RAW_DEBUG
   printf("XM GPS raw frame: ");
   for (int i = frameStartPosition; i < frameStartPosition + GPS_FRAME_LEN; i++) {
     printf("%02X ", buffer[i]);
@@ -65,27 +65,34 @@ void ParseXmFrame(const uint8_t *buffer, const uint8_t frameStartPosition) {
   Xm.CurrentTime = convert_buffer_to_uint32(buffer + TIME_OFFSET, 3); // number of seconds from midnight
 
   Xm.Sats = 0;
-  while (buffer[SATS_OFFSET + Xm.Sats] != 0 && Xm.Sats < MAX_SATS)
-    Xm.Sats++;
-
-  if (Xm.Fix == 3 && Xm.CurrentAlt > 0 && Xm.CurrentTime > 0) {
-    Xm.PreviousAlt = Xm.CurrentAlt;
-    Xm.PreviousTime = Xm.CurrentTime;
-  }
+  while (buffer[SATS_OFFSET + Xm.Sats] != 0 && Xm.Sats < MAX_SATS) Xm.Sats++;
 }
 
 void ConvertXmToGpsData(GPS *GpsData) {
   GpsData->Fix = Xm.Fix;
-  GpsData->Lat = (float)(Xm.Lat / 1e6); // converts from microdegrees to degrees
-  GpsData->Lon = (float)(Xm.Lon / 1e6); // converts from microdegrees to degrees
-  GpsData->Alt = Xm.CurrentAlt / 100;   // converts centimeters to meters
-  GpsData->Hours = (Xm.CurrentTime / 3600) % 24;
-  GpsData->Minutes = (Xm.CurrentTime / 60) % 60;
-  GpsData->Seconds = Xm.CurrentTime % 60;
   GpsData->Sats = Xm.Sats;
-  if (timeDifference(Xm.PreviousTime, Xm.CurrentTime) > AscentRateTime)
-    GpsData->AscentRate = calculateAscentRate(Xm.PreviousAlt, Xm.CurrentAlt, Xm.PreviousTime, Xm.CurrentTime);
-  GpsData->Speed = 0;
+  if (GpsData->Fix > 1){
+    GpsData->Lat = (float)(Xm.Lat / 1e6); // converts from microdegrees to degrees
+    GpsData->Lon = (float)(Xm.Lon / 1e6); // converts from microdegrees to degrees
+    GpsData->Alt = Xm.CurrentAlt / 100;   // converts centimeters to meters
+    GpsData->Hours = (Xm.CurrentTime / 3600) % 24;
+    GpsData->Minutes = (Xm.CurrentTime / 60) % 60;
+    GpsData->Seconds = Xm.CurrentTime % 60;
+    GpsData->Speed = 0;
+    
+    if (Xm.Fix == 3 && Xm.CurrentAlt > 0 && Xm.CurrentTime > 0) {
+      if(Xm.PreviousTime > 0 && Xm.PreviousAlt > 0){
+        if (timeDifference(Xm.PreviousTime, Xm.CurrentTime) > AscentRateTime){
+          GpsData->AscentRate = calculateAscentRate(Xm.PreviousAlt, Xm.CurrentAlt, Xm.PreviousTime, Xm.CurrentTime);
+          Xm.PreviousAlt = Xm.CurrentAlt;
+          Xm.PreviousTime = Xm.CurrentTime;
+        }
+      }else{
+        Xm.PreviousAlt = Xm.CurrentAlt;
+        Xm.PreviousTime = Xm.CurrentTime;
+      }
+    }
+  }
 }
 
 int8_t getFrameStartPosition(const uint8_t *buffer) {

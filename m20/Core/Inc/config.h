@@ -78,4 +78,6 @@ const static float QRG_AFSK[] = {435100000}; // AFSK transmitted frequencies arr
 
 #define GPS_DEBUG 0
 
+#define GPS_RAW_DEBUG 0
+
 #endif /* INC_CONFIG_H_ */
