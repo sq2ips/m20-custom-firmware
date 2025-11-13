@@ -1,4 +1,5 @@
 #include "utils.h"
+#include "config.h"
 
 float Log(float x) {
     // Trap illegal values
@@ -29,6 +30,7 @@ float Log(float x) {
     // Combine the result with the power_adjust value and return
     return t + power_adjust;
 }
+
 int32_t Round(float number) {
     // Get the integer part by truncating the float
     int int_part = (int)number;
@@ -38,4 +40,34 @@ int32_t Round(float number) {
     } else {
         return int_part;
     }
+}
+
+uint32_t convert_buffer_to_uint32(const uint8_t *buffer, const uint8_t size) {
+    uint32_t result = 0;
+    for (int i = 0; i < size; i++) {
+        result <<= 8;
+        result |= buffer[i];
+    }
+    return result;
+}
+
+// time difference in seconds, handles midnight crossing
+int16_t timeDifference(const uint32_t previousTime, const uint32_t currentTime) {
+    if (previousTime < currentTime)
+        return (int16_t)(currentTime - previousTime);
+
+    return (int16_t)(24 * 60 * 60 - (previousTime - currentTime));
+}
+
+// ascent rate in cm/s
+int16_t calculateAscentRate(
+    const uint16_t previousAlt,
+    const uint16_t currentAlt,
+    const uint32_t previousTime,
+    const uint32_t currentTime
+    ) {
+    const int16_t altDiff = (int16_t)(currentAlt - previousAlt);
+    const int16_t timeDiff = timeDifference(previousTime, currentTime);
+
+    return (int16_t) Round((float)altDiff / timeDiff);
 }

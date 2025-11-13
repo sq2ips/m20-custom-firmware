@@ -5,9 +5,8 @@
 #include <stdint.h>
 
 #define GPS_FRAME_LEN 62             // Length of XM1110 (type 2) frame
-#define GpsRxBuffer_SIZE GPS_FRAME_LEN * 2
+#define GpsRxBuffer_SIZE (GPS_FRAME_LEN * 2)
 
-void parseXMframe(GPS *GpsData, uint8_t *buffer);
-void incTimeCountGps();
+void parseXM(GPS *GpsData, const uint8_t *buffer);
 
 #endif

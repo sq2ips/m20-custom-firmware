@@ -1,106 +1,111 @@
 /*
- *  xm_gps.c
- *  By SQ2IPS
+ * xm_gps.c
+ * By SQ2IPS & SP2IML
+ *  
+ * Example real data frames
+ *  1. indoor
+ * AA AA AA 03 | 01  | 05 5D 4A 7F | 00 00 00 00 | 00 3A 98 | 00 00   | 00 00   | 00 00   | 05 45 DC | 00 | 13 | 12 | 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 | 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 | 75 6D
+ * 2. first outdoor frame
+ * AA AA AA 03 | 01  | 05 5D 4A 7F | 00 00 00 00 | 00 3A 98 | 00 00   | 00 00   | 00 00   | 05 45 B8 | 00 | 13 | 12 | 28 2A 00 00 00 00 00 00 00 00 00 00 00 00 00 00 | 12 19 00 00 00 00 00 00 00 00 00 00 00 00 00 00 | 9A 80
+ * 3. last outdoor frame
+ * AA AA AA 03 | 03  | 03 40 58 28 | 01 1A FA 13 | 00 1A 31 | FF E6   | FF BC   | 00 01   | 07 AE D0 | 01 | 57 | 12 | 11 16 22 28 1C 24 20 20 14 1F 00 00 00 00 00 00 | 04 05 10 12 15 19 1A 1C 1D 1F 00 00 00 00 00 00 | 24 1C
+ * offset      | 0   | 1           | 5           | 9        | 12      | 14      | 16      | 18       | 21 | 22 | 23 | 24                                              | 40                                              | 56
+ * preambule   | fix | latitude    | longitude   | alt      | lat dir | lon dir | alt dir | gps time | ?  | ?  | 12 | satelites s/n ratio                             | satelites names (numbers)                       | checksum
  */
 
-#include "xm_gps.h"
 #include "config.h"
-#include "main.h"
+#include "xm_gps.h"
 #include "utils.h"
 
-#include <string.h>
+#ifdef GPS_DEBUG
+#include <stdio.h>
+#endif
 
-const uint8_t syncChain[] = {0xAA, 0xAA, 0xAA, 0x03};
+#define XM_PREAMBULE_LEN 4
+const uint8_t preambule[XM_PREAMBULE_LEN] = {0xAA, 0xAA, 0xAA, 0x03};
 
-float oldAlt = 0;
+typedef struct {
+  uint8_t Fix;
+  uint32_t Lat;
+  uint32_t Lon;
+  uint16_t CurrentAlt;
+  uint16_t PreviousAlt;
+  uint32_t CurrentTime;
+  uint32_t PreviousTime;
+  uint8_t Sats;
+} XmFrame;
 
-uint32_t oldTime = 0;
+XmFrame Xm;
 
-void ParseXM(GPS *GpsData, uint8_t *buffer, uint8_t position) {
-  GpsData->Fix = *(uint8_t *)(buffer + 4 + position);
+void ParseXmFrame(const uint8_t *buffer, const uint8_t frameStartPosition) {
+  const uint8_t pos = frameStartPosition + XM_PREAMBULE_LEN;
+  const uint8_t FIX_OFFSET = pos + 0;
+  const uint8_t LAT_OFFSET = pos + 1;
+  const uint8_t LON_OFFSET = pos + 5;
+  const uint8_t ALT_OFFSET = pos + 9;
+  // const uint8_t LAT_DIR_OFFSET = pos + 12;
+  // const uint8_t LON_DIR_OFFSET = pos + 14;
+  // const uint8_t ALT_DIR_OFFSET = pos + 16;
+  const uint8_t TIME_OFFSET = pos + 18;
+  const uint8_t SATS_OFFSET = pos + 24;
+  const uint8_t MAX_SATS = 16;
 
-  int32_t Lat;
-  memcpy(&Lat, buffer + 5 + position, sizeof(int32_t));
-  Lat = ((Lat & 0xFF000000) >> 24) | ((Lat & 0x00FF0000) >> 8) |
-        ((Lat & 0x0000FF00) << 8) | ((Lat & 0x000000FF) << 24);
-  int32_t Lon;
-  memcpy(&Lon, buffer + 9 + position, sizeof(int32_t));
-  Lon = ((Lon & 0xFF000000) >> 24) | ((Lon & 0x00FF0000) >> 8) |
-        ((Lon & 0x0000FF00) << 8) | ((Lon & 0x000000FF) << 24);
-
-  uint32_t Alt;
-  memcpy(&Alt, buffer + 12 + position, sizeof(uint32_t)); // from uint24_t
-  Alt = ((Alt & 0xFF000000) >> 24) | ((Alt & 0x00FF0000) >> 8) |
-        ((Alt & 0x0000FF00) << 8);
-
-  GpsData->Lat = Lat / 1e6;
-  GpsData->Lon = Lon / 1e6;
-  GpsData->Alt = Alt / 1e2;
-
-  uint32_t time;
-  memcpy(&time, buffer + 21 + position,
-         sizeof(uint32_t)); // from uint24_t
-  time = ((time & 0xFF000000) >> 24) |
-         ((time & 0x00FF0000) >> 8) |
-         ((time & 0x0000FF00) << 8);
-
-  if (GpsData->Fix == 3 && GpsData->Alt != 0) {
-    if (time != 0) {
-      if (oldTime == 0) {
-        oldAlt = GpsData->Alt;
-        oldTime = time;
-      }
-      if ((time - oldTime) < 0) {
-        time += 3600 * 24;
-      }
-      if ((time - oldTime) >= AscentRateTime) {
-        GpsData->AscentRate =
-            (int16_t)Round((float)(GpsData->Alt - oldAlt) / (time - oldTime) * 100);
-
-        if ((time - oldTime) < 0) {
-          time -= 3600 * 24;
-        }
-        oldAlt = GpsData->Alt;
-        oldTime = time;
-      }
-    } else {
-      oldTime = 0;
-    }
+  #ifdef GPS_DEBUG
+  printf("XM GPS raw frame: ");
+  for (int i = frameStartPosition; i < frameStartPosition + GPS_FRAME_LEN; i++) {
+    printf("%02X ", buffer[i]);
   }
+  printf("\r\n");
+  #endif
 
-  GpsData->Hours = (time / 3600) % 24;
-  GpsData->Minutes = (time / 60) % 60;
-  GpsData->Seconds = time % 60;
+  Xm.Fix = buffer[FIX_OFFSET];
+  Xm.Lat = convert_buffer_to_uint32(buffer + LAT_OFFSET, 4);
+  Xm.Lon = convert_buffer_to_uint32(buffer + LON_OFFSET, 4);
+  Xm.CurrentAlt = convert_buffer_to_uint32(buffer + ALT_OFFSET, 3);   // in centimeters
+  Xm.CurrentTime = convert_buffer_to_uint32(buffer + TIME_OFFSET, 3); // number of seconds from midnight
 
-  // memcpy(&GpsData->Sats, buffer + 27 + position, sizeof(uint8_t));
-  // not sure of this byte meaning (always 12)
-  for (GpsData->Sats = 0; GpsData->Sats < 16; GpsData->Sats++) {
-    if (buffer[position + 28 + GpsData->Sats] == 0) {
-      break;
-    }
+  Xm.Sats = 0;
+  while (buffer[SATS_OFFSET + Xm.Sats] != 0 && Xm.Sats < MAX_SATS)
+    Xm.Sats++;
+
+  if (Xm.Fix == 3 && Xm.CurrentAlt > 0 && Xm.CurrentTime > 0) {
+    Xm.PreviousAlt = Xm.CurrentAlt;
+    Xm.PreviousTime = Xm.CurrentTime;
   }
 }
 
-int8_t getPosition(uint8_t *buffer) {
-  for (uint8_t pos = 0; pos <= GPS_FRAME_LEN + 1; pos++) {
-    bool sync = true;
-    for (uint8_t syncCount = 0;
-         syncCount < sizeof(syncChain) / sizeof(syncChain[0]); syncCount++) {
-      if (buffer[pos + syncCount] != syncChain[syncCount]) {
-        sync = false;
+void ConvertXmToGpsData(GPS *GpsData) {
+  GpsData->Fix = Xm.Fix;
+  GpsData->Lat = (float)(Xm.Lat / 1e6); // converts from microdegrees to degrees
+  GpsData->Lon = (float)(Xm.Lon / 1e6); // converts from microdegrees to degrees
+  GpsData->Alt = Xm.CurrentAlt / 100;   // converts centimeters to meters
+  GpsData->Hours = (Xm.CurrentTime / 3600) % 24;
+  GpsData->Minutes = (Xm.CurrentTime / 60) % 60;
+  GpsData->Seconds = Xm.CurrentTime % 60;
+  GpsData->Sats = Xm.Sats;
+  if (timeDifference(Xm.PreviousTime, Xm.CurrentTime) > AscentRateTime)
+    GpsData->AscentRate = calculateAscentRate(Xm.PreviousAlt, Xm.CurrentAlt, Xm.PreviousTime, Xm.CurrentTime);
+  GpsData->Speed = 0;
+}
+
+int8_t getFrameStartPosition(const uint8_t *buffer) {
+  for (int8_t fpos = 0; fpos <= GPS_FRAME_LEN + XM_PREAMBULE_LEN; fpos++) {
+    if (buffer[fpos] == preambule[0]) {
+      if (buffer[fpos + 1] == preambule[1] &&
+          buffer[fpos + 2] == preambule[2] &&
+          buffer[fpos + 3] == preambule[3]) {
+        return fpos;
       }
-    }
-    if (sync) {
-      return pos;
     }
   }
   return -1;
 }
 
-void parseXMframe(GPS *GpsData, uint8_t *buffer) {
-  int8_t pos = getPosition(buffer);
-  if (pos != -1) {
-    ParseXM(GpsData, buffer, pos);
+void parseXM(GPS *GpsData, const uint8_t *buffer) {
+  const int8_t frameStartPosition = getFrameStartPosition(buffer);
+  if (frameStartPosition != -1) {
+    ParseXmFrame(buffer, frameStartPosition);
+    ConvertXmToGpsData(GpsData);
   } else {
     GpsData->Fix = 0;
   }
