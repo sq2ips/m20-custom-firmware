@@ -219,6 +219,6 @@ protect:
 	openocd -s ./openocd/ -f ./openocd/openocd_m20.cfg -c "init; halt; flash protect 0 0 7 off; exit"
 
 test:
-	gcc -o test_runner tests/xm_gps_test.c Core/Src/xm_gps.c Core/Src/utils.c -I Core/Inc && ./test_runner
+	gcc -o test_runner tests/test.c Core/Src/xm_gps.c Core/Src/utils.c -I Core/Inc && ./test_runner
 
 # *** EOF ***
