@@ -61,7 +61,7 @@ void ParseXmFrame(const uint8_t *buffer, const uint8_t frameStartPosition) {
   Xm.Fix = buffer[FIX_OFFSET];
   Xm.Lat = convert_buffer_to_uint32(buffer + LAT_OFFSET, 4);
   Xm.Lon = convert_buffer_to_uint32(buffer + LON_OFFSET, 4);
-  Xm.CurrentAlt = convert_buffer_to_uint32(buffer + ALT_OFFSET, 3) / 100; // convert centimeters to meters
+  Xm.CurrentAlt = convert_buffer_to_uint32(buffer + ALT_OFFSET, 3);   // in centimeters
   Xm.CurrentTime = convert_buffer_to_uint32(buffer + TIME_OFFSET, 3); // number of seconds from midnight
 
   Xm.Sats = 0;
@@ -76,14 +76,15 @@ void ParseXmFrame(const uint8_t *buffer, const uint8_t frameStartPosition) {
 
 void ConvertXmToGpsData(GPS *GpsData) {
   GpsData->Fix = Xm.Fix;
-  GpsData->Lat = (float)(Xm.Lat / 1e6);    // converts from microdegrees to degrees
-  GpsData->Lon = (float)(Xm.Lon / 1e6);    // converts from microdegrees to degrees
-  GpsData->Alt = Xm.CurrentAlt;
+  GpsData->Lat = (float)(Xm.Lat / 1e6); // converts from microdegrees to degrees
+  GpsData->Lon = (float)(Xm.Lon / 1e6); // converts from microdegrees to degrees
+  GpsData->Alt = Xm.CurrentAlt / 100;   // converts centimeters to meters
   GpsData->Hours = (Xm.CurrentTime / 3600) % 24;
   GpsData->Minutes = (Xm.CurrentTime / 60) % 60;
   GpsData->Seconds = Xm.CurrentTime % 60;
   GpsData->Sats = Xm.Sats;
-  GpsData->AscentRate = calculateAscentRate(Xm.PreviousAlt, Xm.CurrentAlt, Xm.PreviousTime, Xm.CurrentTime);
+  if (timeDifference(Xm.PreviousTime, Xm.CurrentTime) > AscentRateTime)
+    GpsData->AscentRate = calculateAscentRate(Xm.PreviousAlt, Xm.CurrentAlt, Xm.PreviousTime, Xm.CurrentTime);
 }
 
 int8_t getFrameStartPosition(const uint8_t *buffer) {

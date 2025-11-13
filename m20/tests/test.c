@@ -34,15 +34,36 @@ void test_convert_buffer_to_uint32_two_bytes() {
     TEST_ASSERT(result == 0x1234, "convert_buffer_to_uint32 two bytes test");
 }
 
+void test_timeDifference_basic() {
+    uint32_t t1 = 12 * 3600 + 30 * 60 + 30; // 12:30:30
+    uint32_t t2 = 12 * 3600 + 50 * 60 + 30; // 12:50:30
+    TEST_ASSERT(timeDifference(t1, t2) == 20 * 60, "timeDifference basic test (20 minutes)");
+}
+
+void test_timeDifference_midnight() {
+    uint32_t t1 = 23 * 3600 + 50 * 60; // 23:50:00
+    uint32_t t2 = 00 * 3600 + 10 * 60; // 00:10:00
+    TEST_ASSERT(timeDifference(t1, t2) == 20 * 60, "timeDifference crossing midnight");
+}
+
 void test_calculateAscentRate_basic() {
     uint32_t t1, t2;
-    t1 = 12 * 3600 + 30 * 60 + 30;
-    t2 = 12 * 3600 + 50 * 60 + 30; // t1 + 20 min
-    TEST_ASSERT(calculateAscentRate(1000, 1100, t1, t2) == 8, "calculateAscentRate basic");
-    t1 = 23 * 3600 + 50 * 60 + 30;
-    t2 = 00 * 3600 + 10 * 60 + 30; // t1 + 20 min
-    TEST_ASSERT(calculateAscentRate(1000, 1100, t1, t2) == 8, "calculateAscentRate basic cross midnight");
-    TEST_ASSERT(calculateAscentRate(1100, 1000, t1, t2) == -8, "calculateAscentRate basic descent");
+    t1 = 12 * 3600 + 30 * 60 + 00; // 12:30:00
+    t2 = 12 * 3600 + 30 * 60 + 30; // 12:30:30
+    // 90 m in 30 seconds => 90 * 100 cm in 30 seconds => 300 cm/s
+    TEST_ASSERT(calculateAscentRate(100 * 100, (100 + 90) * 100, t1, t2) == 300, "calculateAscentRate basic");
+    t1 = 12 * 3600 + 30 * 60 + 00; // 12:30:00
+    t2 = 12 * 3600 + 30 * 60 + 35; // 12:30:35
+    // 123 m in 35 seconds => 123 * 100 cm in 35 seconds => 351.42857142857144 cm/s
+    TEST_ASSERT(calculateAscentRate(100 * 100, (100 + 123) * 100, t1, t2) == 351, "calculateAscentRate basic with round");
+    t1 = 23 * 3600 + 59 * 60 + 00; // 23:59:00
+    t2 = 00 * 3600 + 01 * 60 + 00; // 00:01:00
+    // 231 m in 2 minutes => 231 * 100 cm in 2 * 60 seconds => 192.5 cm/s
+    TEST_ASSERT(calculateAscentRate(100 * 100, (100 + 231) * 100, t1, t2) == 193, "calculateAscentRate basic cross midnight");
+    t1 = 12 * 3600 + 30 * 60 + 00; // 12:30:00
+    t2 = 12 * 3600 + 31 * 60 + 00; // 12:31:00
+    // -231 m in 1 minute => -231 * 100 cm in 1 * 60 seconds => 385.0 cm/s
+    TEST_ASSERT(calculateAscentRate((100 + 231) * 100,  100 * 100, t1, t2) == -385, "calculateAscentRate basic descent");
 }
 
 void test_parseXMframe() {
@@ -82,6 +103,8 @@ int main() {
     test_convert_buffer_to_uint32_basic();
     test_convert_buffer_to_uint32_single_byte();
     test_convert_buffer_to_uint32_two_bytes();
+    test_timeDifference_basic();
+    test_timeDifference_midnight();
     test_calculateAscentRate_basic();
     test_parseXMframe();
 

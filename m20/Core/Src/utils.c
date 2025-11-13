@@ -51,6 +51,7 @@ uint32_t convert_buffer_to_uint32(const uint8_t *buffer, const uint8_t size) {
     return result;
 }
 
+// time difference in seconds, handles midnight crossing
 int16_t timeDifference(const uint32_t previousTime, const uint32_t currentTime) {
     if (previousTime < currentTime)
         return (int16_t)(currentTime - previousTime);
@@ -58,6 +59,7 @@ int16_t timeDifference(const uint32_t previousTime, const uint32_t currentTime) 
     return (int16_t)(24 * 60 * 60 - (previousTime - currentTime));
 }
 
+// ascent rate in cm/s
 int16_t calculateAscentRate(
     const uint16_t previousAlt,
     const uint16_t currentAlt,
@@ -67,8 +69,5 @@ int16_t calculateAscentRate(
     const int16_t altDiff = (int16_t)(currentAlt - previousAlt);
     const int16_t timeDiff = timeDifference(previousTime, currentTime);
 
-    if (timeDiff > AscentRateTime)
-        return (int16_t)Round((float)altDiff / timeDiff * 100);
-
-    return 0;
+    return (int16_t) Round((float)altDiff / timeDiff);
 }
