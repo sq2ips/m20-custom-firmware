@@ -81,13 +81,13 @@ void ConvertXmToGpsData(GPS *GpsData) {
     GpsData->Speed = 0;
     
     if (Xm.Fix == 3 && Xm.CurrentAlt > 0 && Xm.CurrentTime > 0) {
-      if(Xm.PreviousTime > 0 && Xm.PreviousAlt > 0){
-        if (timeDifference(Xm.PreviousTime, Xm.CurrentTime) > AscentRateTime){
+      if (Xm.PreviousTime > 0 && Xm.PreviousAlt > 0) {
+        if (timeDifference(Xm.PreviousTime, Xm.CurrentTime) > AscentRateTime) {
           GpsData->AscentRate = calculateAscentRate(Xm.PreviousAlt, Xm.CurrentAlt, Xm.PreviousTime, Xm.CurrentTime);
           Xm.PreviousAlt = Xm.CurrentAlt;
           Xm.PreviousTime = Xm.CurrentTime;
         }
-      }else{
+      } else {
         Xm.PreviousAlt = Xm.CurrentAlt;
         Xm.PreviousTime = Xm.CurrentTime;
       }
