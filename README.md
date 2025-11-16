@@ -12,7 +12,7 @@ In this stage the code works to the point where it gets GPS and sensors data, th
 - GPS (NMEA): :heavy_check_mark:
 - GPS (XM1110) :heavy_check_mark:
 - Radio (Horus): :heavy_check_mark:
-- Radio (APRS): In progress
+- Radio (APRS): :heavy_check_mark:
 - LPS22 barometer + temp sensor: :heavy_check_mark:
 - Uart: :heavy_check_mark:
 - Outside temperature sensor: :heavy_check_mark:
@@ -22,7 +22,7 @@ In this stage the code works to the point where it gets GPS and sensors data, th
 The currently implemented features are:
 - GPS time, position, altitude, speed (not working in XM1110), ascent rate and number of satellites (NMEA and XM1110)
 - changing u-blox module mode to airborne to allow higher altitude flights
-- Sending data over radio using Horus Binary V2 protocol
+- Sending data over radio using Horus Binary V2 protocol and/or APRS protocol
 - Getting battery voltage
 - Getting temperature and pressure
 - Getting external temperature
