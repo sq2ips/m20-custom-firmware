@@ -111,6 +111,16 @@ getValues(char *inputString,
   return cnt;
 }
 
+// https://docs.fixposition.com/fd/nmea-gp-gga
+// $GNGGA,090924.00,4724.01791,N,00827.02194,E,4,12,99.99,459.4,M,,,0.3,0000*16*3A\r\n
+//        ^      ^             ^ ^           ^   ^        ^
+// time (hhmmss.ss(ss)): UTC time (hours, minutes and seconds)
+// lat (ddmm.mmmmm(mm)): Latitude
+// lat_ns (char): Latitude north (N) or south (S) indicator
+// lon (dddmm.mmmmm(mm)): Longitude
+// lon_ew (char): Longitude east (E) or west (W) indicator
+// num_sv (decimal): Number of satellites. Range 00-12 in strict NMEA mode, 00-99 in high-precision NMEA mode
+// alt (float): Altitude in meters
 static bool nmea_GGA(GPS *GpsData, char *inputString) {
   char values[MAX_SENTENCE_ELEMENTS][SENTENCE_ELEMENT_LEN];
   memset(values, 0, sizeof(values));
@@ -200,6 +210,10 @@ static bool nmea_GGA(GPS *GpsData, char *inputString) {
   return 0;
 }
 
+// https://docs.fixposition.com/fd/nmea-gp-gsa
+// $GNGSA,A,3,04,06,07,09,11,16,20,30,,,,,0.98,0.49,0.85,1*0A\r\n
+//          ^
+// mode_nav (int): Navigation mode: 1 (fix not available), 2 (2D) or 3 (3D)
 static bool nmea_GSA(GPS *GpsData, char *inputString) {
   char values[MAX_SENTENCE_ELEMENTS][SENTENCE_ELEMENT_LEN];
   memset(values, 0, sizeof(values));
@@ -225,6 +239,13 @@ static bool nmea_GSA(GPS *GpsData, char *inputString) {
   return 1;
 }
 
+// https://docs.fixposition.com/fd/nmea-gp-gll
+// $GNGLL,4724.01791,N,00827.02194,E,090924.00,A,D*62\r\n
+//        ^          ^ ^           ^
+// lat (ddmm.mmmmm(mm)): Latitude
+// lat_ns (char): Latitude north (N) or south (S) indicator
+// lon (dddmm.mmmmm(mm)): Longitude
+// lon_ew (char): Longitude east (E) or west (W) indicator
 static bool nmea_GLL(GPS *GpsData, char *inputString) {
   char values[MAX_SENTENCE_ELEMENTS][SENTENCE_ELEMENT_LEN];
   memset(values, 0, sizeof(values));
@@ -271,6 +292,11 @@ static bool nmea_GLL(GPS *GpsData, char *inputString) {
   return 0;
 }
 
+// https://docs.fixposition.com/fd/nmea-gp-vtg
+// $GNVTG,0.0000,T,,M,0.01316,N,0.02437,K,D*3F\r\n
+//                    ^ knots   ^ km/h
+// sog_knot (float): Speed over ground in knots
+// sog_kph (float): Speed over ground in km/h
 static bool nmea_VTG(GPS *GpsData, char *inputString) {
   char values[MAX_SENTENCE_ELEMENTS][SENTENCE_ELEMENT_LEN];
   memset(values, 0, sizeof(values));
@@ -298,9 +324,9 @@ void ParseNMEA(GPS *GpsData, uint8_t *buffer) {
   for (uint8_t i = 0; i < cnt; i++) {
     if (strstr(data[i], "GN") != NULL && strstr(data[i], "\r\n") != NULL &&
         checksum(data[i])) {
-#if GPS_DEBUG
+      #if GPS_DEBUG
       printf(">%s", data[i]);
-#endif
+      #endif
       if (strstr(data[i], "GNGLL") != NULL) {
         if (nmea_GLL(GpsData, data[i]))
           correct++;
