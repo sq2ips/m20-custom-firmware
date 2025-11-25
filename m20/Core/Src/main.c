@@ -56,9 +56,7 @@
 uint8_t GpsRxBuffer[GpsRxBuffer_SIZE];
 uint16_t GpsBufferCounter = 0;
 bool GpsBufferReady = false;
-
 GPS GpsData;
-
 
 #if GPS_WATCHDOG
 struct GpsWatchdogStruct {
@@ -115,6 +113,7 @@ static void MX_TIM6_Init(void);
 static void MX_TIM21_Init(void);
 static void MX_TIM2_Init(void);
 /* USER CODE BEGIN PFP */
+float convert_temperature(uint16_t temp_adc_raw);
 void GPS_Handler(void);
 #if LED_MODE == 2
 void LED_Handler(void);
@@ -196,12 +195,7 @@ void main_loop(void) {
 
   LL_GPIO_ResetOutputPin(NTC_36K_GPIO_Port, NTC_36K_Pin);
 
-  // External temp calculating
-  // Rntc = Vout * R1 /  Vin - Vout
-  float NTC_R = ((temp_adc_raw * 36500) / (4096 - temp_adc_raw));
-  float NTC_T = 1 / (-0.000400644 + (0.000490078 * Log(NTC_R)) +
-                     (-0.000000720 * Log(NTC_R)*Log(NTC_R)*Log(NTC_R))) -
-                273.15;
+  float NTC_T = convert_temperature(temp_adc_raw);
   ExtTemp = (int16_t)Round(NTC_T * 10.0);
 #if DEBUG
   printf("NTC: raw: %d, Temp: %d /10 C\r\n", temp_adc_raw, ExtTemp);
@@ -1235,6 +1229,19 @@ static void MX_GPIO_Init(void)
 }
 
 /* USER CODE BEGIN 4 */
+float convert_temperature(uint16_t temp_adc_raw)
+{
+  // External temp calculating
+  // Rntc = Vout * R1 /  Vin - Vout
+
+  float NTC_R = ((temp_adc_raw * 36500) / (4096 - temp_adc_raw));
+  float NTC_T = 1 / (-0.000400644 + (0.000490078 * Log(NTC_R)) +
+                (-0.000000720 * Log(NTC_R)*Log(NTC_R)*Log(NTC_R))) -
+                273.15;
+
+  return NTC_T;
+}
+
 void GPS_Handler(void) {
   if (LL_LPUART_IsEnabledIT_RXNE(LPUART1) &&
       LL_LPUART_IsActiveFlag_RXNE(LPUART1)) {
