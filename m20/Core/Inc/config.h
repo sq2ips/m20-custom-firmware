@@ -20,10 +20,10 @@ const static float QRG_FSK4[] = {435100000}; // 4FSK transmitted frequencies arr
 #define FSK4_SPACE_MULTIPLIER 1 // Tone spacing multiplier - 1 for 244Hz, 2 for 488, etc.
 #define FSK4_HEADER_LENGTH 8    // Length in bytes of 4FSK header
 
+#define TX_PAUSE 1000 // Delay between HORUS and APRS
+
 // APRS (AX.25 AFSK HDLC Bell 202)
 #define APRS_ENABLE 1
-
-#define TX_PAUSE 1000 // Delay between HORUS and APRS
 
 const static float QRG_AFSK[] = {435100000}; // AFSK transmitted frequencies array, switched in a loop, add new frequencies (in Hz) after a comma in braces.
 #define AFSK_POWER 10              // RF power setting AFSK transmission values 0-63
@@ -34,7 +34,7 @@ const static float QRG_AFSK[] = {435100000}; // AFSK transmitted frequencies arr
 #define APRS_DESTINATION "APRM20" // Destination adress, characterizing a M20 transmitter, max 6 digits
 #define APRS_DESTINATION_SSID 0 // Default 0 SSID
 
-#define APRS_PATH "WIDE2" // Path, max 6 digits according to https://www.aprs.org/balloons.html
+#define APRS_PATH "WIDE2" // Path, max 6 digits according to https://www.aprs.org/balloons.html1
 #define APRS_PATH_SSID 1 // Path SSID
 
 #define APRS_SYMBOL "/O"        // baloon symbol, all symbols: https://www.aprs.org/symbols.html, needs to be /O for showing on Sondehub
