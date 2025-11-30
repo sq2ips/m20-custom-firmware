@@ -4,6 +4,7 @@
  */
 
 #include "nmea.h"
+
 #include "config.h"
 #include "main.h"
 #include "utils.h"
@@ -15,100 +16,113 @@
 
 static char data[DATA_SIZE][SENTENCE_SIZE];
 
-static uint8_t correct = 0;
-static uint16_t olddAlt = 0;
+static uint8_t correct   = 0;
+static uint16_t olddAlt  = 0;
 static uint32_t olddTime = 0;
 
-static uint16_t a_strtof(char *buffer) {
-  uint8_t d_pos = 0;
-  uint16_t value = 0;
+static uint16_t a_strtof(char* buffer)
+{
+	uint8_t d_pos  = 0;
+	uint16_t value = 0;
 
-  while (buffer[d_pos] != '.') {
-    if (buffer[d_pos] == '\0')
-      return 0;
-    d_pos++;
-  }
-  uint16_t e = 1;
-  for (int8_t pos = d_pos - 1; pos >= 0; pos--) {
-    value += (buffer[pos] - '0') * e;
-    e *= 10;
-  }
-  if ((buffer[d_pos + 1] - '0') >= 5)
-    value++; // rounding first decimal place
+	while (buffer[d_pos] != '.')
+	{
+		if (buffer[d_pos] == '\0') return 0;
+		d_pos++;
+	}
+	uint16_t e = 1;
+	for (int8_t pos = d_pos - 1; pos >= 0; pos--)
+	{
+		value += (buffer[pos] - '0') * e;
+		e *= 10;
+	}
+	if ((buffer[d_pos + 1] - '0') >= 5) value++; // rounding first decimal place
 
-  return value;
+	return value;
 }
 
-static uint8_t checksum(char *nmea_frame) {
-  // if you point a string with less than 5 characters the function will read
-  // outside of scope and crash the mcu.
-  if (strlen(nmea_frame) < 5)
-    return 0;
-  char recv_crc[2];
-  recv_crc[0] = nmea_frame[strlen(nmea_frame) - 4];
-  recv_crc[1] = nmea_frame[strlen(nmea_frame) - 3];
-  int crc = 0;
-  int i;
+static uint8_t checksum(char* nmea_frame)
+{
+	// if you point a string with less than 5 characters the function will read
+	// outside of scope and crash the mcu.
+	if (strlen(nmea_frame) < 5) return 0;
+	char recv_crc[2];
+	recv_crc[0] = nmea_frame[strlen(nmea_frame) - 4];
+	recv_crc[1] = nmea_frame[strlen(nmea_frame) - 3];
+	int crc     = 0;
+	int i;
 
-  // exclude the CRLF plus CRC with an * from the end
-  for (i = 0; i < strlen(nmea_frame) - 5; i++) {
-    crc ^= nmea_frame[i];
-  }
-  int receivedHash = 0;
-  for (int i = 0; i < 2; i++) {
-    receivedHash <<=
-        4; // Shift left by 4 bits (equivalent to multiplying by 16)
+	// exclude the CRLF plus CRC with an * from the end
+	for (i = 0; i < strlen(nmea_frame) - 5; i++)
+	{
+		crc ^= nmea_frame[i];
+	}
+	int receivedHash = 0;
+	for (int i = 0; i < 2; i++)
+	{
+		receivedHash <<= 4; // Shift left by 4 bits (equivalent to multiplying by 16)
 
-    if (recv_crc[i] >= '0' && recv_crc[i] <= '9') {
-      receivedHash += recv_crc[i] - '0'; // Convert '0'-'9' to 0-9
-    } else if (recv_crc[i] >= 'A' && recv_crc[i] <= 'F') {
-      receivedHash += recv_crc[i] - 'A' + 10; // Convert 'A'-'F' to 10-15
-    } else {
-      return 0;
-    }
-  }
+		if (recv_crc[i] >= '0' && recv_crc[i] <= '9')
+		{
+			receivedHash += recv_crc[i] - '0'; // Convert '0'-'9' to 0-9
+		}
+		else if (recv_crc[i] >= 'A' && recv_crc[i] <= 'F')
+		{
+			receivedHash += recv_crc[i] - 'A' + 10; // Convert 'A'-'F' to 10-15
+		}
+		else
+		{
+			return 0;
+		}
+	}
 
-  if (crc == receivedHash) {
-    return 1;
-  } else {
-    return 0;
-  }
+	if (crc == receivedHash)
+	{
+		return 1;
+	}
+	else
+	{
+		return 0;
+	}
 }
 
-static uint8_t
-getValues(char *inputString,
-          char values[MAX_SENTENCE_ELEMENTS][SENTENCE_ELEMENT_LEN]) {
-  uint8_t pos = 0;
-  uint8_t d_pos = 0;
-  uint8_t cnt = 0;
-  char buffer[SENTENCE_ELEMENT_LEN];
-  memset(buffer, 0, SENTENCE_ELEMENT_LEN);
+static uint8_t getValues(char* inputString, char values[MAX_SENTENCE_ELEMENTS][SENTENCE_ELEMENT_LEN])
+{
+	uint8_t pos   = 0;
+	uint8_t d_pos = 0;
+	uint8_t cnt   = 0;
+	char buffer[SENTENCE_ELEMENT_LEN];
+	memset(buffer, 0, SENTENCE_ELEMENT_LEN);
 
-  while (pos < strlen(inputString) && inputString[pos] != '\n' &&
-         pos < SENTENCE_SIZE && cnt < MAX_SENTENCE_ELEMENTS) {
-    if (inputString[pos] == ',') {
-      // If the length of the value is within buffer limits
-      if (pos - d_pos < SENTENCE_ELEMENT_LEN) {
-        strncpy(values[cnt], buffer,
-                pos - d_pos); // Copy the buffer into values[cnt]
-        memset(values[cnt] + (pos - d_pos), 0,
-               SENTENCE_ELEMENT_LEN - (pos - d_pos)); // Ensure null termination
-                                                      // cnt++;
-      }
-      cnt++;
-      // Reset buffer and update d_pos to start from next character
-      memset(buffer, 0, SENTENCE_ELEMENT_LEN);
-      d_pos = pos + 1;
-    } else {
-      // Check if writing to buffer exceeds its size
-      if (pos - d_pos <
-          SENTENCE_ELEMENT_LEN - 1) { // Ensure space for null terminator
-        buffer[pos - d_pos] = inputString[pos];
-      }
-    }
-    pos++;
-  }
-  return cnt;
+	while (pos < strlen(inputString) && inputString[pos] != '\n' && pos < SENTENCE_SIZE && cnt < MAX_SENTENCE_ELEMENTS)
+	{
+		if (inputString[pos] == ',')
+		{
+			// If the length of the value is within buffer limits
+			if (pos - d_pos < SENTENCE_ELEMENT_LEN)
+			{
+				strncpy(values[cnt], buffer,
+				        pos - d_pos); // Copy the buffer into values[cnt]
+				memset(values[cnt] + (pos - d_pos), 0,
+				       SENTENCE_ELEMENT_LEN - (pos - d_pos)); // Ensure null termination
+				                                              // cnt++;
+			}
+			cnt++;
+			// Reset buffer and update d_pos to start from next character
+			memset(buffer, 0, SENTENCE_ELEMENT_LEN);
+			d_pos = pos + 1;
+		}
+		else
+		{
+			// Check if writing to buffer exceeds its size
+			if (pos - d_pos < SENTENCE_ELEMENT_LEN - 1)
+			{ // Ensure space for null terminator
+				buffer[pos - d_pos] = inputString[pos];
+			}
+		}
+		pos++;
+	}
+	return cnt;
 }
 
 // https://docs.fixposition.com/fd/nmea-gp-gga
@@ -121,122 +135,134 @@ getValues(char *inputString,
 // lon_ew (char): Longitude east (E) or west (W) indicator
 // num_sv (decimal): Number of satellites. Range 00-12 in strict NMEA mode, 00-99 in high-precision NMEA mode
 // alt (float): Altitude in meters
-static bool nmea_GGA(GPS *GpsData, char *inputString) {
-  char values[MAX_SENTENCE_ELEMENTS][SENTENCE_ELEMENT_LEN];
-  memset(values, 0, sizeof(values));
-  uint8_t len = getValues(inputString, values);
-  if (len < 9)
-    return 0;
+static bool nmea_GGA(GPS* GpsData, char* inputString)
+{
+	char values[MAX_SENTENCE_ELEMENTS][SENTENCE_ELEMENT_LEN];
+	memset(values, 0, sizeof(values));
+	uint8_t len = getValues(inputString, values);
+	if (len < 9) return 0;
 
-  uint8_t h = (values[1][0] - '0') * 10 + (values[1][1] - '0');
-  uint8_t m = (values[1][2] - '0') * 10 + (values[1][3] - '0');
-  uint8_t s = (values[1][4] - '0') * 10 + (values[1][5] - '0');
+	uint8_t h = (values[1][0] - '0') * 10 + (values[1][1] - '0');
+	uint8_t m = (values[1][2] - '0') * 10 + (values[1][3] - '0');
+	uint8_t s = (values[1][4] - '0') * 10 + (values[1][5] - '0');
 
-  if (h < 24 && m <= 60 && s <= 60) {
-    GpsData->Hours = h;
-    GpsData->Minutes = m;
-    GpsData->Seconds = s;
-  }
+	if (h < 24 && m <= 60 && s <= 60)
+	{
+		GpsData->Hours   = h;
+		GpsData->Minutes = m;
+		GpsData->Seconds = s;
+	}
 
-  GpsData->Sats = (values[7][0] - '0') * 10 + (values[7][1] - '0');
+	GpsData->Sats = (values[7][0] - '0') * 10 + (values[7][1] - '0');
 
-  uint8_t lonSide = values[5][0];
-  uint8_t latSide = values[3][0];
-  if (latSide == 'S' || latSide == 'N') {
-    int deg = (values[2][0] - '0') * 10 + (values[2][1] - '0');
-    double min = (values[2][2] - '0') * 10 + (values[2][3] - '0');
-    double min_m;
-    for (int i = 0; i < 5; i++) {
-      min_m = values[2][i + 5] - '0';
-      for (int j = 0; j <= i; j++)
-        min_m /= 10;
-      min += min_m;
-    }
-    float lat = deg + (min / 60.0);
+	uint8_t lonSide = values[5][0];
+	uint8_t latSide = values[3][0];
+	if (latSide == 'S' || latSide == 'N')
+	{
+		int deg    = (values[2][0] - '0') * 10 + (values[2][1] - '0');
+		double min = (values[2][2] - '0') * 10 + (values[2][3] - '0');
+		double min_m;
+		for (int i = 0; i < 5; i++)
+		{
+			min_m = values[2][i + 5] - '0';
+			for (int j = 0; j <= i; j++)
+				min_m /= 10;
+			min += min_m;
+		}
+		float lat = deg + (min / 60.0);
 
-    deg = (values[4][0] - '0') * 100 + (values[4][1] - '0') * 10 +
-          (values[4][2] - '0');
-    min = (values[4][3] - '0') * 10 + (values[4][4] - '0');
-    for (int i = 0; i < 5; i++) {
-      min_m = values[4][i + 6] - '0';
-      for (int j = 0; j <= i; j++)
-        min_m /= 10;
-      min += min_m;
-    }
-    float lon = deg + (min / 60.0);
+		deg = (values[4][0] - '0') * 100 + (values[4][1] - '0') * 10 + (values[4][2] - '0');
+		min = (values[4][3] - '0') * 10 + (values[4][4] - '0');
+		for (int i = 0; i < 5; i++)
+		{
+			min_m = values[4][i + 6] - '0';
+			for (int j = 0; j <= i; j++)
+				min_m /= 10;
+			min += min_m;
+		}
+		float lon = deg + (min / 60.0);
 
-    if (lat <= 90.0 && lon <= 180.0) {
-      GpsData->Lat = lat;
-      GpsData->Lon = lon;
-      if (latSide == 'S')
-        GpsData->Lat *= -1;
-      if (lonSide == 'W')
-        GpsData->Lon *= -1;
+		if (lat <= 90.0 && lon <= 180.0)
+		{
+			GpsData->Lat = lat;
+			GpsData->Lon = lon;
+			if (latSide == 'S') GpsData->Lat *= -1;
+			if (lonSide == 'W') GpsData->Lon *= -1;
 
-      uint16_t altitude = a_strtof(values[9]);
+			uint16_t altitude = a_strtof(values[9]);
 
-      if (altitude != 0) {
-        GpsData->Alt = altitude;
-        uint32_t currentTime = h * 3600 + m * 60 + s;
+			if (altitude != 0)
+			{
+				GpsData->Alt         = altitude;
+				uint32_t currentTime = h * 3600 + m * 60 + s;
 
-        if (currentTime != 0) {
-          if (olddTime == 0) {
-            olddAlt = GpsData->Alt;
-            olddTime = currentTime;
-          }
-          if ((currentTime - olddTime) < 0) {
-            currentTime += 3600 * 24;
-          }
-          if ((currentTime - olddTime) >= AscentRateTime) {
-            GpsData->AscentRate =
-                (int16_t)Round((float)(GpsData->Alt - olddAlt) / (currentTime - olddTime) * 100);
-            if ((currentTime - olddTime) < 0) {
-              currentTime -= 3600 * 24;
-            }
-            olddAlt = GpsData->Alt;
-            olddTime = currentTime;
-          }
-        } else {
-          olddTime = 0;
-        }
-      }
+				if (currentTime != 0)
+				{
+					if (olddTime == 0)
+					{
+						olddAlt  = GpsData->Alt;
+						olddTime = currentTime;
+					}
+					if ((currentTime - olddTime) < 0)
+					{
+						currentTime += 3600 * 24;
+					}
+					if ((currentTime - olddTime) >= AscentRateTime)
+					{
+						GpsData->AscentRate = (int16_t)Round((float)(GpsData->Alt - olddAlt) / (currentTime - olddTime) * 100);
+						if ((currentTime - olddTime) < 0)
+						{
+							currentTime -= 3600 * 24;
+						}
+						olddAlt  = GpsData->Alt;
+						olddTime = currentTime;
+					}
+				}
+				else
+				{
+					olddTime = 0;
+				}
+			}
 
-      // GpsData->Fix = values[6][0]-'0';
+			// GpsData->Fix = values[6][0]-'0';
 
-      return 1;
-    }
-  }
+			return 1;
+		}
+	}
 
-  return 0;
+	return 0;
 }
 
 // https://docs.fixposition.com/fd/nmea-gp-gsa
 // $GNGSA,A,3,04,06,07,09,11,16,20,30,,,,,0.98,0.49,0.85,1*0A\r\n
 //          ^
 // mode_nav (int): Navigation mode: 1 (fix not available), 2 (2D) or 3 (3D)
-static bool nmea_GSA(GPS *GpsData, char *inputString) {
-  char values[MAX_SENTENCE_ELEMENTS][SENTENCE_ELEMENT_LEN];
-  memset(values, 0, sizeof(values));
-  uint8_t len = getValues(inputString, values);
-  if (len < 2)
-    return 0;
+static bool nmea_GSA(GPS* GpsData, char* inputString)
+{
+	char values[MAX_SENTENCE_ELEMENTS][SENTENCE_ELEMENT_LEN];
+	memset(values, 0, sizeof(values));
+	uint8_t len = getValues(inputString, values);
+	if (len < 2) return 0;
 
-  uint8_t fix = (values[2][0] - '0');
-  if (fix <= 3) {
-    GpsData->Fix = fix;
-  } else {
-    GpsData->Fix = 0;
-    return 0;
-  }
+	uint8_t fix = (values[2][0] - '0');
+	if (fix <= 3)
+	{
+		GpsData->Fix = fix;
+	}
+	else
+	{
+		GpsData->Fix = 0;
+		return 0;
+	}
 
-  /*int satelliteCount = 0;
-  for(int i=3; i<15; i++){
-      if(values[i][0] != 0){
-          satelliteCount++;
-      }
-  }
-  GpsData->Sats = satelliteCount;*/
-  return 1;
+	/*int satelliteCount = 0;
+	for(int i=3; i<15; i++){
+	    if(values[i][0] != 0){
+	        satelliteCount++;
+	    }
+	}
+	GpsData->Sats = satelliteCount;*/
+	return 1;
 }
 
 // https://docs.fixposition.com/fd/nmea-gp-gll
@@ -246,50 +272,51 @@ static bool nmea_GSA(GPS *GpsData, char *inputString) {
 // lat_ns (char): Latitude north (N) or south (S) indicator
 // lon (dddmm.mmmmm(mm)): Longitude
 // lon_ew (char): Longitude east (E) or west (W) indicator
-static bool nmea_GLL(GPS *GpsData, char *inputString) {
-  char values[MAX_SENTENCE_ELEMENTS][SENTENCE_ELEMENT_LEN];
-  memset(values, 0, sizeof(values));
-  uint8_t len = getValues(inputString, values);
-  if (len < 3)
-    return 0;
+static bool nmea_GLL(GPS* GpsData, char* inputString)
+{
+	char values[MAX_SENTENCE_ELEMENTS][SENTENCE_ELEMENT_LEN];
+	memset(values, 0, sizeof(values));
+	uint8_t len = getValues(inputString, values);
+	if (len < 3) return 0;
 
-  uint8_t lonSide = values[4][0];
-  uint8_t latSide = values[2][0];
-  if (latSide == 'S' || latSide == 'N') {
-    int deg = (values[1][0] - '0') * 10 + (values[1][1] - '0');
-    double min = (values[1][2] - '0') * 10 + (values[1][3] - '0');
-    double min_m;
-    for (int i = 0; i < 5; i++) {
-      min_m = values[1][i + 5] - '0';
-      for (int j = 0; j <= i; j++)
-        min_m /= 10;
-      min += min_m;
-    }
-    float lat = deg + (min / 60.0);
+	uint8_t lonSide = values[4][0];
+	uint8_t latSide = values[2][0];
+	if (latSide == 'S' || latSide == 'N')
+	{
+		int deg    = (values[1][0] - '0') * 10 + (values[1][1] - '0');
+		double min = (values[1][2] - '0') * 10 + (values[1][3] - '0');
+		double min_m;
+		for (int i = 0; i < 5; i++)
+		{
+			min_m = values[1][i + 5] - '0';
+			for (int j = 0; j <= i; j++)
+				min_m /= 10;
+			min += min_m;
+		}
+		float lat = deg + (min / 60.0);
 
-    deg = (values[3][0] - '0') * 100 + (values[3][1] - '0') * 10 +
-          (values[3][2] - '0');
-    min = (values[3][3] - '0') * 10 + (values[3][4] - '0');
-    for (int i = 0; i < 5; i++) {
-      min_m = values[3][i + 6] - '0';
-      for (int j = 0; j <= i; j++)
-        min_m /= 10;
-      min += min_m;
-    }
-    float lon = deg + (min / 60.0);
+		deg = (values[3][0] - '0') * 100 + (values[3][1] - '0') * 10 + (values[3][2] - '0');
+		min = (values[3][3] - '0') * 10 + (values[3][4] - '0');
+		for (int i = 0; i < 5; i++)
+		{
+			min_m = values[3][i + 6] - '0';
+			for (int j = 0; j <= i; j++)
+				min_m /= 10;
+			min += min_m;
+		}
+		float lon = deg + (min / 60.0);
 
-    if (lat <= 90.0 && lon <= 180.0) {
-      GpsData->Lat = lat;
-      GpsData->Lon = lon;
-      if (latSide == 'S')
-        GpsData->Lat *= -1;
-      if (lonSide == 'W')
-        GpsData->Lon *= -1;
-      return 1;
-    }
-  }
+		if (lat <= 90.0 && lon <= 180.0)
+		{
+			GpsData->Lat = lat;
+			GpsData->Lon = lon;
+			if (latSide == 'S') GpsData->Lat *= -1;
+			if (lonSide == 'W') GpsData->Lon *= -1;
+			return 1;
+		}
+	}
 
-  return 0;
+	return 0;
 }
 
 // https://docs.fixposition.com/fd/nmea-gp-vtg
@@ -297,49 +324,56 @@ static bool nmea_GLL(GPS *GpsData, char *inputString) {
 //                    ^ knots   ^ km/h
 // sog_knot (float): Speed over ground in knots
 // sog_kph (float): Speed over ground in km/h
-static bool nmea_VTG(GPS *GpsData, char *inputString) {
-  char values[MAX_SENTENCE_ELEMENTS][SENTENCE_ELEMENT_LEN];
-  memset(values, 0, sizeof(values));
-  uint8_t len = getValues(inputString, values);
-  if (len < 7)
-    return 0;
+static bool nmea_VTG(GPS* GpsData, char* inputString)
+{
+	char values[MAX_SENTENCE_ELEMENTS][SENTENCE_ELEMENT_LEN];
+	memset(values, 0, sizeof(values));
+	uint8_t len = getValues(inputString, values);
+	if (len < 7) return 0;
 
-  GpsData->Speed = a_strtof(values[7]); // 5 for knots, 7 for km/h
-  return 1;
+	GpsData->Speed = a_strtof(values[7]); // 5 for knots, 7 for km/h
+	return 1;
 }
 
-void ParseNMEA(GPS *GpsData, uint8_t *buffer) {
-  memset(data, 0, sizeof(data));
-  char *token = strtok((char *)buffer, "$");
-  uint8_t cnt = 0;
-  while (token != NULL && cnt < DATA_SIZE) {
-    if (strlen(token) < SENTENCE_SIZE) {
-      strncpy(data[cnt], token, SENTENCE_SIZE - 1);
-      data[cnt][SENTENCE_SIZE - 1] = '\0';
-      cnt++;
-    }
-    token = strtok(NULL, "$");
-  }
-  correct = 0;
-  for (uint8_t i = 0; i < cnt; i++) {
-    if (strstr(data[i], "GN") != NULL && strstr(data[i], "\r\n") != NULL &&
-        checksum(data[i])) {
-      #if GPS_DEBUG
-      printf(">%s", data[i]);
-      #endif
-      if (strstr(data[i], "GNGLL") != NULL) {
-        if (nmea_GLL(GpsData, data[i]))
-          correct++;
-      } else if (strstr(data[i], "GNGSA") != NULL) {
-        if (nmea_GSA(GpsData, data[i]))
-          correct++;
-      } else if (strstr(data[i], "GNGGA") != NULL) {
-        if (nmea_GGA(GpsData, data[i]))
-          correct++;
-      } else if (strstr(data[i], "GNVTG") != NULL) {
-        if (nmea_VTG(GpsData, data[i]))
-          correct++;
-      }
-    }
-  }
+void ParseNMEA(GPS* GpsData, uint8_t* buffer)
+{
+	memset(data, 0, sizeof(data));
+	char* token = strtok((char*)buffer, "$");
+	uint8_t cnt = 0;
+	while (token != NULL && cnt < DATA_SIZE)
+	{
+		if (strlen(token) < SENTENCE_SIZE)
+		{
+			strncpy(data[cnt], token, SENTENCE_SIZE - 1);
+			data[cnt][SENTENCE_SIZE - 1] = '\0';
+			cnt++;
+		}
+		token = strtok(NULL, "$");
+	}
+	correct = 0;
+	for (uint8_t i = 0; i < cnt; i++)
+	{
+		if (strstr(data[i], "GN") != NULL && strstr(data[i], "\r\n") != NULL && checksum(data[i]))
+		{
+#if GPS_DEBUG
+			printf(">%s", data[i]);
+#endif
+			if (strstr(data[i], "GNGLL") != NULL)
+			{
+				if (nmea_GLL(GpsData, data[i])) correct++;
+			}
+			else if (strstr(data[i], "GNGSA") != NULL)
+			{
+				if (nmea_GSA(GpsData, data[i])) correct++;
+			}
+			else if (strstr(data[i], "GNGGA") != NULL)
+			{
+				if (nmea_GGA(GpsData, data[i])) correct++;
+			}
+			else if (strstr(data[i], "GNVTG") != NULL)
+			{
+				if (nmea_VTG(GpsData, data[i])) correct++;
+			}
+		}
+	}
 }

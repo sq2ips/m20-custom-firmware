@@ -4,6 +4,7 @@
  */
 
 #include "fsk4.h"
+
 #include "adf.h"
 #include "config.h"
 #include "main.h"
@@ -24,79 +25,80 @@
  */
 
 static uint16_t current_2_bit = 0;
-static char *buffer;
+static char* buffer;
 static uint8_t buffer_len;
 static uint8_t QRGCounter = 0;
 
 bool FSK4_Active = false;
 
-void FSK4_stop_TX() {
-  TIM2->DIER &= ~(TIM_DIER_UIE); // Disable the interrupt
-  TIM2->CR1 &= ~(TIM_CR1_CEN); // Disable the counter
-  adf_RF_off();                  // turn TX off
-  FSK4_Active = false;
+void FSK4_stop_TX()
+{
+	TIM2->DIER &= ~(TIM_DIER_UIE); // Disable the interrupt
+	TIM2->CR1 &= ~(TIM_CR1_CEN);   // Disable the counter
+	adf_RF_off();                  // turn TX off
+	FSK4_Active = false;
 }
 
-static void FSK4_send_2bit(uint8_t bits_to_send) { // sends 2 bit value
-  bits_to_send =
-      (bits_to_send & 3); // make sure to take only 2 last bites of value - we
-                          // cannot send more than 2 bits at the same time
-  adf_4fsk_fone(bits_to_send * FSK4_SPACE_MULTIPLIER);
+static void FSK4_send_2bit(uint8_t bits_to_send)
+{                                      // sends 2 bit value
+	bits_to_send = (bits_to_send & 3); // make sure to take only 2 last bites of value - we
+	                                   // cannot send more than 2 bits at the same time
+	adf_4fsk_fone(bits_to_send * FSK4_SPACE_MULTIPLIER);
 }
 
-static void FSK4_write(char *buff, uint16_t address_2bit) {
-  int full_bytes = address_2bit / 4; // number of full bytes of address
-  int fraction_part =
-      address_2bit -
-      (full_bytes * 4); // fraction part of address (number of 2bytes offset)
-  uint8_t byte_to_send = (buff[full_bytes] >> (6 - (fraction_part * 2)) &
-                          3);   // returns 2 bytes of buffer at address
-  FSK4_send_2bit(byte_to_send); // sends those 2 bytes
+static void FSK4_write(char* buff, uint16_t address_2bit)
+{
+	int full_bytes       = address_2bit / 4;                                    // number of full bytes of address
+	int fraction_part    = address_2bit - (full_bytes * 4);                     // fraction part of address (number of 2bytes offset)
+	uint8_t byte_to_send = (buff[full_bytes] >> (6 - (fraction_part * 2)) & 3); // returns 2 bytes of buffer at address
+	FSK4_send_2bit(byte_to_send);                                               // sends those 2 bytes
 }
 
-void FSK4_timer_handler() { // called out by interrupt handling procedure in
-                            // main
+void FSK4_timer_handler()
+{ // called out by interrupt handling procedure in
+  // main
 
-  TIM2->CNT = 0; // reset timer  - make sure to have it at the beginning of
-                 // procedure, otherwise there will be some delays.
-  if (current_2_bit < (FSK4_HEADER_LENGTH * 4)) { // we are still in header
-    uint8_t tmp_offset = ((0xD8 >> current_2_bit % 4) & 3);
+	TIM2->CNT = 0; // reset timer  - make sure to have it at the beginning of
+	               // procedure, otherwise there will be some delays.
+	if (current_2_bit < (FSK4_HEADER_LENGTH * 4))
+	{ // we are still in header
+		uint8_t tmp_offset = ((0xD8 >> current_2_bit % 4) & 3);
 
-    FSK4_send_2bit(tmp_offset);
-  } else {
-    FSK4_write(buffer,
-               (current_2_bit -
-                (FSK4_HEADER_LENGTH *
-                 4))); // send 2 bits of data from address of current_2_bit * 2
-  }
-  current_2_bit++;
+		FSK4_send_2bit(tmp_offset);
+	}
+	else
+	{
+		FSK4_write(buffer,
+		           (current_2_bit - (FSK4_HEADER_LENGTH * 4))); // send 2 bits of data from address of current_2_bit * 2
+	}
+	current_2_bit++;
 
-  if (current_2_bit > ((buffer_len + FSK4_HEADER_LENGTH) * 4)) {
-    FSK4_stop_TX();
-  } // if we got to the end of data - finish transmitting
+	if (current_2_bit > ((buffer_len + FSK4_HEADER_LENGTH) * 4))
+	{
+		FSK4_stop_TX();
+	} // if we got to the end of data - finish transmitting
 }
 
-void FSK4_start_TX(char *buff, uint8_t len) {
-  buffer = buff;
-  buffer_len = len;
-  // adf_setup();
-  current_2_bit = 0; // reset counter of current position of bit address
-  adf_RF_on(QRG_FSK4[QRGCounter++], FSK4_POWER); // turn on radio TX
-  if (QRGCounter >= sizeof(QRG_FSK4) / sizeof(QRG_FSK4[0])) QRGCounter = 0;
-  FSK4_Active = true;                                 // change status
+void FSK4_start_TX(char* buff, uint8_t len)
+{
+	buffer     = buff;
+	buffer_len = len;
+	// adf_setup();
+	current_2_bit = 0;                             // reset counter of current position of bit address
+	adf_RF_on(QRG_FSK4[QRGCounter++], FSK4_POWER); // turn on radio TX
+	if (QRGCounter >= sizeof(QRG_FSK4) / sizeof(QRG_FSK4[0])) QRGCounter = 0;
+	FSK4_Active = true; // change status
 
-  // set ADF deviation to 0 to not disrupt the modulation
-  adf_set_deviation(0);
+	// set ADF deviation to 0 to not disrupt the modulation
+	adf_set_deviation(0);
 
-  TIM2->CR1 &= ~(TIM_CR1_CEN); // Disable the counter
-  uint16_t timer2StartValue =
-      (100000 / FSK4_BAUD) -
-      1; // timer value calculated according to baud rate 999 for 100bd
-  TIM2->PSC = FSK4_TIM_PSC;
-  TIM2->ARR = timer2StartValue; // set timer counter max value to pre-set value
-                                // for baudrate (auto-reload register)
-  TIM2->CR1 |= TIM_CR1_CEN;     // enable timer again
-  TIM2->DIER |= TIM_DIER_UIE;   // Enable the interrupt
-  FSK4_timer_handler();         // force execution of procedure responsible for
-                                // interrupt handling
+	TIM2->CR1 &= ~(TIM_CR1_CEN);                          // Disable the counter
+	uint16_t timer2StartValue = (100000 / FSK4_BAUD) - 1; // timer value calculated according to baud rate 999 for 100bd
+	TIM2->PSC                 = FSK4_TIM_PSC;
+	TIM2->ARR                 = timer2StartValue; // set timer counter max value to pre-set value
+	                                              // for baudrate (auto-reload register)
+	TIM2->CR1 |= TIM_CR1_CEN;                     // enable timer again
+	TIM2->DIER |= TIM_DIER_UIE;                   // Enable the interrupt
+	FSK4_timer_handler();                         // force execution of procedure responsible for
+	                                              // interrupt handling
 }
