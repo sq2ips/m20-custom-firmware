@@ -28,8 +28,8 @@ typedef struct {
   uint8_t Fix;
   uint32_t Lat;
   uint32_t Lon;
-  uint16_t CurrentAlt;
-  uint16_t PreviousAlt;
+  uint32_t CurrentAlt;
+  uint32_t PreviousAlt;
   uint32_t CurrentTime;
   uint32_t PreviousTime;
   uint8_t Sats;
