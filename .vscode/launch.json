@@ -18,25 +18,6 @@
         "./m20/openocd/"
       ],
       "showDevDebugOutput": "raw"
-    },
-    {
-      "name": "C/C++ Runner: Debug Session",
-      "type": "cppdbg",
-      "request": "launch",
-      "args": [],
-      "stopAtEntry": false,
-      "externalConsole": false,
-      "cwd": "/home/pawel/coding/m20-custom-firmware",
-      "program": "/home/pawel/coding/m20-custom-firmware/build/Debug/outDebug",
-      "MIMode": "gdb",
-      "miDebuggerPath": "gdb",
-      "setupCommands": [
-        {
-          "description": "Enable pretty-printing for gdb",
-          "text": "-enable-pretty-printing",
-          "ignoreFailures": true
-        }
-      ]
     }
   ]
 }
