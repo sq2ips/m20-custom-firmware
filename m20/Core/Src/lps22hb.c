@@ -17,8 +17,7 @@
 /**
  * @brief  SPI_RW
  */
-static uint8_t SPI_RW(uint8_t sendByte)
-{
+static uint8_t SPI_RW(uint8_t sendByte) {
 	SET_BIT(SPI1->CR1, SPI_CR1_SPE);
 	while (((SPI1->SR) & SPI_SR_TXE) != SPI_SR_TXE)
 		;                              // wait while tx-flag not empty
@@ -33,8 +32,7 @@ static uint8_t SPI_RW(uint8_t sendByte)
 	return *(uint8_t*)&(SPI1->DR); // return received data from SPI data register
 }
 
-static void LPS22_WriteReg(uint8_t writeAddr, uint8_t writeData)
-{
+static void LPS22_WriteReg(uint8_t writeAddr, uint8_t writeData) {
 	LL_GPIO_ResetOutputPin(LPS_CS_GPIO_Port, LPS_CS_Pin);
 	SPI_RW(writeAddr);
 	SPI_RW(writeData);
@@ -44,8 +42,7 @@ static void LPS22_WriteReg(uint8_t writeAddr, uint8_t writeData)
 /**
  *  @brief  LPS22_ReadReg
  */
-static uint8_t LPS22_ReadReg(uint8_t readAddr)
-{
+static uint8_t LPS22_ReadReg(uint8_t readAddr) {
 	uint8_t readData;
 
 	LL_GPIO_ResetOutputPin(LPS_CS_GPIO_Port, LPS_CS_Pin);
@@ -57,8 +54,7 @@ static uint8_t LPS22_ReadReg(uint8_t readAddr)
 }
 
 // #define LPS22HB_InitRegNum    5
-uint8_t LPS22_Init(void)
-{
+uint8_t LPS22_Init(void) {
 	uint8_t treg = 0;
 	//  uint8_t LPS22HB_InitData[LPS22HB_InitRegNum][2] = {
 	//    {0x00, LPS22HB_RES_CONF},       /* [0]  Normal mode (low-noise mode)  */
@@ -74,8 +70,7 @@ uint8_t LPS22_Init(void)
 	//    {0x30, MPU6500_USER_CTRL},      /* [10] Set I2C_MST_EN, I2C_IF_DIS    */
 	//  };
 
-	if (LPS22_DeviceCheck() != SUCCESS)
-	{
+	if (LPS22_DeviceCheck() != SUCCESS) {
 		return ERROR;
 	}
 
@@ -107,14 +102,12 @@ uint8_t LPS22_Init(void)
 /**
  *  @brief  LPS22_DeviceCheck
  */
-uint8_t LPS22_DeviceCheck(void)
-{
+uint8_t LPS22_DeviceCheck(void) {
 	uint8_t deviceID;
 
 	deviceID = LPS22_ReadReg(LPS22HB_WHO_AM_I);
 
-	if (deviceID != LPS22HB_DEVICE_ID)
-	{
+	if (deviceID != LPS22HB_DEVICE_ID) {
 		return ERROR;
 	}
 
@@ -124,8 +117,7 @@ uint8_t LPS22_DeviceCheck(void)
 /**
  *  @brief  LPS22_GetData
  */
-float LPS22_GetPress(void)
-{
+float LPS22_GetPress(void) {
 	uint8_t buff[3];
 	buff[0] = LPS22_ReadReg(LPS22HB_PRESS_OUT_XL);
 	buff[1] = LPS22_ReadReg(LPS22HB_PRESS_OUT_L);
@@ -134,13 +126,12 @@ float LPS22_GetPress(void)
 	float press = (uint32_t)(((buff[2] & 0x7F) << 16 | buff[1] << 8 | buff[0])) / LPS22HB_SENS_HPA;
 	return press;
 }
-float LPS22_GetTemp(void)
-{
+float LPS22_GetTemp(void) {
 	uint8_t buff[2];
-	buff[0]          = LPS22_ReadReg(LPS22HB_TEMP_OUT_L);
-	buff[1]          = LPS22_ReadReg(LPS22HB_TEMP_OUT_H);
+	buff[0] = LPS22_ReadReg(LPS22HB_TEMP_OUT_L);
+	buff[1] = LPS22_ReadReg(LPS22HB_TEMP_OUT_H);
 	int16_t raw_temp = (int16_t)(buff[1] << 8 | buff[0]);
-	float temp       = raw_temp / LPS22HB_SENS_DEGC;
+	float temp = raw_temp / LPS22HB_SENS_DEGC;
 	return temp;
 }
 

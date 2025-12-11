@@ -42,7 +42,7 @@ static const uint8_t sine_table[] = {
     56,  57,  59,  60,  61,  63,  64,  66,  67,  68,  70,  71,  72,  74,  75,  77,  78,  80,  81,  83,  84,  86,  87,  88,  90,  91,  93,  95,  96,
     98,  99,  101, 102, 104, 105, 107, 108, 110, 111, 113, 115, 116, 118, 119, 121, 122, 124, 125};
 
-static const uint16_t SINE_TABLE_SIZE  = sizeof(sine_table);
+static const uint16_t SINE_TABLE_SIZE = sizeof(sine_table);
 static const uint16_t AFSK_SAMPLE_RATE = MODEM_CLOCK_RATE / (AFSK_PWM_TIM_ARR + 1); // Frequency of PWM and rate of the sampling interrupt
 static const uint16_t PHASE_INC_MARC =
     ((SINE_TABLE_SIZE * BELL202_MARK) << 7) / AFSK_SAMPLE_RATE; // Phase increase for generating marc Bell 202 tone. Fixed point 9.7
@@ -51,22 +51,21 @@ static const uint16_t PHASE_INC_SPACE =
 static const uint16_t SAMPLES_PER_BAUD =
     (AFSK_SAMPLE_RATE << 8) / AFSK_BAUDRATE; // Number of samples after with the next next bit will be sent. Fixed point 8.8
 
-volatile static uint16_t phase_inc      = PHASE_INC_MARC; // current phase increase value, fixed point 9.7
-volatile static uint16_t phase          = 0;              // Current phase value, fixed point 9.7
+volatile static uint16_t phase_inc = PHASE_INC_MARC; // current phase increase value, fixed point 9.7
+volatile static uint16_t phase = 0;                  // Current phase value, fixed point 9.7
 volatile static uint16_t sample_in_baud = 0;
 
-static uint16_t bit_pos     = 0;
+static uint16_t bit_pos = 0;
 static uint8_t stuffing_cnt = 0;
-static bool stuff           = false;
+static bool stuff = false;
 
 static uint8_t QRGCounter = 0;
-bool AFSK_Active          = false; // Activity flag
+bool AFSK_Active = false; // Activity flag
 
 static char* buff;
 static uint8_t buff_len;
 
-void AFSK_stop_TX()
-{                                 // Disable TX
+void AFSK_stop_TX() {             // Disable TX
 	TIM21->CR1 &= ~(TIM_CR1_CEN); // Disable the PWM counter
 	TIM21->CNT = 0;
 	TIM21->DIER &= ~(TIM_DIER_UIE);       // Disable the interrupt
@@ -76,86 +75,66 @@ void AFSK_stop_TX()
 }
 
 // 0, N1-1 | N1, N1+N2-1 | N1+N2, N1+N2+buff_len-1 | N1+N2+buff_len, N1+N2+buff_len+N3-1
-static bool get_next_bit()
-{
-	if (bit_pos < (N1_SYNC_COUNT) * 8)
-	{
-		return 0; // N1 sync octet is 0x00
-	}
-	else if (bit_pos >= (N1_SYNC_COUNT) * 8 && bit_pos < (N1_SYNC_COUNT + N2_SYNC_COUNT) * 8)
-	{ // N2 octet sync section
+static bool get_next_bit() {
+	if (bit_pos < (N1_SYNC_COUNT) * 8) {
+		return 0;                                                                                 // N1 sync octet is 0x00
+	} else if (bit_pos >= (N1_SYNC_COUNT) * 8 && bit_pos < (N1_SYNC_COUNT + N2_SYNC_COUNT) * 8) { // N2 octet sync section
 		return (AFSK_SYNC_FLAG >> (7 - (bit_pos % 8))) & 1;
-	}
-	else if (bit_pos >= N1_SYNC_COUNT + N2_SYNC_COUNT * 8 && bit_pos < (N1_SYNC_COUNT + N2_SYNC_COUNT + buff_len) * 8)
-	{ // DATA section
+	} else if (bit_pos >= N1_SYNC_COUNT + N2_SYNC_COUNT * 8 && bit_pos < (N1_SYNC_COUNT + N2_SYNC_COUNT + buff_len) * 8) { // DATA section
 		bool bit = (buff[(bit_pos / 8) - (N1_SYNC_COUNT + N2_SYNC_COUNT)] >> (bit_pos % 8)) & 1;
-		if (bit)
-		{
+		if (bit) {
 			stuffing_cnt++;
-			if (stuffing_cnt >= 5)
-			{
+			if (stuffing_cnt >= 5) {
 				stuffing_cnt = 0;
-				stuff        = true;
+				stuff = true;
 			}
-		}
-		else
-		{
+		} else {
 			stuffing_cnt = 0;
 		}
 		return bit;
-	}
-	else if (bit_pos >= (N1_SYNC_COUNT + N2_SYNC_COUNT + buff_len) * 8 && bit_pos < (N1_SYNC_COUNT + N2_SYNC_COUNT + buff_len + N3_SYNC_COUNT) * 8)
-	{ // N3 octet sync section
+	} else if (bit_pos >= (N1_SYNC_COUNT + N2_SYNC_COUNT + buff_len) * 8 &&
+	           bit_pos < (N1_SYNC_COUNT + N2_SYNC_COUNT + buff_len + N3_SYNC_COUNT) * 8) { // N3 octet sync section
 		return (AFSK_SYNC_FLAG >> (7 - (bit_pos % 8))) & 1;
 	}
 
 	return 0; // Default return value for unexpected cases
 }
 
-void AFSK_timer_handler()
-{ // sampling and PWM timer (TIM21) changing duty cycle acoording to phase (and increasing it according to current tone)
+void AFSK_timer_handler() { // sampling and PWM timer (TIM21) changing duty cycle acoording to phase (and increasing it according to current tone)
 	TIM21->CCR1 = sine_table[(phase >> 7) + ((phase & (1 << 6)) >> 6)]; // Set the duty cycle to index from phase, rounding fixed point 9.7 to int
 
 	phase += phase_inc;                                                   // increase phase for generating wanted frequency
 	if (phase >= (SINE_TABLE_SIZE << 7)) phase -= (SINE_TABLE_SIZE << 7); // normalise phase value to be in bounds of array
 
-	if (sample_in_baud < (1 << 8))
-	{ // With the baudrate frequency process next bit of data
+	if (sample_in_baud < (1 << 8)) { // With the baudrate frequency process next bit of data
 
-		if (bit_pos >= (N1_SYNC_COUNT + N2_SYNC_COUNT + buff_len + N3_SYNC_COUNT) * 8)
-		{ // check for end of transmission
+		if (bit_pos >= (N1_SYNC_COUNT + N2_SYNC_COUNT + buff_len + N3_SYNC_COUNT) * 8) { // check for end of transmission
 			AFSK_stop_TX();
-		}
-		else
-		{
+		} else {
 			/*
 			 * "One implication of using HDLC is that frames are not encoded using the 1200Hz mark and 2200Hz
 			 * space symbols of traditional Bell 202, but instead use an inverted non-return to zero (NRZI) encoding.
 			 * NRZI calls for zeros in the original bit stream to be encoded as a continuous-phase frequency
 			 * transition between consecutive symbols, while ones are encoded as the lack of a frequency change between two symbols."
 			 */
-			if (stuff)
-			{
+			if (stuff) {
 				phase_inc ^= (PHASE_INC_MARC ^ PHASE_INC_SPACE);
 				bit_pos--;
 				stuff = false;
-			}
-			else if (get_next_bit() == 0)
+			} else if (get_next_bit() == 0)
 				phase_inc ^= (PHASE_INC_MARC ^ PHASE_INC_SPACE); // When bit is 0, change the current frequency, when 1 dont change it
 		}
 	}
 
 	sample_in_baud += (1 << 8);
-	if (sample_in_baud >= SAMPLES_PER_BAUD)
-	{
+	if (sample_in_baud >= SAMPLES_PER_BAUD) {
 		sample_in_baud -= SAMPLES_PER_BAUD;
 		bit_pos++; // increase bit counter
 	}
 }
 
-void AFSK_start_TX(char* buffer, uint8_t buffer_len)
-{
-	buff     = buffer;     // Set buffer pointer
+void AFSK_start_TX(char* buffer, uint8_t buffer_len) {
+	buff = buffer;         // Set buffer pointer
 	buff_len = buffer_len; // Set buffer length
 
 	adf_RF_on(QRG_AFSK[QRGCounter++], AFSK_POWER); // turn on radio TX
@@ -163,10 +142,10 @@ void AFSK_start_TX(char* buffer, uint8_t buffer_len)
 
 	AFSK_Active = true; // turn on activity flag
 	// phase_inc = PHASE_INC_MARC;   // first phase increase for marc tone
-	phase          = 0; // reset phase
+	phase = 0;          // reset phase
 	sample_in_baud = 0; // reset samples per baud
-	bit_pos        = 0; // reset bit position counter
-	stuffing_cnt   = 0;
+	bit_pos = 0;        // reset bit position counter
+	stuffing_cnt = 0;
 
 	// ADF module set deviation
 	adf_set_deviation(ADF_FSK_DEVIATION);

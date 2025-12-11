@@ -10,10 +10,8 @@
 #include "main.h"
 
 // Configuration storage structs =============================================
-struct
-{
-	struct
-	{
+struct {
+	struct {
 		uint16_t frequency_error_correction;
 		uint8_t r_divider;
 		uint8_t crystal_doubler;
@@ -23,15 +21,13 @@ struct
 		uint8_t output_divider;
 	} r0;
 
-	struct
-	{
+	struct {
 		uint16_t fractional_n;
 		uint8_t integer_n;
 		uint8_t prescaler;
 	} r1;
 
-	struct
-	{
+	struct {
 		uint8_t mod_control;
 		uint8_t gook;
 		uint8_t power_amplifier_level;
@@ -40,8 +36,7 @@ struct
 		uint8_t index_counter;
 	} r2;
 
-	struct
-	{
+	struct {
 		uint8_t pll_enable;
 		uint8_t pa_enable;
 		uint8_t clkout_enable;
@@ -75,8 +70,7 @@ void adf_write_register(uint32_t reg);
 // Configuration functions ===================================================
 
 // Config resetting functions --------------------------------------------
-void adf_reset_config(void)
-{
+void adf_reset_config(void) {
 	adf_reset_register_zero();
 	adf_reset_register_one();
 	adf_reset_register_two();
@@ -91,55 +85,50 @@ void adf_reset_config(void)
  * theory in 244z steps?
  */
 
-void adf_reset_register_zero(void)
-{
+void adf_reset_register_zero(void) {
 	adf_config.r0.frequency_error_correction = ADF_FREQ_CORRECTION; // 11Bit Freq err corr 0b10011 - or whatever reason
 	                                                                // M20
-	adf_config.r0.r_divider                  = 1;
-	adf_config.r0.crystal_doubler            = ADF_OFF;
+	adf_config.r0.r_divider = 1;
+	adf_config.r0.crystal_doubler = ADF_OFF;
 	adf_config.r0.crystal_oscillator_disable = 1; // osclator disabled - we are getting clock from STM
-	adf_config.r0.clock_out_divider          = 8; // 0b1000 = 8 FOR M20
-	adf_config.r0.vco_adjust                 = 3; // maximum VCO adjust b11
-	adf_config.r0.output_divider             = 1; // for M20
+	adf_config.r0.clock_out_divider = 8;          // 0b1000 = 8 FOR M20
+	adf_config.r0.vco_adjust = 3;                 // maximum VCO adjust b11
+	adf_config.r0.output_divider = 1;             // for M20
 }
 
-void adf_reset_register_one(void)
-{
+void adf_reset_register_one(void) {
 	adf_config.r1.fractional_n = 0;
-	adf_config.r1.integer_n    = 0;
-	adf_config.r1.prescaler    = ADF_PRESCALER_4_5;
+	adf_config.r1.integer_n = 0;
+	adf_config.r1.prescaler = ADF_PRESCALER_4_5;
 }
 
-void adf_reset_register_two(void)
-{
-	adf_config.r2.mod_control             = ADF_MODULATION_FSK;
-	adf_config.r2.gook                    = ADF_OFF;
-	adf_config.r2.power_amplifier_level   = 0; // power level
-	adf_config.r2.modulation_deviation    = ADF_FSK_DEVIATION;
+void adf_reset_register_two(void) {
+	adf_config.r2.mod_control = ADF_MODULATION_FSK;
+	adf_config.r2.gook = ADF_OFF;
+	adf_config.r2.power_amplifier_level = 0; // power level
+	adf_config.r2.modulation_deviation = ADF_FSK_DEVIATION;
 	adf_config.r2.gfsk_modulation_control = 0;
-	adf_config.r2.index_counter           = 0;
+	adf_config.r2.index_counter = 0;
 }
 
-void adf_reset_register_three(void)
-{
-	adf_config.r3.pll_enable          = ADF_OFF;
-	adf_config.r3.pa_enable           = ADF_OFF;
-	adf_config.r3.clkout_enable       = ADF_OFF;
-	adf_config.r3.data_invert         = ADF_ON;
+void adf_reset_register_three(void) {
+	adf_config.r3.pll_enable = ADF_OFF;
+	adf_config.r3.pa_enable = ADF_OFF;
+	adf_config.r3.clkout_enable = ADF_OFF;
+	adf_config.r3.data_invert = ADF_ON;
 	adf_config.r3.charge_pump_current = ADF_CP_CURRENT_1_5;
-	adf_config.r3.bleed_up            = ADF_OFF;
-	adf_config.r3.bleed_down          = ADF_OFF;
-	adf_config.r3.vco_disable         = ADF_OFF;
-	adf_config.r3.muxout              = ADF_MUXOUT_REG_READY;
-	adf_config.r3.ld_precision        = ADF_LD_PRECISION_3_CYCLES;
-	adf_config.r3.vco_bias            = 0; // was 4
-	adf_config.r3.pa_bias             = 7;
-	adf_config.r3.pll_test_mode       = 0;
-	adf_config.r3.sd_test_mode        = 0;
+	adf_config.r3.bleed_up = ADF_OFF;
+	adf_config.r3.bleed_down = ADF_OFF;
+	adf_config.r3.vco_disable = ADF_OFF;
+	adf_config.r3.muxout = ADF_MUXOUT_REG_READY;
+	adf_config.r3.ld_precision = ADF_LD_PRECISION_3_CYCLES;
+	adf_config.r3.vco_bias = 0; // was 4
+	adf_config.r3.pa_bias = 7;
+	adf_config.r3.pll_test_mode = 0;
+	adf_config.r3.sd_test_mode = 0;
 }
 
-void adf_reset(void)
-{
+void adf_reset(void) {
 	LL_GPIO_ResetOutputPin(ADF_CE_GPIO_Port, ADF_CE_Pin);
 	LL_GPIO_ResetOutputPin(RADIO_EN_GPIO_Port, RADIO_EN_Pin);
 	LL_GPIO_ResetOutputPin(ADF_LE_GPIO_Port, ADF_LE_Pin);
@@ -151,8 +140,7 @@ void adf_reset(void)
 	LL_GPIO_SetOutputPin(ADF_CE_GPIO_Port, ADF_CE_Pin);
 }
 
-void adf_turn_off(void)
-{
+void adf_turn_off(void) {
 	LL_GPIO_ResetOutputPin(RADIO_EN_GPIO_Port,
 	                       RADIO_EN_Pin); // TODO - check power consumption. Check
 	                                      // if registry is gone.
@@ -161,16 +149,14 @@ void adf_turn_off(void)
 
 // Configuration writing functions ---------------------------------------
 
-void adf_write_config(void)
-{
+void adf_write_config(void) {
 	adf_write_register_zero();
 	adf_write_register_one();
 	adf_write_register_two();
 	adf_write_register_three();
 }
 
-void adf_write_register_zero(void)
-{
+void adf_write_register_zero(void) {
 	uint32_t reg = (0) | ((adf_config.r0.frequency_error_correction & 0x7FF) << 2) | ((adf_config.r0.r_divider & 0xF) << 13) |
 	               ((adf_config.r0.crystal_doubler & 0x1) << 17) | ((adf_config.r0.crystal_oscillator_disable & 0x1) << 18) |
 	               ((adf_config.r0.clock_out_divider & 0xF) << 19) | ((adf_config.r0.vco_adjust & 0x3) << 23) |
@@ -178,23 +164,20 @@ void adf_write_register_zero(void)
 	adf_write_register(reg);
 }
 
-void adf_write_register_one(void)
-{
+void adf_write_register_one(void) {
 	uint32_t reg =
 	    (1) | ((adf_config.r1.fractional_n & 0xFFF) << 2) | ((adf_config.r1.integer_n & 0xFF) << 14) | ((adf_config.r1.prescaler & 0x1) << 22);
 	adf_write_register(reg);
 }
 
-void adf_write_register_two(void)
-{
+void adf_write_register_two(void) {
 	uint32_t reg = (2) | ((adf_config.r2.mod_control & 0x3) << 2) | ((adf_config.r2.gook & 0x1) << 4) |
 	               ((adf_config.r2.power_amplifier_level & 0x3F) << 5) | ((adf_config.r2.modulation_deviation & 0x1FF) << 11) |
 	               ((adf_config.r2.gfsk_modulation_control & 0x7) << 20) | ((adf_config.r2.index_counter & 0x3) << 23);
 	adf_write_register(reg);
 }
 
-void adf_write_register_three(void)
-{
+void adf_write_register_three(void) {
 	uint32_t reg = (3) | ((adf_config.r3.pll_enable & 0x1) << 2) | ((adf_config.r3.pa_enable & 0x1) << 3) |
 	               ((adf_config.r3.clkout_enable & 0x1) << 4) | ((adf_config.r3.data_invert & 0x1) << 5) |
 	               ((adf_config.r3.charge_pump_current & 0x3) << 6) | ((adf_config.r3.bleed_up & 0x1) << 8) |
@@ -204,8 +187,7 @@ void adf_write_register_three(void)
 	adf_write_register(reg);
 }
 
-void adf_write_register(uint32_t data)
-{
+void adf_write_register(uint32_t data) {
 	/*
 	 * Below procedure is not the prettiest one, but it works. Lots of work was
 	 * put into it, so be careful when changing. wl value might be changed - delay
@@ -227,15 +209,11 @@ void adf_write_register(uint32_t data)
 	for (uint16_t n = 0; n < wl; n++)
 		asm("NOP");
 
-	for (int i = 0; i < 32; i++)
-	{
+	for (int i = 0; i < 32; i++) {
 		LL_GPIO_ResetOutputPin(ADF_CLK_GPIO_Port, ADF_CLK_Pin);
-		if (data & 0b10000000000000000000000000000000)
-		{
+		if (data & 0b10000000000000000000000000000000) {
 			LL_GPIO_SetOutputPin(ADF_Data_GPIO_Port, ADF_Data_Pin);
-		}
-		else
-		{
+		} else {
 			LL_GPIO_ResetOutputPin(ADF_Data_GPIO_Port, ADF_Data_Pin);
 		}
 
@@ -255,33 +233,28 @@ void adf_write_register(uint32_t data)
 }
 
 // Configuration setting functions ---------------------------------------
-void adf_set_frequency_error_correction(uint16_t error)
-{
+void adf_set_frequency_error_correction(uint16_t error) {
 	adf_config.r0.frequency_error_correction = error;
 }
 
-void adf_set_r_divider(uint8_t r)
-{
+void adf_set_r_divider(uint8_t r) {
 	adf_config.r0.r_divider = r;
 }
 
-void adf_set_vco_adjust(uint8_t adjust)
-{
+void adf_set_vco_adjust(uint8_t adjust) {
 	adf_config.r0.vco_adjust = adjust;
 }
 
-void adf_set_frequency(float freq)
-{
-	float latch    = freq / ADF_CLOCK; // changed for 9MHz input
-	uint32_t Nint  = latch;
-	latch          = latch - Nint;
+void adf_set_frequency(float freq) {
+	float latch = freq / ADF_CLOCK; // changed for 9MHz input
+	uint32_t Nint = latch;
+	latch = latch - Nint;
 	uint32_t Nfrac = latch * 4096;
 	adf_set_n(Nint);
 	adf_set_m((uint16_t)Nfrac);
 }
 
-void adf_4fsk_fone(uint8_t tone)
-{
+void adf_4fsk_fone(uint8_t tone) {
 	/* minimum frequency change is defined as Fpfd/(2^15). Fpfd=osc/Rdiv (Rdiv=1
 	 * in our case). Thus for achieving 244Hz frequency step we have to provide
 	 * 8MHz osc signal using frequency adjust register is fastest, since one have
@@ -299,33 +272,27 @@ void adf_4fsk_fone(uint8_t tone)
 	adf_config.r0.frequency_error_correction = freq_corr_regist_tmp;                            // restore original value
 }
 
-void adf_set_n(uint8_t n)
-{
+void adf_set_n(uint8_t n) {
 	adf_config.r1.integer_n = n;
 }
 
-void adf_set_m(uint16_t m)
-{
+void adf_set_m(uint16_t m) {
 	adf_config.r1.fractional_n = m;
 }
 
-void adf_set_pa_level(uint8_t level)
-{
+void adf_set_pa_level(uint8_t level) {
 	adf_config.r2.power_amplifier_level = level;
 }
 
-void adf_set_pll_enable(uint8_t enable)
-{
+void adf_set_pll_enable(uint8_t enable) {
 	adf_config.r3.pll_enable = enable;
 }
 
-void adf_set_pa_enable(uint8_t enable)
-{
+void adf_set_pa_enable(uint8_t enable) {
 	adf_config.r3.pa_enable = enable;
 }
 
-void adf_setup(void)
-{
+void adf_setup(void) {
 	LL_GPIO_SetOutputPin(ADF_CE_GPIO_Port, ADF_CE_Pin);
 	adf_reset_config();
 	adf_set_r_divider(1);           // We will be using whole 8MHz for freq reference for adf7012
@@ -335,26 +302,21 @@ void adf_setup(void)
 	adf_write_config();
 }
 
-void adf_RF_on(float freq, uint8_t power)
-{ // arguments are TX frequency (Hz) and power level (0-63)
+void adf_RF_on(float freq, uint8_t power) { // arguments are TX frequency (Hz) and power level (0-63)
 	LL_GPIO_SetOutputPin(ADF_CE_GPIO_Port, ADF_CE_Pin);
 	adf_set_frequency(freq);
 	adf_set_pa_enable(ADF_ON);
 	adf_set_pa_level(power);
 	adf_write_config();
-	if (RF_BOOST)
-	{
+	if (RF_BOOST) {
 		LL_GPIO_ResetOutputPin(RF_Boost_GPIO_Port, RF_Boost_Pin);
-	}
-	else
-	{
+	} else {
 		LL_GPIO_SetOutputPin(RF_Boost_GPIO_Port, RF_Boost_Pin);
 	}
 	// boost 0 - is ON adf_write_register_three();
 }
 
-void adf_RF_off(void)
-{
+void adf_RF_off(void) {
 	adf_set_pa_enable(ADF_OFF);
 	adf_set_pa_level(0);
 	adf_write_config();
@@ -362,8 +324,7 @@ void adf_RF_off(void)
 	                     RF_Boost_Pin); // boost pin high for RF power off. Reduces power by ~15dB
 }
 
-void adf_set_deviation(uint16_t modulation_deviation)
-{
+void adf_set_deviation(uint16_t modulation_deviation) {
 	adf_config.r2.modulation_deviation = modulation_deviation;
 	adf_write_register_two();
 }

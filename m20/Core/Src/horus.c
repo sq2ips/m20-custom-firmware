@@ -16,17 +16,14 @@ const static char uw[] = {'$', '$'};
 #define MASK12 0xfffff800 /* auxiliary vector for testing */
 #define GENPOL 0x00000c75 /* generator polinomial, g(x) */
 
-uint16_t crc16(char* string, uint8_t len)
-{
+uint16_t crc16(char* string, uint8_t len) {
 	uint16_t crc = 0xffff;
 	char i;
 	uint8_t ptr = 0;
-	while (ptr < len)
-	{
+	while (ptr < len) {
 		ptr++;
 		crc = crc ^ (*(string++) << 8);
-		for (i = 0; i < 8; i++)
-		{
+		for (i = 0; i < 8; i++) {
 			if (crc & 0x8000)
 				crc = (uint16_t)((crc << 1) ^ 0x1021);
 			else
@@ -43,8 +40,7 @@ const static uint16_t primes[] = {2,   3,   5,   7,   11,  13,  17,  19,  23,  2
                                   179, 181, 191, 193, 197, 199, 211, 223, 227, 229, 233, 239, 241, 251, 257, 263, 269, 271, 277, 281,
                                   283, 293, 307, 311, 313, 317, 331, 337, 347, 349, 379, 383, 389, 757, 761, 769, 773};
 
-void interleave(unsigned char* inout, int nbytes, int dir)
-{
+void interleave(unsigned char* inout, int nbytes, int dir) {
 	uint16_t nbits = (uint16_t)nbytes * 8;
 	uint32_t i, j, n, ibit, ibyte, ishift, jbyte, jshift;
 	uint32_t b;
@@ -60,8 +56,7 @@ void interleave(unsigned char* inout, int nbytes, int dir)
 		i++;
 	b = primes[i - 1];
 
-	for (n = 0; n < nbits; n++)
-	{
+	for (n = 0; n < nbits; n++) {
 		/*
 		  "On the Analysis and Design of Good Algebraic Interleavers", Xie et al,eq
 		  (5)
@@ -70,20 +65,19 @@ void interleave(unsigned char* inout, int nbytes, int dir)
 		i = n;
 		j = (b * i) % nbits;
 
-		if (dir)
-		{
+		if (dir) {
 			uint16_t tmp = j;
-			j            = i;
-			i            = tmp;
+			j = i;
+			i = tmp;
 		}
 
 		/* read bit i and write to bit j postion */
 
-		ibyte  = i / 8;
+		ibyte = i / 8;
 		ishift = i % 8;
-		ibit   = (inout[ibyte] >> ishift) & 0x1;
+		ibit = (inout[ibyte] >> ishift) & 0x1;
 
-		jbyte  = j / 8;
+		jbyte = j / 8;
 		jshift = j % 8;
 
 		/* write jbit to ibit position */
@@ -100,8 +94,7 @@ void interleave(unsigned char* inout, int nbytes, int dir)
 
 /* 16 bit DVB additive scrambler as per Wikpedia example */
 
-void scramble(unsigned char* inout, int nbytes)
-{
+void scramble(unsigned char* inout, int nbytes) {
 	int nbits = nbytes * 8;
 	int i, ibit, ibits, ibyte, ishift, mask;
 	uint16_t scrambler = 0x4a80; /* init additive scrambler at start of every frame */
@@ -109,16 +102,15 @@ void scramble(unsigned char* inout, int nbytes)
 
 	/* in place modification of each bit */
 
-	for (i = 0; i < nbits; i++)
-	{
+	for (i = 0; i < nbits; i++) {
 		scrambler_out = ((scrambler & 0x2) >> 1) ^ (scrambler & 0x1);
 
 		/* modify i-th bit by xor-ing with scrambler output sequence */
 
-		ibyte  = i / 8;
+		ibyte = i / 8;
 		ishift = i % 8;
-		ibit   = (inout[ibyte] >> ishift) & 0x1;
-		ibits  = ibit ^ scrambler_out; // xor ibit with scrambler output
+		ibit = (inout[ibyte] >> ishift) & 0x1;
+		ibits = ibit ^ scrambler_out; // xor ibit with scrambler output
 
 		mask = 1 << ishift;
 		inout[ibyte] &= ~mask;           // clear i-th bit
@@ -146,8 +138,7 @@ int32_t get_syndrome(int32_t pattern)
 	int32_t aux = X22;
 
 	if (pattern >= X11)
-		while (pattern & MASK12)
-		{
+		while (pattern & MASK12) {
 			while (!(aux & pattern))
 				aux = aux >> 1;
 			pattern ^= (aux / X11) * GENPOL;
@@ -155,17 +146,16 @@ int32_t get_syndrome(int32_t pattern)
 	return (pattern);
 }
 
-int horus_l2_get_num_tx_data_bytes(int num_payload_data_bytes)
-{
+int horus_l2_get_num_tx_data_bytes(int num_payload_data_bytes) {
 	int num_payload_data_bits, num_golay_codewords;
 	int num_tx_data_bits, num_tx_data_bytes;
 
 	num_payload_data_bits = num_payload_data_bytes * 8;
-	num_golay_codewords   = num_payload_data_bits / 12;
+	num_golay_codewords = num_payload_data_bits / 12;
 	if (num_payload_data_bits % 12) /* round up to 12 bits, may mean some unused bits */
 		num_golay_codewords++;
 
-	num_tx_data_bits  = sizeof(uw) * 8 + num_payload_data_bits + num_golay_codewords * 11;
+	num_tx_data_bits = sizeof(uw) * 8 + num_payload_data_bits + num_golay_codewords * 11;
 	num_tx_data_bytes = num_tx_data_bits / 8;
 	if (num_tx_data_bits % 8) /* round up to nearest byte, may mean some unused bits */
 		num_tx_data_bytes++;
@@ -173,8 +163,7 @@ int horus_l2_get_num_tx_data_bytes(int num_payload_data_bytes)
 	return num_tx_data_bytes;
 }
 
-int horus_l2_encode_tx_packet(unsigned char* output_tx_data, unsigned char* input_payload_data, int num_payload_data_bytes)
-{
+int horus_l2_encode_tx_packet(unsigned char* output_tx_data, unsigned char* input_payload_data, int num_payload_data_bytes) {
 	int num_tx_data_bytes, num_payload_data_bits;
 	unsigned char* pout = output_tx_data;
 	int ninbit, ningolay, nparitybits;
@@ -192,19 +181,18 @@ int horus_l2_encode_tx_packet(unsigned char* output_tx_data, unsigned char* inpu
 	   8 parity bits.  Bits are written MSB first. */
 
 	num_payload_data_bits = num_payload_data_bytes * 8;
-	ninbit                = 0;
-	ingolay               = 0;
-	ningolay              = 0;
-	paritybyte            = 0;
-	nparitybits           = 0;
+	ninbit = 0;
+	ingolay = 0;
+	ningolay = 0;
+	paritybyte = 0;
+	nparitybits = 0;
 
-	while (ninbit < num_payload_data_bits)
-	{
+	while (ninbit < num_payload_data_bits) {
 		/* extract input data bit */
 
 		ninbyte = ninbit / 8;
-		shift   = 7 - (ninbit % 8);
-		inbit   = (input_payload_data[ninbyte] >> shift) & 0x1;
+		shift = 7 - (ninbit % 8);
+		inbit = (input_payload_data[ninbyte] >> shift) & 0x1;
 		ninbit++;
 
 		/* build up input golay codeword */
@@ -214,28 +202,21 @@ int horus_l2_encode_tx_packet(unsigned char* output_tx_data, unsigned char* inpu
 
 		/* when we get 12 bits do a Golay encode */
 
-		if (ningolay % 12)
-		{
+		if (ningolay % 12) {
 			ingolay <<= 1;
-		}
-		else
-		{
+		} else {
 			golayparity = get_syndrome(ingolay << 11);
-			ingolay     = 0;
+			ingolay = 0;
 
 			/* write parity bits to output data */
 
-			for (i = 0; i < 11; i++)
-			{
+			for (i = 0; i < 11; i++) {
 				golayparitybit = (golayparity >> (10 - i)) & 0x1;
-				paritybyte     = paritybyte | golayparitybit;
+				paritybyte = paritybyte | golayparitybit;
 				nparitybits++;
-				if (nparitybits % 8)
-				{
+				if (nparitybits % 8) {
 					paritybyte <<= 1;
-				}
-				else
-				{
+				} else {
 					/* OK we have a full byte ready */
 					*pout = paritybyte;
 					pout++;
@@ -248,26 +229,21 @@ int horus_l2_encode_tx_packet(unsigned char* output_tx_data, unsigned char* inpu
 	/* Complete final Golay encode, we may have partially finished ingolay,
 	 * paritybyte */
 
-	if (ningolay % 12)
-	{
+	if (ningolay % 12) {
 		ingolay >>= 1;
 		golayparity = get_syndrome(ingolay << 12);
 
 		/* write parity bits to output data */
 
-		for (i = 0; i < 11; i++)
-		{
+		for (i = 0; i < 11; i++) {
 			golayparitybit = (golayparity >> (10 - i)) & 0x1;
-			paritybyte     = paritybyte | golayparitybit;
+			paritybyte = paritybyte | golayparitybit;
 			nparitybits++;
-			if (nparitybits % 8)
-			{
+			if (nparitybits % 8) {
 				paritybyte <<= 1;
-			}
-			else
-			{
+			} else {
 				/* OK we have a full byte ready */
-				*pout++    = (unsigned char)paritybyte;
+				*pout++ = (unsigned char)paritybyte;
 				paritybyte = 0;
 			}
 		}
@@ -275,8 +251,7 @@ int horus_l2_encode_tx_packet(unsigned char* output_tx_data, unsigned char* inpu
 
 	/* and final, partially complete, parity byte */
 
-	if (nparitybits % 8)
-	{
+	if (nparitybits % 8) {
 		paritybyte <<= 7 - (nparitybits % 8); // use MS bits first
 		*pout++ = (unsigned char)paritybyte;
 	}
@@ -304,8 +279,7 @@ void print_hex(char* data, uint8_t length,
 {
 	uint8_t first;
 	int j = 0;
-	for (uint8_t i = 0; i < length; i++)
-	{
+	for (uint8_t i = 0; i < length; i++) {
 		first = ((uint8_t)data[i] >> 4) | 48;
 		if (first > 57)
 			tmp[j] = first + (uint8_t)39;
@@ -320,6 +294,6 @@ void print_hex(char* data, uint8_t length,
 			tmp[j] = first;
 		j++;
 	}
-	tmp[length * 2]     = '\n';
+	tmp[length * 2] = '\n';
 	tmp[length * 2 + 1] = 0;
 }

@@ -5,7 +5,7 @@ UseTab: ForIndentation    # Options: Never, ForIndentation, Always
 
 ColumnLimit: 150          # Max characters per line (0 = no limit)
 
-AlignConsecutiveAssignments: true
+AlignConsecutiveAssignments: false
 AlignTrailingComments: true
 
 KeepEmptyLines:
