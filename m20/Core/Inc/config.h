@@ -11,8 +11,7 @@
 // Horus Binary V2 4FSK mode
 #define HORUS_ENABLE 1
 
-const static float QRG_FSK4[] = {
-    435100000};       // 4FSK transmitted frequencies array, switched in a loop, add new frequencies (in Hz) after a comma in braces. Commonly used
+const static float QRG_FSK4[] = {435100000};       // 4FSK transmitted frequencies array, switched in a loop, add new frequencies (in Hz) after a comma in braces. Commonly used
                       // frequencies: https://github.com/projecthorus/horusdemodlib/wiki#commonly-used-frequencies
 #define FSK4_POWER 10 // RF power setting for horus transmission values 0-63
 
@@ -29,8 +28,7 @@ const static float QRG_FSK4[] = {
 
 #define TX_PAUSE 1000 // Delay between HORUS and APRS
 
-const static float QRG_AFSK[] = {
-    435100000};       // AFSK transmitted frequencies array, switched in a loop, add new frequencies (in Hz) after a comma in braces.
+const static float QRG_AFSK[] = {435100000};       // AFSK transmitted frequencies array, switched in a loop, add new frequencies (in Hz) after a comma in braces.
 #define AFSK_POWER 10 // RF power setting AFSK transmission values 0-63
 
 #define APRS_CALLSIGN "NOCALL" // Sonde callsign, max 6 digits, change this for your callsign for real flight
