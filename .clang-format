@@ -13,7 +13,7 @@ KeepEmptyLines:
   AtStartOfBlock: false
   AtStartOfFile: false
 
-BreakBeforeBraces: Allman  # Options: Attach, Linux, Stroustrup, Allman, GNU, WebKit
+BreakBeforeBraces: Attach  # Options: Attach, Linux, Stroustrup, Allman, GNU, WebKit
 
 AllowShortFunctionsOnASingleLine: InlineOnly
 AllowShortIfStatementsOnASingleLine: true
@@ -33,3 +33,4 @@ SortIncludes: true
 
 # Namespace indentation
 NamespaceIndentation: All  # Options: None, Inner, All
+
