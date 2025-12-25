@@ -1,0 +1,36 @@
+BasedOnStyle: LLVM        # Options: LLVM, Google, Chromium, Mozilla, WebKit
+IndentWidth: 4            # Number of spaces per indentation level
+TabWidth: 4
+UseTab: ForIndentation    # Options: Never, ForIndentation, Always
+
+ColumnLimit: 150          # Max characters per line (0 = no limit)
+
+AlignConsecutiveAssignments: false
+AlignTrailingComments: true
+
+KeepEmptyLines:
+  AtEndOfFile: true
+  AtStartOfBlock: false
+  AtStartOfFile: false
+
+BreakBeforeBraces: Attach  # Options: Attach, Linux, Stroustrup, Allman, GNU, WebKit
+
+AllowShortFunctionsOnASingleLine: InlineOnly
+AllowShortIfStatementsOnASingleLine: true
+AllowShortLoopsOnASingleLine: false
+
+PointerAlignment: Left     # Options: Left, Right, Middle
+
+SpacesInParentheses: false
+SpaceBeforeParens: ControlStatements  # e.g. `if (` but not `myFunction (`
+
+Cpp11BracedListStyle: true
+IndentCaseLabels: true
+
+# Sort include blocks and categorize them
+IncludeBlocks: Regroup
+SortIncludes: true
+
+# Namespace indentation
+NamespaceIndentation: All  # Options: None, Inner, All
+

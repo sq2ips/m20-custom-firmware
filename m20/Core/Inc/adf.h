@@ -69,6 +69,6 @@ void adf_set_deviation(uint16_t modulation_deviation);
 #define ADF_LD_PRECISION_3_CYCLES 0
 #define ADF_LD_PRECISION_5_CYCLES 1
 
-#define ADF_CLOCK 8000000       // Clock speed of adf7012 chip coming from STM32 (in Hz) (set to HSE 8MHz oscilator)
+#define ADF_CLOCK 8000000 // Clock speed of adf7012 chip coming from STM32 (in Hz) (set to HSE 8MHz oscilator)
 
 #endif
