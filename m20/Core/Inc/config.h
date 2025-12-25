@@ -6,7 +6,7 @@
 /*-----------------------------------------------------------------*/
 //  Sonde configuration, parameters that should be changed
 
-#define TIME_PERIOD 12 // Time betwen starts of transmissions (in seconds) (must be more than 3)
+#define TIME_PERIOD 12 // Time betwen starts of transmissions (in seconds) (must be more than 4+TX_PAUSE)
 
 // Horus Binary V2 4FSK mode
 #define HORUS_ENABLE 1
