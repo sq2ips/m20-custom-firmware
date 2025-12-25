@@ -19,10 +19,6 @@ const static float QRG_FSK4[] = {435100000};       // 4FSK transmitted frequenci
 	256 // Sonde payload ID 256 - for 4FSKTEST-V2, change this for real flight, refer to
 	    // https://github.com/projecthorus/horusdemodlib/wiki#how-do-i-transmit-it
 
-#define FSK4_BAUD 100           // Baudrate for horus 4FSK
-#define FSK4_SPACE_MULTIPLIER 1 // Tone spacing multiplier - 1 for 244Hz, 2 for 488, etc.
-#define FSK4_HEADER_LENGTH 8    // Length in bytes of 4FSK header
-
 // APRS (AX.25 AFSK HDLC Bell 202)
 #define APRS_ENABLE 1
 
