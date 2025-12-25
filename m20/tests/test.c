@@ -72,7 +72,7 @@ void test_parseXMframe() {
         0x03,                   // fix
         0x03, 0x40, 0x58, 0x28, // latitude => 54.548519
         0x01, 0x1A, 0xFA, 0x13, // longitude => 18.545172
-        0x00, 0x1A, 0x31,       // alt => 67
+        0x01, 0x1A, 0x31,       // alt => 722
         0xFF, 0xE6,             // lat dir
         0xFF, 0xBC,             // lon dir
         0x00, 0x01,             // alt dir
@@ -89,7 +89,7 @@ void test_parseXMframe() {
     TEST_ASSERT(gps.Fix == 3, "ParseXM Fix");
     TEST_ASSERT(gps.Lat > 54.54 && gps.Lat < 54.55, "ParseXM Lat");
     TEST_ASSERT(gps.Lon > 18.54 && gps.Lon < 18.55, "ParseXM Lon");
-    TEST_ASSERT(gps.Alt == 67, "ParseXM Alt");
+    TEST_ASSERT(gps.Alt == 722, "ParseXM Alt");
     TEST_ASSERT(gps.Hours == 19, "ParseXM Hours");
     TEST_ASSERT(gps.Minutes == 51, "ParseXM Minutes");
     TEST_ASSERT(gps.Seconds == 44, "ParseXM Seconds");

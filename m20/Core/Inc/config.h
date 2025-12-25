@@ -19,13 +19,13 @@ const static float QRG_FSK4[] = {435100000};       // 4FSK transmitted frequenci
 	256 // Sonde payload ID 256 - for 4FSKTEST-V2, change this for real flight, refer to
 	    // https://github.com/projecthorus/horusdemodlib/wiki#how-do-i-transmit-it
 
+#define TX_PAUSE 1000 // Delay between HORUS and APRS
+
 // APRS (AX.25 AFSK HDLC Bell 202)
 #define APRS_ENABLE 1
 
-#define TX_PAUSE 1000 // Delay between HORUS and APRS
-
-const static float QRG_AFSK[] = {435100000};       // AFSK transmitted frequencies array, switched in a loop, add new frequencies (in Hz) after a comma in braces.
-#define AFSK_POWER 10 // RF power setting AFSK transmission values 0-63
+const static float QRG_AFSK[] = {435100000}; // AFSK transmitted frequencies array, switched in a loop, add new frequencies (in Hz) after a comma in braces.
+#define AFSK_POWER 10              // RF power setting AFSK transmission values 0-63
 
 #define APRS_CALLSIGN "NOCALL" // Sonde callsign, max 6 digits, change this for your callsign for real flight
 #define APRS_SSID 11           // Sonde SSID, 11 is "balloons, aircraft, spacecraft, etc", refer to https://www.aprs.org/aprs11/SSIDs.txt

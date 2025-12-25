@@ -36,8 +36,6 @@ The currently implemented features are:
 - Implementing XM1110 GPS speed data
 - implementing humidity sensors
 
-## APRS implementation in progress on branch develop
-
 # Known issues
 - High frequency instability (no TCXO)
 - Transmitted frequency "jumps"
@@ -182,8 +180,10 @@ Parameters list:
 | **`QRG_FSK4`** | float[] (in Hz) | Transmitted frequencies array of Horus 4-FSK, switched in a loop, add new frequencies after a comma in braces. Refer to [Horus wiki](https://github.com/projecthorus/horusdemodlib/wiki#commonly-used-frequencies) for commonly used frequencies. |
 | **`FSK4_POWER`** | uint | Number from 0 to 63. See the table bellow. |
 | **`HORUS_PAYLOAD_ID`** | uint16 | Payload ID transmitted in Horus Binary frame, in order to conduct a flight you need to request one for your callsign, more information in the [Protocol documentation](https://github.com/projecthorus/horusdemodlib/wiki#how-do-i-transmit-it). For testing ID 256 is used. |
-| `HORUS_BAUD` | uint | Baudrate of the 4-FSK transmission. |
+| `FSK4_BAUD` | uint | Baudrate of the 4-FSK transmission. |
 | `FSK4_SPACE_MULTIPLIER` | uint | Tone spacing multiplier - 1 for 244Hz, 2 for 488, etc. |
+| `FSK4_HEADER_LENGTH` | uint | Length in bytes of 4FSK sync header. |
+| `TX_PAUSE` | uint (ms) | Delay between HORUS and APRS when both are enabled. |
 | `APRS_ENABLE` | bool | Enables the APRS AFSK transmission. |
 | **`QRG_AFSK`** | float[] (in Hz) | Just like `QRG_4FSK`, commonly used in europe is 432.500MHz. |
 | **`AFSK_POWER`** | uint | Just like `FSK4_POWER`. |
@@ -191,10 +191,8 @@ Parameters list:
 | `APRS_SSID` | uint | Sonde callsign SSID, 11 is "balloons, aircraft, spacecraft, etc", refer to https://www.aprs.org/aprs11/SSIDs.txt. |
 | `APRS_DESTINATION` | string | Destination adress, characterizing a M20 transmitter (max 6 digits). |
 | `APRS_DESTINATION_SSID` | uint | Destination adress SSID. |
-| `APRS_PATH_1` | string | APRS path 1, refer to https://blog.aprs.fi/2020/02/how-aprs-paths-work.html, (max 6 digits). |
-| `APRS_PATH_1_SSID` | string | APRS path 1 SSID, note example WIDE1-2, will be "WIDE1" as `APRS_PATH_1` and 2 as `APRS_PATH_1_SSID`. |
-| `APRS_PATH_2` | string | Just like `APRS_PATH_1`. |
-| `APRS_PATH_2_SSID` | string | Just like `APRS_PATH_2_SSID`. |
+| `APRS_PATH` | string | APRS path 1, refer to https://blog.aprs.fi/2020/02/how-aprs-paths-work.html, (max 6 digits). |
+| `APRS_PATH_SSID` | string | APRS path 1 SSID, note example WIDE2-1, will be "WIDE2" as `APRS_PATH` and 1 as `APRS_PATH_SSID`. [Balloons recomended path](https://www.aprs.org/balloons.html). |
 | `APRS_SYMBOL` | string (2 characters) | First character is symbol table ID, eather / or \\, second character is the symbol. /O is balloon, [all symbols](https://www.aprs.org/symbols.html). Needs to be /O for showing on Sondehub. |
 | `APRS_COMMENT_TELEMETRY` | bool | Enable telemetry in APRS comment field. |
 | **`APRS_COMMENT_TEXT`** | string | Additional text in comment field. |
@@ -209,13 +207,12 @@ Parameters list:
 | `GPS_WATCHDOG` | bool | Enable [GPS Watchdog](#gps-watchdog). |
 | `GPS_WATCHDOG_ARC` | uint | Number of main loop iterations without GPS fix that will trigger restart (Only if there was fix before). |
 | `AscentRateTime` | uint | Time of ascent rate measure. |
-| `GPS_DEBUG` | bool | Enable GPS debug. |
 | `LPS22_ENABLE` | bool | Enable LPS22 sensor. |
 | `NTC_ENABLE` | bool | Enable NTC external temperature sensor. |
 | `BAT_ADC_ENABLE` | bool | Enable battery voltage measure. |
 | `DEBUG` | bool | Enable debug info over UART. |
-
-
+| `GPS_DEBUG` | bool | Enable GPS data debug. |
+| `GPS_RAW_DEBUG` | bool | Enable GPS raw frames debug. |
 
 ## Power setting
 Power setting, `RF_BOOST` is on, mesured at 437.600MHz, directly at output.
