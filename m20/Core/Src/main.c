@@ -81,6 +81,7 @@ int8_t LpsTemp = 0;
 uint16_t LpsPress = 0; // *10
 
 uint16_t BatVoltage = 0;
+uint16_t PayloadVoltage = 0;
 
 int16_t ExtTemp = 0; // *10
 
@@ -166,6 +167,20 @@ void main_loop(void) {
 	}
 #if DEBUG
 	printf("LPS22: Temp: %d C, press: %d /10 hPa\r\n", LpsTemp, LpsPress);
+#endif
+#endif
+
+	// Payload / PV voltage
+#if PAYLOAD_ADC_ENABLE
+	LL_ADC_REG_SetSequencerChannels(ADC1, LL_ADC_CHANNEL_0);
+	LL_ADC_REG_StartConversion(ADC1);
+	while (LL_ADC_IsActiveFlag_EOC(ADC1) == 0) {
+	}
+	PayloadVoltage = (LL_ADC_REG_ReadConversionData12(ADC1) * (PAYLOAD_ADC_R1 + PAYLOAD_ADC_R2)) /
+	                 PAYLOAD_ADC_R2; // Raw payload voltage scaled by resistor divider
+	LL_ADC_ClearFlag_EOS(ADC1);
+#if DEBUG
+	printf("Bat voltage value: %d\r\n", BatVoltage);
 #endif
 #endif
 
@@ -271,6 +286,7 @@ void main_loop(void) {
 	AprsPacket.ExtTemp = ExtTemp;
 	AprsPacket.Press = LpsPress;
 	AprsPacket.BatVoltage = Round((BatVoltage * 3300.0f) / 4095);
+	AprsPacket.PayloadVoltage = Round((PayloadVoltage * 3300.0f) / 4095);
 
 	BufferLen = encode_APRS_packet(AprsPacket, CodedBuffer);
 
@@ -302,6 +318,7 @@ void main_loop(void) {
 	// gives 187/4550 Note: this value will not go higher than 168 corresponding
 	// to 3.3V max value of ADC
 	HorusPacket.BatVoltage = (BatVoltage * 187) / 4550;
+	HorusPacket.PayloadVoltage = (PayloadVoltage * 187) / 4550; // Same as above but prescaled previously by resistor divider values
 	HorusPacket.ExtTemp = ExtTemp;
 	HorusPacket.Hum = 0; // Not implemented
 	HorusPacket.Press = LpsPress;
@@ -399,7 +416,6 @@ int main(void) {
 
 #if HORUS_ENABLE
 	HorusPacket.PayloadID = HORUS_PAYLOAD_ID;
-	HorusPacket.Unused = 32; // number in unused packet space, can be used to identify M20 transmitter durring flight, value is not important
 #endif
 
 	// Init of LPS22 sensor, try 5 times
@@ -540,10 +556,11 @@ static void MX_ADC_Init(void) {
 	/* Peripheral clock enable */
 	LL_APB2_GRP1_EnableClock(LL_APB2_GRP1_PERIPH_ADC1);
 
+	LL_IOP_GRP1_EnableClock(LL_IOP_GRP1_PERIPH_GPIOA);
 	LL_IOP_GRP1_EnableClock(LL_IOP_GRP1_PERIPH_GPIOC);
 	LL_IOP_GRP1_EnableClock(LL_IOP_GRP1_PERIPH_GPIOB);
 	/**ADC GPIO Configuration
-	PC0   ------> ADC_IN10
+	PA0   ------> ADC_IN0
 	PC4   ------> ADC_IN14
 	PB0   ------> ADC_IN8
 	*/
@@ -568,11 +585,11 @@ static void MX_ADC_Init(void) {
 
 	/** Configure Regular Channel
 	 */
-	LL_ADC_REG_SetSequencerChAdd(ADC1, LL_ADC_CHANNEL_8);
+	LL_ADC_REG_SetSequencerChAdd(ADC1, LL_ADC_CHANNEL_0);
 
 	/** Configure Regular Channel
 	 */
-	LL_ADC_REG_SetSequencerChAdd(ADC1, LL_ADC_CHANNEL_10);
+	LL_ADC_REG_SetSequencerChAdd(ADC1, LL_ADC_CHANNEL_8);
 
 	/** Configure Regular Channel
 	 */

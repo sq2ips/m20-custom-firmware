@@ -24,8 +24,8 @@ const static float QRG_FSK4[] = {435100000};       // 4FSK transmitted frequenci
 // APRS (AX.25 AFSK HDLC Bell 202)
 #define APRS_ENABLE 1
 
-const static float QRG_AFSK[] = {435100000}; // AFSK transmitted frequencies array, switched in a loop, add new frequencies (in Hz) after a comma in braces.
-#define AFSK_POWER 10              // RF power setting AFSK transmission values 0-63
+const static float QRG_AFSK[] = {435100000};       // AFSK transmitted frequencies array, switched in a loop, add new frequencies (in Hz) after a comma in braces.
+#define AFSK_POWER 10               // RF power setting AFSK transmission values 0-63
 
 #define APRS_CALLSIGN "NOCALL" // Sonde callsign, max 6 digits, change this for your callsign for real flight
 #define APRS_SSID 11           // Sonde SSID, 11 is "balloons, aircraft, spacecraft, etc", refer to https://www.aprs.org/aprs11/SSIDs.txt
@@ -79,5 +79,9 @@ const static float QRG_AFSK[] = {435100000}; // AFSK transmitted frequencies arr
 #define GPS_DEBUG 0
 
 #define GPS_RAW_DEBUG 0
+
+#define PAYLOAD_ADC_ENABLE 1
+#define PAYLOAD_ADC_R1 100
+#define PAYLOAD_ADC_R2 220
 
 #endif /* INC_CONFIG_H_ */

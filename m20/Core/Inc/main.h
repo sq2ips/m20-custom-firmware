@@ -81,7 +81,7 @@ void main_loop(void);
 #define LED_Pin LL_GPIO_PIN_14
 #define LED_GPIO_Port GPIOC
 #define PAYLOAD_ADC_Pin LL_GPIO_PIN_0
-#define PAYLOAD_ADC_GPIO_Port GPIOC
+#define PAYLOAD_ADC_GPIO_Port GPIOA
 #define LPS_CS_Pin LL_GPIO_PIN_4
 #define LPS_CS_GPIO_Port GPIOA
 #define NTC_ADC_Pin LL_GPIO_PIN_4
