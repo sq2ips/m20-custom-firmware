@@ -130,8 +130,8 @@ Sent data (implemented in [`horus.h`](./m20/Core/Inc/horus.h)):
 | 23-24 | int16 | External temperature from [NTC](#external-temperature-sensor) sensor |
 | 25 | uint8 | Humidity, not implemented yet |
 | 26-27 | uint16 | Pressure data from [LPS22HB](#barometer-and-temperature-sensor) sensor |
-| 28 | uint8_t | GPS watchdog restart count |
-| 29 | - | not used (yet?) |
+| 28 | uint8 | GPS watchdog restart count |
+| 29 | uint8 | Additional ADC measurement, see [PV / payload voltage ADC](#pv--payload-voltage-adc) |
 | 30-31 |	uint16 | CRC16-CCITT Checksum |
 
 ## APRS
@@ -163,6 +163,16 @@ Thermal camera image:
 ![alt text](./img/termo.jpg?raw=true)
 
 (Image from SP9AOB)
+
+## PV / payload voltage ADC
+Pin PA0 allows to measure additional voltage, for example from another payload batteries or from a solar panel (PV). It uses a resistor divider to allow voltages bigger than the ADC reference 3.3V.
+This is the connection schematic, green is PA0 pin, black is ground (other GND can be used as well):
+
+![alt text](./img/pcb_adc.png?raw=true)
+
+Values of R1 and R2 need to be set in config (`PV_ADC_R1`, `PV_ADC_R2`).
+For example for R1 = 1k and R2 = 2k the max voltage is 4.95V.
+Note that Horus voltage field is an unsigned byte of values corresponding to voltage range from 0 to 5V, so higher values can't be represented.
 
 ## Downloading code
 First you need to obtain the code, you can do it with `git`:
@@ -210,6 +220,9 @@ Parameters list:
 | `LPS22_ENABLE` | bool | Enable LPS22 sensor. |
 | `NTC_ENABLE` | bool | Enable NTC external temperature sensor. |
 | `BAT_ADC_ENABLE` | bool | Enable battery voltage measure. |
+| `PV_ADC_ENABLE` | bool | Enable additional ADC on pin PA0. |
+| `PV_ADC_R1` | uint | R1 resistor value for divider. See [PV / payload voltage ADC](#pv--payload-voltage-adc) |
+| `PV_ADC_R2` | uint | R2 resistor value for divider. |
 | `DEBUG` | bool | Enable debug info over UART. |
 | `GPS_DEBUG` | bool | Enable GPS data debug. |
 | `GPS_RAW_DEBUG` | bool | Enable GPS raw frames debug. |
