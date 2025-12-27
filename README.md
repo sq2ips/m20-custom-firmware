@@ -6,7 +6,15 @@ The code is writen in C using STM32CubeMX (not to be confused with STM32CubeIDE)
 Building and flashing instructions are placed further in this file.
 
 # Stage
-In this stage the code works to the point where it gets GPS and sensors data, then sends them using Horus Binary V2 protocol over radio. However this code is currently in the experimental/testing phase and there are some problems with it. Keeping that in mind, making flights with it is possible. Thanks to SP9AOB and SP6MPL for conducting test flights. If you are making a flight with this firmware let me know, it really helps with finding bugs and testing the code.
+In this stage the code works quite well and was tested on many flights. Thanks to SP9AOB and SP6MPL for conducting test flights. It was used as a tracker for some HAB missions and floater balloons. I also made a few flights with the SP2ZIE amateur radio club.
+Still, there can be errors and bugs in it, it is distributed "AS-IS", there is no waranty, see [the License](#LICENSE).
+If you are making a flight with this firmware let me know, it really helps with finding bugs and testing the code.
+
+# Contributing
+Any code ideas, questions, bug reports and code contributions are welcome.
+If you are having an idea for the project or found a bug you can create an issue.
+If you want to contribute code to the project you can create a pull request.
+if you are having any other questions, ideas or issues you can write me an e-mail: pawel.sq2ips@gmail.com.
 
 # What works
 - GPS (NMEA): :heavy_check_mark:
@@ -50,6 +58,9 @@ Due to hardware limitations (system clock PLL setting options) it is not possibl
 # Authors
 - Paweł SQ2IPS
 - Jędrzej SQ2DK
+Big thanks to:
+- SP9AOB and SP6MPL for testing, making flights and finding new ideas for the project
+- SP2IML for code contribution, writing tests, and debuging the code
 
 # License
 See LICENSE
@@ -139,6 +150,10 @@ The Automatic Packet Reporting System (APRS) is also commonly used for ham ballo
 
 The AFSK modulation used by APRS is implemented just like in [Trackduino](https://github.com/trackuino/trackuino/blob/1.52/trackuino/afsk.cpp).
 The AFSK Bell 202 tones are not supported in the radio module, so another method needed to be developed. It works by using direct mode, where the TX_DATA pin is fed by a high-frequency PWM signal of a sine wave, where phase is increased by values corresponding to the Bell 202 tones, creating a 1-bit DAC. That method also allows continuous phase change, which is critical for AFSK. More on the implementation is in the comments of [`afsk.c`](./m20/Core/Src/afsk.c). On top of AFSK AX.25 the APRS standard is used for routing packages, formatting and compressing position, and adding a comment field. In it telemetry is inserted to be parsed by [sondehub-aprs-gateway](https://github.com/projecthorus/sondehub-aprs-gateway). The implementation is in [`aprs.c`](./m20/Core/Src/aprs.c).
+
+## Note about modes
+APRS is not very eficient due to the modulation characteristics and no forward error correction, also the number of automatic receiving stations is way smaller than Horus.
+That's why if you are making a flight it's good to use Horus or both modes, not only APRS.
 
 # Running the firmware
 ## What you will need
