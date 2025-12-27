@@ -28,10 +28,10 @@ The currently implemented features are:
 - Getting external temperature
 - Watchdog timer
 - GPS watchdog for no fix (useful in GPS jamming/spoofing areas)
-- implementing transmission frequency switching
+- transmission frequency switching
+- Additional ADC for payload / PV voltage
 
 # Planned work
-- implementing resistor divider voltage mesurement to overcome [issues with ADC voltage reference](#battery-voltage-reading)
 - making use of STM32 energy saving states
 - Implementing XM1110 GPS speed data
 - implementing humidity sensors
@@ -165,7 +165,7 @@ Thermal camera image:
 (Image from SP9AOB)
 
 ## PV / payload voltage ADC
-Pin PA0 allows to measure additional voltage, for example from another payload batteries or from a solar panel (PV). It uses a resistor divider to allow voltages bigger than the ADC reference 3.3V.
+Pin PA0 allows to measure additional voltage, for example from another payload batteries or from a solar panel (PV). It uses a resistor divider to allow voltages bigger than the ADC reference 3.3V. To enable it set `PV_ADC_ENABLE` to 1.
 This is the connection schematic, green is PA0 pin, black is ground (other GND can be used as well):
 
 ![alt text](./img/pcb_adc.png?raw=true)
