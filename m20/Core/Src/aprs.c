@@ -151,9 +151,9 @@ encode_comment_telemetry(APRSPacket Packet,
 	cnt += int_to_string(Packet.BatVoltage, buff + cnt, 4, true); // *1000, 4 digits
 #endif
 
-#if PAYLOAD_ADC_ENABLE
-	buff[cnt++] = 'A';                                                // Battery voltage
-	cnt += int_to_string(Packet.PayloadVoltage, buff + cnt, 4, true); // *1000, 4 digits
+#if PV_ADC_ENABLE
+	buff[cnt++] = 'A';                                                // PV / payload voltage
+	cnt += int_to_string(Packet.PvVoltage, buff + cnt, 4, true); // *1000, 4 digits
 #endif
 
 	return cnt;

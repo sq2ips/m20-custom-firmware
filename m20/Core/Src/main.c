@@ -81,7 +81,7 @@ int8_t LpsTemp = 0;
 uint16_t LpsPress = 0; // *10
 
 uint16_t BatVoltage = 0;
-uint16_t PayloadVoltage = 0;
+uint16_t PvVoltage = 0;
 
 int16_t ExtTemp = 0; // *10
 
@@ -171,13 +171,13 @@ void main_loop(void) {
 #endif
 
 	// Payload / PV voltage
-#if PAYLOAD_ADC_ENABLE
+#if PV_ADC_ENABLE
 	LL_ADC_REG_SetSequencerChannels(ADC1, LL_ADC_CHANNEL_0);
 	LL_ADC_REG_StartConversion(ADC1);
 	while (LL_ADC_IsActiveFlag_EOC(ADC1) == 0) {
 	}
-	PayloadVoltage = (LL_ADC_REG_ReadConversionData12(ADC1) * (PAYLOAD_ADC_R1 + PAYLOAD_ADC_R2)) /
-	                 PAYLOAD_ADC_R2; // Raw payload voltage scaled by resistor divider
+	PvVoltage = (LL_ADC_REG_ReadConversionData12(ADC1) * (PV_ADC_R1 + PV_ADC_R2)) /
+	                 PV_ADC_R2; // Raw PV / payload voltage scaled by resistor divider
 	LL_ADC_ClearFlag_EOS(ADC1);
 #if DEBUG
 	printf("Bat voltage value: %d\r\n", BatVoltage);
@@ -286,7 +286,7 @@ void main_loop(void) {
 	AprsPacket.ExtTemp = ExtTemp;
 	AprsPacket.Press = LpsPress;
 	AprsPacket.BatVoltage = Round((BatVoltage * 3300.0f) / 4095);
-	AprsPacket.PayloadVoltage = Round((PayloadVoltage * 3300.0f) / 4095);
+	AprsPacket.PvVoltage = Round((PvVoltage * 3300.0f) / 4095);
 
 	BufferLen = encode_APRS_packet(AprsPacket, CodedBuffer);
 
@@ -318,7 +318,7 @@ void main_loop(void) {
 	// gives 187/4550 Note: this value will not go higher than 168 corresponding
 	// to 3.3V max value of ADC
 	HorusPacket.BatVoltage = (BatVoltage * 187) / 4550;
-	HorusPacket.PayloadVoltage = (PayloadVoltage * 187) / 4550; // Same as above but prescaled previously by resistor divider values
+	HorusPacket.PvVoltage = (PvVoltage * 187) / 4550; // Same as above but prescaled previously by resistor divider values
 	HorusPacket.ExtTemp = ExtTemp;
 	HorusPacket.Hum = 0; // Not implemented
 	HorusPacket.Press = LpsPress;
@@ -564,10 +564,10 @@ static void MX_ADC_Init(void) {
 	PC4   ------> ADC_IN14
 	PB0   ------> ADC_IN8
 	*/
-	GPIO_InitStruct.Pin = PAYLOAD_ADC_Pin;
+	GPIO_InitStruct.Pin = PV_ADC_Pin;
 	GPIO_InitStruct.Mode = LL_GPIO_MODE_ANALOG;
 	GPIO_InitStruct.Pull = LL_GPIO_PULL_NO;
-	LL_GPIO_Init(PAYLOAD_ADC_GPIO_Port, &GPIO_InitStruct);
+	LL_GPIO_Init(PV_ADC_GPIO_Port, &GPIO_InitStruct);
 
 	GPIO_InitStruct.Pin = NTC_ADC_Pin;
 	GPIO_InitStruct.Mode = LL_GPIO_MODE_ANALOG;
