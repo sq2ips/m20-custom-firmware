@@ -187,6 +187,7 @@ This is the connection schematic, green is PA0 pin, black is ground (other GND c
 
 Values of R1 and R2 need to be set in config (`PV_ADC_R1`, `PV_ADC_R2`).
 For example for R1 = 1k and R2 = 2k the max voltage is 4.95V.
+When setting values in config you can reduce the values fraction if possible (for 1000R and 2000R you can set 1 and 2 in config).
 Note that Horus voltage field is an unsigned byte of values corresponding to voltage range from 0 to 5V, so higher values can't be represented.
 
 For this to work with Horus decoders you need to make a PR to add your call assigned to payload ID to [Horus custom field list](https://github.com/projecthorus/horusdemodlib/blob/master/custom_field_list.json), in the section of `"SP2ZIE"` in `"other_payloads"` add your call in the list after a `,` in `""`, for example when the table looks like this: `["SQ2IPS"]` adding a call SP0ABC is: `["SQ2IPS", "SP0ABC"]`.
