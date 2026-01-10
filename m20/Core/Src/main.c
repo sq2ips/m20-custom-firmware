@@ -103,8 +103,6 @@ char rawBuffer[HORUS_UNCODED_BUFFER_SIZE];
 
 int horusPacketCount = 0;
 
-char rawBuffer[HORUS_UNCODED_BUFFER_SIZE];
-
 #if APRS_ENABLE
 char CodedBuffer[APRS_MAX_PACKET_LEN]; // Buffer for both HOURS and APRS frame, since APRS is always bigger, its size is used.
 #else
@@ -186,7 +184,7 @@ int build_horus_binary_packet_v3(char* uncoded_buffer){
 
   horusTelemetry asnMessage = {
         .payloadCallsign  = "SQ2IPS",
-        .sequenceNumber = horusPacketCount,
+        .sequenceNumber = 1,
         .timeOfDaySeconds  = 0,
         .latitude = 0,
         .longitude = 0,
@@ -512,8 +510,10 @@ void main_loop(void) {
 	HorusPacket.GpsResetCount = GpsResetCount;
 
 	// Horus checksum
-	HorusPacket.Checksum = (uint16_t)crc16((char*)&HorusPacket, sizeof(HorusPacket) - 2);
-	BufferLen = horus_l2_encode_tx_packet((unsigned char*)CodedBuffer, (unsigned char*)&HorusPacket, sizeof(HorusPacket));
+	int pkt_len = build_horus_binary_packet_v3(rawBuffer);
+
+	BufferLen = horus_l2_encode_tx_packet((unsigned char*)CodedBuffer, (unsigned char*)&rawBuffer, pkt_len);
+
 	HorusPacket.PacketCount++;
 	// Transmit
 	FSK4_start_TX(CodedBuffer, BufferLen);
