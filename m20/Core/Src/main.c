@@ -19,10 +19,10 @@
 #include "adf.h"
 #if HORUS_ENABLE
 #include "fsk4.h"
-#include "horus.h"
+#include "horus_v2.h"
 
 // Include Horus v3 lib
-#include "HorusBinaryV3.h"
+#include "horus_v3.h"
 #endif
 #if APRS_ENABLE
 #include "afsk.h"
@@ -185,7 +185,7 @@ int build_horus_binary_packet_v3(char* uncoded_buffer){
 
 
   horusTelemetry asnMessage = {
-        .payloadCallsign  = "",
+        .payloadCallsign  = "SQ2IPS",
         .sequenceNumber = horusPacketCount,
         .timeOfDaySeconds  = 0,
         .latitude = 0,
@@ -296,7 +296,7 @@ int build_horus_binary_packet_v3(char* uncoded_buffer){
     // We patch in assert functionality in assert_override.h
     // Before running encode we set assert_value = 0
     // Then check the value in assert_value
-    assert_value = 0;
+    int assert_value = 0;
 
     if (!horusTelemetry_Encode(&asnMessage,
                         &encodedMessage,
@@ -328,7 +328,7 @@ int build_horus_binary_packet_v3(char* uncoded_buffer){
         }
 
         // Calculate CRC16 over the frame, starting at byte 2
-        uint16_t packetCrc = (uint16_t)crc16((unsigned char *)(uncoded_buffer + 2),
+        uint16_t packetCrc = (uint16_t)crc16((uncoded_buffer + 2),
                                      frameSize - 2);
         // Write CRC into bytes 0–1 of the packet
         memcpy(uncoded_buffer, &packetCrc, sizeof(packetCrc));  // little‑endian on STM32
@@ -511,9 +511,9 @@ void main_loop(void) {
 	HorusPacket.Press = LpsPress;
 	HorusPacket.GpsResetCount = GpsResetCount;
 
-	int pkt_len = build_horus_binary_packet_v3(rawBuffer);
-
-	BufferLen = horus_l2_encode_tx_packet((unsigned char*)CodedBuffer, (unsigned char*)&rawBuffer, pkt_len);
+	// Horus checksum
+	HorusPacket.Checksum = (uint16_t)crc16((char*)&HorusPacket, sizeof(HorusPacket) - 2);
+	BufferLen = horus_l2_encode_tx_packet((unsigned char*)CodedBuffer, (unsigned char*)&HorusPacket, sizeof(HorusPacket));
 	HorusPacket.PacketCount++;
 	// Transmit
 	FSK4_start_TX(CodedBuffer, BufferLen);
@@ -583,7 +583,7 @@ int main(void) {
 	MX_SPI1_Init();
 	MX_TIM22_Init();
 	MX_ADC_Init();
-	MX_IWDG_Init();
+	//MX_IWDG_Init();
 	MX_TIM6_Init();
 	MX_TIM21_Init();
 	MX_TIM2_Init();

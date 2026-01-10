@@ -13,5 +13,7 @@ int32_t Round(float number);
 uint32_t convert_buffer_to_uint32(const uint8_t* buffer, uint8_t size);
 int16_t timeDifference(uint32_t previousTime, uint32_t currentTime);
 int16_t calculateAscentRate(uint16_t previousAlt, uint16_t currentAlt, uint32_t previousTime, uint32_t currentTime);
+long long Floor(double num);
+uint16_t crc16(char* string, uint8_t len);
 
 #endif

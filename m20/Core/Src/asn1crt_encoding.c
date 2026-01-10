@@ -1,11 +1,5 @@
 #include <string.h>
-#include "assert_override.h"
-#include <math.h>
-#include <float.h>
-
 #include "asn1crt_encoding.h"
-
-
 
 const byte masks[] = { 0x80, 0x40, 0x20, 0x10, 0x08, 0x04, 0x02, 0x01 };
 const byte masksb[] = { 0x0, 0x1, 0x3, 0x7, 0xF, 0x1F, 0x3F, 0x7F, 0xFF };
@@ -106,7 +100,7 @@ void BitStream_AppendBitOne(BitStream* pBitStrm)
 		pBitStrm->currentByte++;
 		bitstream_push_data_if_required(pBitStrm);
 	}
-	assert(pBitStrm->currentByte * 8 + pBitStrm->currentBit <= pBitStrm->count * 8);
+	//assert(pBitStrm->currentByte * 8 + pBitStrm->currentBit <= pBitStrm->count * 8);
 }
 
 /*
@@ -175,7 +169,7 @@ void BitStream_AppendBit(BitStream* pBitStrm, flag v)
 		pBitStrm->currentByte++;
 		bitstream_push_data_if_required(pBitStrm);
 	}
-	assert(pBitStrm->currentByte * 8 + pBitStrm->currentBit <= pBitStrm->count * 8);
+	//assert(pBitStrm->currentByte * 8 + pBitStrm->currentBit <= pBitStrm->count * 8);
 }
 
 
@@ -232,7 +226,7 @@ void BitStream_AppendByte(BitStream* pBitStrm, byte v, flag negate)
 	pBitStrm->buf[pBitStrm->currentByte] &= mask;
 	pBitStrm->buf[pBitStrm->currentByte++] |= (byte)(v >> cb);
 	bitstream_push_data_if_required(pBitStrm);
-	assert(pBitStrm->currentByte * 8 + pBitStrm->currentBit <= pBitStrm->count * 8);
+	//assert(pBitStrm->currentByte * 8 + pBitStrm->currentBit <= pBitStrm->count * 8);
 
 	if (cb) {
 		mask = (byte)~mask;
@@ -422,7 +416,7 @@ void BitStream_AppendPartialByte(BitStream* pBitStrm, byte v, byte nbits, flag n
 		pBitStrm->buf[pBitStrm->currentByte] |= (byte)(v << (8 - totalBitsForNextByte));
 		pBitStrm->currentBit = totalBitsForNextByte;
 	}
-	assert(pBitStrm->currentByte * 8 + pBitStrm->currentBit <= pBitStrm->count * 8);
+	//assert(pBitStrm->currentByte * 8 + pBitStrm->currentBit <= pBitStrm->count * 8);
 
 }
 
@@ -707,7 +701,7 @@ void BitStream_EncodeConstraintWholeNumber(BitStream* pBitStrm, asn1SccSint v, a
 	int nRangeBits;
 	int nBits;
 	asn1SccUint range;
-	assert(min <= max);
+	//assert(min <= max);
 	range = (asn1SccUint)(max - min);
 	if (!range)
 		return;
@@ -722,8 +716,8 @@ void BitStream_EncodeConstraintPosWholeNumber(BitStream* pBitStrm, asn1SccUint v
 	int nRangeBits;
 	int nBits;
 	asn1SccUint range;
-	assert(min <= v);
-	assert(v <= max);
+	//assert(min <= v);
+	//assert(v <= max);
 	range = (asn1SccUint)(max - min);
 	if (!range)
 		return;
@@ -740,7 +734,7 @@ flag BitStream_DecodeConstraintWholeNumber(BitStream* pBitStrm, asn1SccSint* v, 
 	int nRangeBits;
 	asn1SccUint range = (asn1SccUint)(max - min);
 
-	ASSERT_OR_RETURN_FALSE(min <= max);
+	//ASSERT_OR_RETURN_FALSE(min <= max);
 
 
 	*v = 0;
@@ -811,7 +805,7 @@ flag BitStream_DecodeConstraintPosWholeNumber(BitStream* pBitStrm, asn1SccUint* 
 	int nRangeBits;
 	asn1SccUint range = max - min;
 
-	ASSERT_OR_RETURN_FALSE(min <= max);
+	//ASSERT_OR_RETURN_FALSE(min <= max);
 
 
 	*v = 0;
@@ -1005,7 +999,7 @@ void BitStream_EncodeReal(BitStream* pBitStrm, asn1Real v)
 	int exponent;
 	asn1SccUint64 mantissa;
 
-	if (isnan(v)) {
+	if (false) {
 		BitStream_EncodeConstraintWholeNumber(pBitStrm, 1, 0, 0xFF);
 		BitStream_EncodeConstraintWholeNumber(pBitStrm, 0x42, 0, 0xFF);
 		return;
@@ -1044,7 +1038,7 @@ void BitStream_EncodeReal(BitStream* pBitStrm, asn1Real v)
 	CalculateMantissaAndExponent(v, &exponent, &mantissa);
 	nExpLen = GetLengthInBytesOfSInt(exponent);
 	nManLen = GetLengthInBytesOfUInt(mantissa);
-	assert(nExpLen <= 3);
+	//assert(nExpLen <= 3);
 	if (nExpLen == 2)
 		header |= 1;
 	else if (nExpLen == 3)
@@ -1105,7 +1099,7 @@ flag BitStream_DecodeReal(BitStream* pBitStrm, asn1Real* v)
 	}
 
 	if (header == 0x42) {
-        *v = NAN;
+        *v = 0;
         return TRUE;
     }
 

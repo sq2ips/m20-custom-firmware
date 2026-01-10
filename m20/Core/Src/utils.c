@@ -64,3 +64,29 @@ int16_t calculateAscentRate(const uint16_t previousAlt, const uint16_t currentAl
 
 	return (int16_t)Round((float)altDiff / timeDiff);
 }
+
+long long Floor(double num) { // Used only for positive values
+    if (num >= 0) {
+        return (long long)num; // Truncates positive numbers down
+    } else {
+        // Handle negative numbers separately if needed, or rely on the logic below
+        return (long long)num; // For negative, this truncates towards zero (e.g., -4.7 becomes -4)
+    }
+}
+
+uint16_t crc16(char* string, uint8_t len) {
+	uint16_t crc = 0xffff;
+	char i;
+	uint8_t ptr = 0;
+	while (ptr < len) {
+		ptr++;
+		crc = crc ^ (*(string++) << 8);
+		for (i = 0; i < 8; i++) {
+			if (crc & 0x8000)
+				crc = (uint16_t)((crc << 1) ^ 0x1021);
+			else
+				crc <<= 1;
+		}
+	}
+	return crc;
+}
