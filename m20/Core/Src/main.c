@@ -20,6 +20,9 @@
 #if HORUS_ENABLE
 #include "fsk4.h"
 #include "horus.h"
+
+// Include Horus v3 lib
+#include "HorusBinaryV3.h"
 #endif
 #if APRS_ENABLE
 #include "afsk.h"
@@ -28,10 +31,10 @@
 #if LPS22_ENABLE
 #include "lps22hb.h"
 #endif
-
+#include <string.h>
 #if DEBUG
 #include <stdio.h>
-#include <string.h>
+//#include <string.h>
 #endif
 /* USER CODE END Includes */
 
@@ -93,10 +96,19 @@ HorusBinaryPacket HorusPacket;
 APRSPacket AprsPacket;
 #endif
 
+#define HORUS_CODED_BUFFER_SIZE 128
+#define HORUS_UNCODED_BUFFER_SIZE 256
+
+char rawBuffer[HORUS_UNCODED_BUFFER_SIZE];
+
+int horusPacketCount = 0;
+
+char rawBuffer[HORUS_UNCODED_BUFFER_SIZE];
+
 #if APRS_ENABLE
 char CodedBuffer[APRS_MAX_PACKET_LEN]; // Buffer for both HOURS and APRS frame, since APRS is always bigger, its size is used.
 #else
-char CodedBuffer[HORUS_CODED_SIZE]; // If only HOURS is used, use it's size.
+char CodedBuffer[HORUS_CODED_BUFFER_SIZE]; // If only HOURS is used, use it's size.
 #endif
 uint8_t BufferLen;
 /* USER CODE END PV */
@@ -153,6 +165,181 @@ PUTCHAR_PROTOTYPE {
 
 /* Private user code ---------------------------------------------------------*/
 /* USER CODE BEGIN 0 */
+int build_horus_binary_packet_v3(char* uncoded_buffer){
+  // Horus v3 packets are encoded using ASN1, and are encapsulated in packets
+  // of sizes 32, 48, 64, 96 or 128 bytes (before coding)
+  // The CRC16 for these packets is located at the *start* of the packet, still little-endian encoded
+
+  // Erase the uncoded buffer
+  // This has the effect of padding out the unused bytes in the packet with zeros
+  memset(uncoded_buffer, 0, HORUS_UNCODED_BUFFER_SIZE);
+
+  // Increment packet count
+  horusPacketCount++;
+
+  // Should check how this is allocated in memory.
+
+  // Hardcoded dummy test packet. 
+  // Need to check how this is allocated in memory. how much it uses.
+  // .. also does it get cleared?
+
+
+  horusTelemetry asnMessage = {
+        .payloadCallsign  = "",
+        .sequenceNumber = horusPacketCount,
+        .timeOfDaySeconds  = 0,
+        .latitude = 0,
+        .longitude = 0,
+        .altitudeMeters = 0,
+        // Example of adding some custom fields.
+        .extraSensors = {
+          .nCount=1, // Number of custom fields.
+          .arr = {
+            // Example of an array of integers 
+            {
+                .name = "debug", // This is transmitted in the packet if .exist/name is true
+                .values = {
+                    .kind = horusInt_PRESENT,
+                    .u = {
+                        .horusInt = {
+                          .nCount = 1,
+                            .arr = {0},
+                        }
+                    }
+                },
+                .exist = {
+                    .name = true,
+                    .values = true,
+                },
+                
+                
+            }
+            // Example of a string field
+            //,
+            // {
+            //     .name = "cty",
+            //     .values = {
+            //         .kind = horusStr_PRESENT,
+            //         .u = {
+            //             .horusStr = "AU"
+            //         }
+            //     },
+            //      .exist = {
+            //         .name = true,
+            //         .values = true,
+            //     },
+            // },
+          },
+        },
+        .velocityHorizontalKilometersPerHour = 0,
+        .gnssSatellitesVisible = 0,
+        .ascentRateCentimetersPerSecond = 0, // m/s -> cm/s
+        .pressurehPa_x10 = (int)(0),
+        .temperatureCelsius_x10 = {
+            .internal = 0,
+            .external = 0,
+            // I'm not sure we need to explicitly indicate which of these fields exist, but just to be safe...
+            .exist = {
+                .internal = true,
+                .external = true,
+                .custom1 = false,
+                .custom2 = false
+            }
+        },
+        .humidityPercentage = 0,
+        .milliVolts = {
+            .battery = 0 ,
+            // I'm not sure we need to explicitly indicate which of these fields exist, but just to be safe...
+            .exist = {
+                .battery = true,
+                .solar = false,
+                .custom1 = false,
+                .custom2 = false
+            }
+        },
+        // We need to explicitly specify which optional fields we want to include in the packet
+        .exist = {
+            .extraSensors = true,
+            .velocityHorizontalKilometersPerHour = true,
+            .gnssSatellitesVisible = true,
+            .ascentRateCentimetersPerSecond = true,
+            .pressurehPa_x10 = true,
+            .temperatureCelsius_x10 = true,
+            .humidityPercentage = true,
+            .milliVolts = true
+        }
+    };
+
+    // Conditionally disable some of the fields if we have no valid data source for them
+
+
+
+    // The encoder needs a data structure for the serialization
+    // Again - how much memory is allocated here?
+    BitStream encodedMessage;
+
+    // The Encoder may fail and update an error code
+    int errCode;
+
+    // Initialization associates the buffer to the bit stream
+    // We want to write the uncoded message starting at 2 bytes into the message.
+
+    BitStream_Init (&encodedMessage,
+                    (unsigned char*)(uncoded_buffer+2),
+                    HORUS_UNCODED_BUFFER_SIZE-1
+    );
+    // Originally this function call used a MUCH larger value for count
+    //horusTelemetry_REQUIRED_BYTES_FOR_ENCODING);
+    
+    // Encode the message using uPER encoding rule
+
+    // We patch in assert functionality in assert_override.h
+    // Before running encode we set assert_value = 0
+    // Then check the value in assert_value
+    assert_value = 0;
+
+    if (!horusTelemetry_Encode(&asnMessage,
+                        &encodedMessage,
+                        &errCode,
+                        true) || assert_value != 0)
+    {  
+        // Need to check what happens here.
+        return 0;
+    }
+    else 
+    {
+        // Encoding was successful!
+        // Now we need to figure out the required frame size, and add the CRC.
+        int encodedSize = BitStream_GetLength(&encodedMessage);
+
+        // Determine the required frame size.
+        // Probably should do this from a list of valid sizes in a neater manner
+        int frameSize = 128;
+        if (encodedSize <= 30){
+          frameSize = 32;
+        } else if (encodedSize <= 46){
+          frameSize = 48;
+        } else if (encodedSize <= 62){
+          frameSize = 64;
+        } else if (encodedSize <= 94){
+          frameSize = 96;
+        } else if (encodedSize <= 126){
+          frameSize = 128;
+        }
+
+        // Calculate CRC16 over the frame, starting at byte 2
+        uint16_t packetCrc = (uint16_t)crc16((unsigned char *)(uncoded_buffer + 2),
+                                     frameSize - 2);
+        // Write CRC into bytes 0–1 of the packet
+        memcpy(uncoded_buffer, &packetCrc, sizeof(packetCrc));  // little‑endian on STM32
+
+        return frameSize;
+    }
+
+    return 0;
+}
+
+
 void main_loop(void) {
 	// LED
 #if LED_MODE == 1
@@ -324,9 +511,9 @@ void main_loop(void) {
 	HorusPacket.Press = LpsPress;
 	HorusPacket.GpsResetCount = GpsResetCount;
 
-	// Horus checksum
-	HorusPacket.Checksum = (uint16_t)crc16((char*)&HorusPacket, sizeof(HorusPacket) - 2);
-	BufferLen = horus_l2_encode_tx_packet((unsigned char*)CodedBuffer, (unsigned char*)&HorusPacket, sizeof(HorusPacket));
+	int pkt_len = build_horus_binary_packet_v3(rawBuffer);
+
+	BufferLen = horus_l2_encode_tx_packet((unsigned char*)CodedBuffer, (unsigned char*)&rawBuffer, pkt_len);
 	HorusPacket.PacketCount++;
 	// Transmit
 	FSK4_start_TX(CodedBuffer, BufferLen);

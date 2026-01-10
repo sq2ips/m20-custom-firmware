@@ -60,6 +60,11 @@ Core/Src/nmea.c \
 Core/Src/xm_gps.c \
 Core/Src/gps.c \
 Core/Src/utils.c \
+Core/Src/asn1crt_encoding.c \
+Core/Src/asn1crt_encoding_uper.c \
+Core/Src/asn1crt.c \
+Core/Src/HorusBinaryV3.c \
+Core/Src/assert_override.c \
 Drivers/STM32L0xx_HAL_Driver/Src/stm32l0xx_ll_adc.c \
 Drivers/STM32L0xx_HAL_Driver/Src/stm32l0xx_ll_pwr.c
 

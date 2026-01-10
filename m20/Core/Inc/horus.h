@@ -3,8 +3,6 @@
 
 #include <stdint.h>
 
-#define HORUS_CODED_SIZE 65
-
 #define HORUS_INTERLEAVER 1
 #define HORUS_SCRAMBLER 1
 
