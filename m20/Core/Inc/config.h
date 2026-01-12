@@ -6,7 +6,7 @@
 /*-----------------------------------------------------------------*/
 //  Sonde configuration, parameters that should be changed
 
-#define TIME_PERIOD 6 // Time betwen starts of transmissions (in seconds) (must be more than 4+TX_PAUSE)
+#define TIME_PERIOD 12 // Time betwen starts of transmissions (in seconds) (must be more than 4+TX_PAUSE)
 
 // Horus Binary 4FSK mode (V2 or V3)
 #define HORUS_ENABLE 3 // 0 - disabled, 2 - V2, 3 - V3
@@ -20,7 +20,7 @@ const static float QRG_FSK4[] = {
 
 #define HORUS_V3_PAYLOAD_CALLSIGN "N0CALL"
 
-#define TX_PAUSE 1000 // Delay between HORUS and APRS
+#define TX_PAUSE 500 // Delay between HORUS and APRS
 
 // APRS (AX.25 AFSK HDLC Bell 202)
 #define APRS_ENABLE 0

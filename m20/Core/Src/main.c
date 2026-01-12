@@ -77,7 +77,7 @@ uint8_t GpsResetCount = 0;
 uint8_t lps_init;
 #endif
 
-int8_t LpsTemp = 0; // *1
+int16_t LpsTemp = 0; // *10
 uint16_t LpsPress = 0; // *10
 
 uint16_t BatVoltage = 0;
@@ -173,7 +173,7 @@ void build_horus_binary_v2_packet(){
 	HorusPacket.Alt = GpsData.Alt;
 	HorusPacket.Sats = GpsData.Sats;
 	HorusPacket.AscentRate = GpsData.AscentRate;
-	HorusPacket.Temp = LpsTemp;
+	HorusPacket.Temp = (uint8_t)Round(LpsTemp/10.0f);
 	// ADC voltage: 3.3V, divided by ADC max value 4095 (2^12-1). That gives a
 	// range between 0 for 0V and 1 for 3.3V. Than it's multiplied by max
 	// variable value: 255, and divided by corresponding voltage: 5V, simplified
@@ -258,7 +258,7 @@ uint8_t build_horus_binary_v3_packet(char* uncoded_buffer){
         .ascentRateCentimetersPerSecond = GpsData.AscentRate, // cm/s
         .pressurehPa_x10 = (int)(LpsPress), // *10
         .temperatureCelsius_x10 = {
-            .internal = LpsTemp *10,
+            .internal = LpsTemp, // *10
             .external = ExtTemp, // *10
             .exist = {
                 .internal = true,
@@ -372,7 +372,7 @@ void build_aprs_packet(){
 	AprsPacket.Alt = GpsData.Alt;
 	AprsPacket.Sats = GpsData.Sats;
 	AprsPacket.GpsResetCount = GpsResetCount;
-	AprsPacket.Temp = LpsTemp;
+	AprsPacket.Temp = (uint8_t)Round(LpsTemp/10.0f);
 	AprsPacket.ExtTemp = ExtTemp;
 	AprsPacket.Press = LpsPress;
 	AprsPacket.BatVoltage = BatVoltage;
@@ -388,7 +388,7 @@ void main_loop(void) {
 	// LPS22HB sensor
 #if LPS22_ENABLE
 	if (lps_init == 0) {
-		LpsTemp = (int8_t)Round(LPS22_GetTemp());
+		LpsTemp = (int16_t)Round(LPS22_GetTemp() * 10.0f);
 		LpsPress = (uint16_t)Round(LPS22_GetPress() * 10.0f);
 	}
 #if DEBUG
@@ -511,21 +511,17 @@ void main_loop(void) {
 	}
 #endif
 #if HORUS_ENABLE && APRS_ENABLE
-	DelayWithIWDG(TX_PAUSE); // ???
+	DelayWithIWDG(TX_PAUSE);
 #endif
 #if HORUS_ENABLE == 2
 	build_horus_binary_v2_packet();
 	BufferLen = horus_l2_encode_tx_packet((unsigned char*)CodedBuffer, (unsigned char*)&HorusPacket, sizeof(HorusPacket));
-	// Transmit
-	FSK4_start_TX(CodedBuffer, BufferLen);
-	while (FSK4_Active) {
-		DelayWithIWDG(10);
-	}
 #elif HORUS_ENABLE == 3
-	int pkt_len = build_horus_binary_v3_packet(rawBuffer);
-
+	uint8_t pkt_len = build_horus_binary_v3_packet(rawBuffer);
 	BufferLen = horus_l2_encode_tx_packet((unsigned char*)CodedBuffer, (unsigned char*)&rawBuffer, pkt_len);
+#endif
 
+#if HORUS_ENABLE
 	// Transmit
 	FSK4_start_TX(CodedBuffer, BufferLen);
 	while (FSK4_Active) {
