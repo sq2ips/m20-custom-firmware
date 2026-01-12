@@ -3,6 +3,9 @@
 
 #include <stdint.h>
 
+#define HORUS_CODED_BUFFER_SIZE 128
+#define HORUS_UNCODED_BUFFER_SIZE 256
+
 typedef struct TBinaryPacket { // https://github.com/projecthorus/horusdemodlib/wiki/5-Customising-a-Horus-Binary-v2-Packet
 	uint16_t PayloadID;
 	uint16_t PacketCount;

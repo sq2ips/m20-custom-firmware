@@ -93,18 +93,21 @@ APRSPacket AprsPacket;
 HorusBinaryPacket HorusPacket;
 #endif
 
-#define HORUS_CODED_BUFFER_SIZE 128
-#define HORUS_UNCODED_BUFFER_SIZE 256
-
+#if HORUS_ENABLE == 3
 char rawBuffer[HORUS_UNCODED_BUFFER_SIZE];
+#endif
 
 uint16_t PacketCount = 0;
 
-//#if APRS_ENABLE
-//char CodedBuffer[APRS_MAX_PACKET_LEN]; // Buffer for both HOURS and APRS frame, since APRS is always bigger, its size is used.
-//#else
-char CodedBuffer[HORUS_CODED_BUFFER_SIZE]; // If only HOURS is used, use it's size.
-//#endif
+#if APRS_ENABLE && HORUS_ENABLE
+
+char CodedBuffer[HORUS_CODED_BUFFER_SIZE > APRS_ENABLE ? HORUS_CODED_BUFFER_SIZE: APRS_ENABLE];
+
+#elif APRS_ENABLE
+char CodedBuffer[APRS_MAX_PACKET_LEN];
+#else
+char CodedBuffer[HORUS_CODED_BUFFER_SIZE];
+#endif
 uint8_t BufferLen;
 /* USER CODE END PV */
 
@@ -215,17 +218,29 @@ uint8_t build_horus_binary_v3_packet(char* uncoded_buffer){
         .altitudeMeters = GpsData.Alt,
         // Example of adding some custom fields.
         .extraSensors = {
-          .nCount=1, // Number of custom fields.
+          .nCount=2, // Number of custom fields.
           .arr = {
-            // Example of an array of integers 
             {
-                .name = "debug", // This is transmitted in the packet if .exist/name is true
+                .name = "type",
+                .values = {
+                    .kind = horusStr_PRESENT,
+                    .u = {
+                        .horusStr = "M20"
+                    }
+                },
+                 .exist = {
+                    .name = true,
+                    .values = true,
+                },
+            },
+            {
+                .name = "gps", // This is transmitted in the packet if .exist/name is true
                 .values = {
                     .kind = horusInt_PRESENT,
                     .u = {
                         .horusInt = {
                           .nCount = 1,
-                            .arr = {0},
+                            .arr = {GpsResetCount},
                         }
                     }
                 },
@@ -233,24 +248,7 @@ uint8_t build_horus_binary_v3_packet(char* uncoded_buffer){
                     .name = true,
                     .values = true,
                 },
-                
-                
             }
-            // Example of a string field
-            //,
-            // {
-            //     .name = "cty",
-            //     .values = {
-            //         .kind = horusStr_PRESENT,
-            //         .u = {
-            //             .horusStr = "AU"
-            //         }
-            //     },
-            //      .exist = {
-            //         .name = true,
-            //         .values = true,
-            //     },
-            // },
           },
         },
         .velocityHorizontalKilometersPerHour = GpsData.Speed, // km/h

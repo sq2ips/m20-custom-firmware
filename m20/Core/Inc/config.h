@@ -23,7 +23,7 @@ const static float QRG_FSK4[] = {
 #define TX_PAUSE 500 // Delay between HORUS and APRS
 
 // APRS (AX.25 AFSK HDLC Bell 202)
-#define APRS_ENABLE 0
+#define APRS_ENABLE 1
 
 const static float QRG_AFSK[] = {
     435100000};       // AFSK transmitted frequencies array, switched in a loop, add new frequencies (in Hz) after a comma in braces.
