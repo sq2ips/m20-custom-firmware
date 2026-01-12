@@ -17,11 +17,12 @@
 #include "xm_gps.h"
 #endif
 #include "adf.h"
-#if HORUS_ENABLE
+#if HORUS_V2_ENABLE
 #include "fsk4.h"
 #include "horus_l2.h"
-
-// Include Horus v3 lib
+#elif HORUS_V3_ENABLE
+#include "fsk4.h"
+#include "horus_l2.h"
 #include "horus_v3.h"
 #endif
 #if APRS_ENABLE
@@ -87,6 +88,10 @@ int16_t ExtTemp = 0; // *10
 
 #if APRS_ENABLE
 APRSPacket AprsPacket;
+#endif
+
+#if HORUS_V2_ENABLE
+HorusBinaryPacket HorusPacket;
 #endif
 
 #define HORUS_CODED_BUFFER_SIZE 128
@@ -156,8 +161,37 @@ PUTCHAR_PROTOTYPE {
 
 /* Private user code ---------------------------------------------------------*/
 /* USER CODE BEGIN 0 */
-#if HORUS_ENABLE
-int build_horus_binary_packet_v3(char* uncoded_buffer){
+#if HORUS_V2_ENABLE
+void build_horus_binary_v2_packet(){
+	HorusPacket.PacketCount = PacketCount;
+	HorusPacket.PayloadID = HORUS_V2_PAYLOAD_ID;
+	HorusPacket.Hours = GpsData.Hours;
+	HorusPacket.Minutes = GpsData.Minutes;
+	HorusPacket.Seconds = GpsData.Seconds;
+	HorusPacket.Lat = GpsData.Lat;
+	HorusPacket.Lon = GpsData.Lon;
+	HorusPacket.Speed = GpsData.Speed; // Doesn't work
+	HorusPacket.Alt = GpsData.Alt;
+	HorusPacket.Sats = GpsData.Sats;
+	HorusPacket.AscentRate = GpsData.AscentRate;
+	HorusPacket.Temp = LpsTemp;
+	// ADC voltage: 3.3V, divided by ADC max value 4095 (2^12-1). That gives a
+	// range between 0 for 0V and 1 for 3.3V. Than it's multiplied by max
+	// variable value: 255, and divided by corresponding voltage: 5V, simplified
+	// gives 187/4550 Note: this value will not go higher than 168 corresponding
+	// to 3.3V max value of ADC
+	HorusPacket.BatVoltage = (BatVoltage * 187) / 4550;
+	HorusPacket.PvVoltage = (PvVoltage * 187) / 4550; // Same as above but prescaled previously by resistor divider values
+	HorusPacket.ExtTemp = ExtTemp;
+	HorusPacket.Hum = 0; // Not implemented
+	HorusPacket.Press = LpsPress;
+	HorusPacket.GpsResetCount = GpsResetCount;
+
+	// Horus checksum
+	HorusPacket.Checksum = (uint16_t)crc16((char*)&HorusPacket, sizeof(HorusPacket) - 2);
+}
+#elif HORUS_V3_ENABLE
+uint8_t build_horus_binary_v3_packet(char* uncoded_buffer){
   // Horus v3 packets are encoded using ASN1, and are encapsulated in packets
   // of sizes 32, 48, 64, 96 or 128 bytes (before coding)
   // The CRC16 for these packets is located at the *start* of the packet, still little-endian encoded
@@ -169,13 +203,12 @@ int build_horus_binary_packet_v3(char* uncoded_buffer){
 
   // Should check how this is allocated in memory.
 
-  // Hardcoded dummy test packet. 
   // Need to check how this is allocated in memory. how much it uses.
   // .. also does it get cleared?
 
 
   horusTelemetry asnMessage = {
-        .payloadCallsign  = HORUS_PAYLOAD_CALLSIGN,
+        .payloadCallsign  = HORUS_V3_PAYLOAD_CALLSIGN,
         .sequenceNumber = PacketCount,
         .timeOfDaySeconds  = GpsData.Hours*3600+GpsData.Minutes*60+GpsData.Seconds,
         .latitude = (int32_t)((GpsData.Lat)*100000),
@@ -228,7 +261,6 @@ int build_horus_binary_packet_v3(char* uncoded_buffer){
         .temperatureCelsius_x10 = {
             .internal = LpsTemp *10,
             .external = ExtTemp, // *10
-            // I'm not sure we need to explicitly indicate which of these fields exist, but just to be safe...
             .exist = {
                 .internal = true,
                 .external = true,
@@ -236,13 +268,13 @@ int build_horus_binary_packet_v3(char* uncoded_buffer){
                 .custom2 = false
             }
         },
-        .humidityPercentage = 0, // not implemented yet
+        .humidityPercentage = 0,
         .milliVolts = {
             .battery = BatVoltage,
-            // I'm not sure we need to explicitly indicate which of these fields exist, but just to be safe...
+			.solar = PvVoltage,
             .exist = {
                 .battery = true,
-                .solar = false,
+                .solar = PV_ADC_ENABLE,
                 .custom1 = false,
                 .custom2 = false
             }
@@ -255,7 +287,7 @@ int build_horus_binary_packet_v3(char* uncoded_buffer){
             .ascentRateCentimetersPerSecond = true,
             .pressurehPa_x10 = true,
             .temperatureCelsius_x10 = true,
-            .humidityPercentage = true,
+            .humidityPercentage = false, // not implemented yet
             .milliVolts = true
         }
     };
@@ -329,7 +361,25 @@ int build_horus_binary_packet_v3(char* uncoded_buffer){
     return 0;
 }
 #endif
-
+#if APRS_ENABLE
+void build_aprs_packet(){
+	AprsPacket.PacketCount = PacketCount;
+	AprsPacket.Hours = GpsData.Hours;
+	AprsPacket.Minutes = GpsData.Minutes;
+	AprsPacket.Seconds = GpsData.Seconds;
+	AprsPacket.Lat = GpsData.Lat;
+	AprsPacket.Lon = GpsData.Lon;
+	AprsPacket.Speed = GpsData.Speed;
+	AprsPacket.Alt = GpsData.Alt;
+	AprsPacket.Sats = GpsData.Sats;
+	AprsPacket.GpsResetCount = GpsResetCount;
+	AprsPacket.Temp = LpsTemp;
+	AprsPacket.ExtTemp = ExtTemp;
+	AprsPacket.Press = LpsPress;
+	AprsPacket.BatVoltage = BatVoltage;
+	AprsPacket.PvVoltage = Round((PvVoltage * 3300.0f) / 4095);
+}
+#endif
 void main_loop(void) {
 	// LED
 #if LED_MODE == 1
@@ -450,24 +500,10 @@ void main_loop(void) {
 #endif
 
 #if APRS_ENABLE
-	AprsPacket.Hours = GpsData.Hours;
-	AprsPacket.Minutes = GpsData.Minutes;
-	AprsPacket.Seconds = GpsData.Seconds;
-	AprsPacket.Lat = GpsData.Lat;
-	AprsPacket.Lon = GpsData.Lon;
-	AprsPacket.Speed = GpsData.Speed; // Doesn't work
-	AprsPacket.Alt = GpsData.Alt;
-	AprsPacket.Sats = GpsData.Sats;
-	AprsPacket.GpsResetCount = GpsResetCount;
-	AprsPacket.Temp = LpsTemp;
-	AprsPacket.ExtTemp = ExtTemp;
-	AprsPacket.Press = LpsPress;
-	AprsPacket.BatVoltage = BatVoltage;
-	AprsPacket.PvVoltage = Round((PvVoltage * 3300.0f) / 4095);
+	build_aprs_packet();
 
 	BufferLen = encode_APRS_packet(AprsPacket, CodedBuffer);
 
-	AprsPacket.PacketCount++;
 
 	// Transmit
 	AFSK_start_TX(CodedBuffer, BufferLen);
@@ -478,9 +514,16 @@ void main_loop(void) {
 #if HORUS_ENABLE && APRS_ENABLE
 	DelayWithIWDG(TX_PAUSE); // ???
 #endif
-#if HORUS_ENABLE
-	// Horus checksum
-	int pkt_len = build_horus_binary_packet_v3(rawBuffer);
+#if HORUS_V2_ENABLE
+	build_horus_binary_v2_packet();
+	BufferLen = horus_l2_encode_tx_packet((unsigned char*)CodedBuffer, (unsigned char*)&HorusPacket, sizeof(HorusPacket));
+	// Transmit
+	FSK4_start_TX(CodedBuffer, BufferLen);
+	while (FSK4_Active) {
+		DelayWithIWDG(10);
+	}
+#elif HORUS_V3_ENABLE
+	int pkt_len = build_horus_binary_v3_packet(rawBuffer);
 
 	BufferLen = horus_l2_encode_tx_packet((unsigned char*)CodedBuffer, (unsigned char*)&rawBuffer, pkt_len);
 
@@ -490,6 +533,8 @@ void main_loop(void) {
 		DelayWithIWDG(10);
 	}
 #endif
+
+	PacketCount++;
 
 #if GPS_WATCHDOG
 	if (GpsWatchdog.TriggerRestart) {
@@ -568,10 +613,6 @@ int main(void) {
 
 #if DEBUG
 	printf("Startup\r\n");
-#endif
-
-#if HORUS_ENABLE
-	//HorusPacket.PayloadID = HORUS_PAYLOAD_ID;
 #endif
 
 	// Init of LPS22 sensor, try 5 times
