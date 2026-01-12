@@ -8,9 +8,8 @@
 
 #define TIME_PERIOD 6 // Time betwen starts of transmissions (in seconds) (must be more than 4+TX_PAUSE)
 
-// Horus Binary 4FSK mode
-#define HORUS_V2_ENABLE 0
-#define HORUS_V3_ENABLE 1
+// Horus Binary 4FSK mode (V2 or V3)
+#define HORUS_ENABLE 3 // 0 - disabled, 2 - V2, 3 - V3
 
 const static float QRG_FSK4[] = {
     435100000};       // 4FSK transmitted frequencies array, switched in a loop, add new frequencies (in Hz) after a comma in braces. Commonly used
@@ -24,7 +23,7 @@ const static float QRG_FSK4[] = {
 #define TX_PAUSE 1000 // Delay between HORUS and APRS
 
 // APRS (AX.25 AFSK HDLC Bell 202)
-#define APRS_ENABLE 1
+#define APRS_ENABLE 0
 
 const static float QRG_AFSK[] = {
     435100000};       // AFSK transmitted frequencies array, switched in a loop, add new frequencies (in Hz) after a comma in braces.

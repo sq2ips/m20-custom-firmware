@@ -17,12 +17,11 @@
 #include "xm_gps.h"
 #endif
 #include "adf.h"
-#if HORUS_V2_ENABLE
+#if HORUS_ENABLE
 #include "fsk4.h"
 #include "horus_l2.h"
-#elif HORUS_V3_ENABLE
-#include "fsk4.h"
-#include "horus_l2.h"
+#endif
+#if HORUS_ENABLE == 3
 #include "horus_v3.h"
 #endif
 #if APRS_ENABLE
@@ -90,7 +89,7 @@ int16_t ExtTemp = 0; // *10
 APRSPacket AprsPacket;
 #endif
 
-#if HORUS_V2_ENABLE
+#if HORUS_ENABLE == 2
 HorusBinaryPacket HorusPacket;
 #endif
 
@@ -101,11 +100,11 @@ char rawBuffer[HORUS_UNCODED_BUFFER_SIZE];
 
 uint16_t PacketCount = 0;
 
-#if APRS_ENABLE
-char CodedBuffer[APRS_MAX_PACKET_LEN]; // Buffer for both HOURS and APRS frame, since APRS is always bigger, its size is used.
-#else
+//#if APRS_ENABLE
+//char CodedBuffer[APRS_MAX_PACKET_LEN]; // Buffer for both HOURS and APRS frame, since APRS is always bigger, its size is used.
+//#else
 char CodedBuffer[HORUS_CODED_BUFFER_SIZE]; // If only HOURS is used, use it's size.
-#endif
+//#endif
 uint8_t BufferLen;
 /* USER CODE END PV */
 
@@ -161,7 +160,7 @@ PUTCHAR_PROTOTYPE {
 
 /* Private user code ---------------------------------------------------------*/
 /* USER CODE BEGIN 0 */
-#if HORUS_V2_ENABLE
+#if HORUS_ENABLE == 2
 void build_horus_binary_v2_packet(){
 	HorusPacket.PacketCount = PacketCount;
 	HorusPacket.PayloadID = HORUS_V2_PAYLOAD_ID;
@@ -190,7 +189,7 @@ void build_horus_binary_v2_packet(){
 	// Horus checksum
 	HorusPacket.Checksum = (uint16_t)crc16((char*)&HorusPacket, sizeof(HorusPacket) - 2);
 }
-#elif HORUS_V3_ENABLE
+#elif HORUS_ENABLE == 3
 uint8_t build_horus_binary_v3_packet(char* uncoded_buffer){
   // Horus v3 packets are encoded using ASN1, and are encapsulated in packets
   // of sizes 32, 48, 64, 96 or 128 bytes (before coding)
@@ -514,7 +513,7 @@ void main_loop(void) {
 #if HORUS_ENABLE && APRS_ENABLE
 	DelayWithIWDG(TX_PAUSE); // ???
 #endif
-#if HORUS_V2_ENABLE
+#if HORUS_ENABLE == 2
 	build_horus_binary_v2_packet();
 	BufferLen = horus_l2_encode_tx_packet((unsigned char*)CodedBuffer, (unsigned char*)&HorusPacket, sizeof(HorusPacket));
 	// Transmit
@@ -522,7 +521,7 @@ void main_loop(void) {
 	while (FSK4_Active) {
 		DelayWithIWDG(10);
 	}
-#elif HORUS_V3_ENABLE
+#elif HORUS_ENABLE == 3
 	int pkt_len = build_horus_binary_v3_packet(rawBuffer);
 
 	BufferLen = horus_l2_encode_tx_packet((unsigned char*)CodedBuffer, (unsigned char*)&rawBuffer, pkt_len);
@@ -647,15 +646,15 @@ int main(void) {
 
 	LL_GPIO_ResetOutputPin(LED_GPIO_Port, LED_Pin); // LED OFF
 
-	// main loop timer
-	LL_TIM_EnableCounter(TIM22);
-	LL_TIM_EnableIT_UPDATE(TIM22);
-
-	// LED timer
+		// LED timer
 #if LED_MODE == 2
 	LL_TIM_EnableCounter(TIM6);
 	LL_TIM_EnableIT_UPDATE(TIM6);
 #endif
+
+	// main loop timer
+	LL_TIM_EnableCounter(TIM22);
+	LL_TIM_EnableIT_UPDATE(TIM22);
 
 	/* Interrupt priorites:
 	 * TIM2 - 4FSK modulation timer: 0
