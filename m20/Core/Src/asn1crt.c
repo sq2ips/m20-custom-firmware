@@ -1,7 +1,3 @@
-#include <string.h>
-#include <math.h>
-#include <float.h>
-
 #include "asn1crt.h"
 
 #if WORD_SIZE==8

@@ -22,7 +22,7 @@
 #include "config.h"
 #include "utils.h"
 
-#ifdef GPS_DEBUG
+#if GPS_RAW_DEBUG
 #include <stdio.h>
 #endif
 

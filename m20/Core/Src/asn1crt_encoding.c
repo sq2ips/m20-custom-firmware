@@ -1,5 +1,5 @@
-#include <string.h>
 #include "asn1crt_encoding.h"
+#include "utils.h"
 
 const byte masks[] = { 0x80, 0x40, 0x20, 0x10, 0x08, 0x04, 0x02, 0x01 };
 const byte masksb[] = { 0x0, 0x1, 0x3, 0x7, 0xF, 0x1F, 0x3F, 0x7F, 0xFF };
@@ -12,7 +12,7 @@ const asn1SccUint32 masks2[] = { 0x0,
 
 flag OctetString_equal(int len1, int len2, const byte arr1[], const byte arr2[])
 {
-	return (len1 == len2) && (memcmp(arr1, arr2, len1) == 0);
+	return (len1 == len2) && (Memcmp(arr1, arr2, len1) == 0);
 }
 
 /***********************************************************************************************/
@@ -39,7 +39,7 @@ void BitStream_Init(BitStream* pBitStrm, unsigned char* buf, long count)
 {
 	pBitStrm->count = count;
 	pBitStrm->buf = buf;
-	memset(pBitStrm->buf, 0x0, (size_t)count);
+	Memset(pBitStrm->buf, 0x0, (size_t)count);
 	pBitStrm->currentByte = 0;
 	pBitStrm->currentBit = 0;
 	pBitStrm->pushDataPrm = NULL;
@@ -1192,7 +1192,7 @@ flag BitStream_EncodeOctetString_no_length (BitStream* pBitStrm, const byte* arr
 				remainingBytesToSend :
 				pBitStrm->count - pBitStrm->currentByte;
 
-			memcpy(&pBitStrm->buf[pBitStrm->currentByte], arr, currentBatch);
+			Memcpy(&pBitStrm->buf[pBitStrm->currentByte], arr, currentBatch);
 			pBitStrm->currentByte += currentBatch;
 			bitstream_push_data_if_required(pBitStrm);
 			remainingBytesToSend -= currentBatch;
@@ -1200,7 +1200,7 @@ flag BitStream_EncodeOctetString_no_length (BitStream* pBitStrm, const byte* arr
 #else
 		ret = pBitStrm->currentByte + nCount <= pBitStrm->count;
 		if (ret) {
-			memcpy(&pBitStrm->buf[pBitStrm->currentByte], arr, nCount);
+			Memcpy(&pBitStrm->buf[pBitStrm->currentByte], arr, nCount);
 			pBitStrm->currentByte += nCount;
 		}
 #endif
@@ -1233,7 +1233,7 @@ flag BitStream_DecodeOctetString_no_length(BitStream* pBitStrm, byte* arr, int n
                 remainingBytesToRead :
                 pBitStrm->count - pBitStrm->currentByte;
 
-            memcpy(arr, &pBitStrm->buf[pBitStrm->currentByte], currentBatch);
+            Memcpy(arr, &pBitStrm->buf[pBitStrm->currentByte], currentBatch);
             pBitStrm->currentByte += currentBatch;
             bitstream_fetch_data_if_required(pBitStrm);
             remainingBytesToRead -= currentBatch;
@@ -1241,7 +1241,7 @@ flag BitStream_DecodeOctetString_no_length(BitStream* pBitStrm, byte* arr, int n
 #else
         ret = pBitStrm->currentByte + nCount <= pBitStrm->count;
         if (ret) {
-            memcpy(arr, &pBitStrm->buf[pBitStrm->currentByte], nCount);
+            Memcpy(arr, &pBitStrm->buf[pBitStrm->currentByte], nCount);
             pBitStrm->currentByte += nCount;
         }
 #endif

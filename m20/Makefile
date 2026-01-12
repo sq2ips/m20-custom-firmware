@@ -52,7 +52,7 @@ Core/Src/sysmem.c \
 Core/Src/syscalls.c \
 Core/Src/adf.c \
 Core/Src/fsk4.c \
-Core/Src/horus_v2.c \
+Core/Src/horus_l2.c \
 Core/Src/horus_v3.c \
 Core/Src/asn1crt_encoding.c \
 Core/Src/asn1crt.c \

@@ -10,9 +10,7 @@ extern "C" {
 #  include <cinttypes>
 	/* C99 check */
 #elif (defined(__STDC_VERSION__) && __STDC_VERSION__ >= 199901L) || _MSC_VER >= 1900
-#  include <stdbool.h>
 #  include <stdint.h>
-#  include <inttypes.h>
 #else /* No C++ nor C99 */
 #  ifndef _MSC_VER
 typedef unsigned char bool;
