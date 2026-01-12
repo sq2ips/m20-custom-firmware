@@ -519,11 +519,14 @@ void main_loop(void) {
 	BufferLen = horus_l2_encode_tx_packet((unsigned char*)CodedBuffer, (unsigned char*)&rawBuffer, pkt_len);
 #endif
 
+
 #if HORUS_ENABLE
 	// Transmit
-	FSK4_start_TX(CodedBuffer, BufferLen);
-	while (FSK4_Active) {
-		DelayWithIWDG(10);
+	if(BufferLen != 0){
+		FSK4_start_TX(CodedBuffer, BufferLen);
+		while (FSK4_Active) DelayWithIWDG(10);
+	}else{ // Error while creating packet, not sending
+		LL_GPIO_TogglePin(LED_GPIO_Port, LED_Pin); // Toggle LED for info
 	}
 #endif
 
