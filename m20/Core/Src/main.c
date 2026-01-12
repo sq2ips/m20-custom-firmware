@@ -31,7 +31,6 @@
 #if LPS22_ENABLE
 #include "lps22hb.h"
 #endif
-#include <string.h>
 #if DEBUG
 #include <stdio.h>
 #endif
@@ -322,7 +321,7 @@ int build_horus_binary_packet_v3(char* uncoded_buffer){
         // Calculate CRC16 over the frame, starting at byte 2
         uint16_t packetCrc = (uint16_t)crc16((uncoded_buffer + 2), frameSize - 2);
         // Write CRC into bytes 0–1 of the packet
-        memcpy(uncoded_buffer, &packetCrc, sizeof(packetCrc));  // little‑endian on STM32
+        Memcpy(uncoded_buffer, &packetCrc, sizeof(packetCrc));  // little‑endian on STM32
 
         return frameSize;
     }
