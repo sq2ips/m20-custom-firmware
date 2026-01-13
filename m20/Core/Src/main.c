@@ -601,7 +601,9 @@ int main(void) {
 	MX_SPI1_Init();
 	MX_TIM22_Init();
 	MX_ADC_Init();
-	//MX_IWDG_Init();
+	#if IWDG_ENABLE
+	MX_IWDG_Init();
+	#endif
 	MX_TIM6_Init();
 	MX_TIM21_Init();
 	MX_TIM2_Init();
@@ -678,7 +680,9 @@ int main(void) {
 		/* USER CODE END WHILE */
 
 		/* USER CODE BEGIN 3 */
+		#ifdef IWDG_ENABLE
 		LL_IWDG_ReloadCounter(IWDG);
+		#endif
 		if (GpsBufferReady) {
 #if GPS_TYPE == 1
 			ParseNMEA(&GpsData, GpsRxBuffer);
@@ -1449,7 +1453,9 @@ void LED_Handler(void) {
 #endif
 void DelayWithIWDG(uint16_t time) {
 	for (uint16_t i = 0; i < time / 10; i++) {
+		#ifdef IWDG_ENABLE
 		LL_IWDG_ReloadCounter(IWDG);
+		#endif
 		LL_mDelay(10);
 	}
 }

@@ -80,6 +80,8 @@ const static float QRG_AFSK[] = {
 #define PV_ADC_R1 1 // Resistor from measurement target to PA0
 #define PV_ADC_R2 2 // Resistor from PA0 to ground
 
+#define IWDG_ENABLE 1
+
 // Debug
 #define DEBUG 0
 
