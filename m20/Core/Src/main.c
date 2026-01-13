@@ -129,6 +129,14 @@ void GPS_Handler(void);
 #if LED_MODE == 2
 void LED_Handler(void);
 #endif
+#if HORUS_ENABLE == 2
+void build_horus_binary_v2_packet(void);
+#elif HORUS_ENABLE == 3
+uint8_t build_horus_binary_v3_packet(char* uncoded_buffer);
+#endif
+#if APRS_ENABLE
+void build_aprs_packet(void);
+#endif
 void main_loop(void);
 void DelayWithIWDG(uint16_t time);
 #if GPS_TYPE == 1
