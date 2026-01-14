@@ -524,7 +524,8 @@ void main_loop(void) {
 	BufferLen = horus_l2_encode_tx_packet((unsigned char*)CodedBuffer, (unsigned char*)&HorusPacket, sizeof(HorusPacket));
 #elif HORUS_ENABLE == 3
 	uint8_t pkt_len = build_horus_binary_v3_packet(rawBuffer);
-	BufferLen = horus_l2_encode_tx_packet((unsigned char*)CodedBuffer, (unsigned char*)&rawBuffer, pkt_len);
+	if(pkt_len != 0) BufferLen = horus_l2_encode_tx_packet((unsigned char*)CodedBuffer, (unsigned char*)&rawBuffer, pkt_len);
+	else BufferLen = 0;
 #endif
 
 
