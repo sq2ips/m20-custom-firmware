@@ -388,7 +388,7 @@ void build_aprs_packet(){
 void main_loop(void) {
 	// LED
 #if LED_MODE == 1
-	LL_GPIO_TogglePin(LED_GPIO_Port, LED_Pin);
+	LL_GPIO_SetOutputPin(LED_GPIO_Port, LED_Pin);
 #endif
 
 	// LPS22HB sensor
@@ -561,7 +561,7 @@ void main_loop(void) {
 
 // LED
 #if LED_MODE == 1
-	LL_GPIO_TogglePin(LED_GPIO_Port, LED_Pin);
+	LL_GPIO_ResetOutputPin(LED_GPIO_Port, LED_Pin);
 #endif
 }
 /* USER CODE END 0 */
@@ -652,12 +652,12 @@ int main(void) {
 	DelayWithIWDG(100);
 #endif
 
-	LL_GPIO_ResetOutputPin(LED_GPIO_Port, LED_Pin); // LED OFF
-
 		// LED timer
 #if LED_MODE == 2
 	LL_TIM_EnableCounter(TIM6);
 	LL_TIM_EnableIT_UPDATE(TIM6);
+#elif
+	LL_GPIO_ResetOutputPin(LED_GPIO_Port, LED_Pin); // LED OFF
 #endif
 
 	// main loop timer

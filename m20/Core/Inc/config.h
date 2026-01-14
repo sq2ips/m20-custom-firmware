@@ -18,7 +18,7 @@ const static float QRG_FSK4[] = {
 
 #define HORUS_V2_PAYLOAD_ID 256 // Sonde payload ID 256 - for 4FSKTEST-V2, change this for real flight, refer to https://github.com/projecthorus/horusdemodlib/wiki#how-do-i-transmit-it
 
-#define HORUS_V3_PAYLOAD_CALLSIGN "N0CALL"
+#define HORUS_V3_PAYLOAD_CALLSIGN "4FSKTEST-V3"
 
 #define TX_PAUSE 500 // Delay between HORUS and APRS
 
