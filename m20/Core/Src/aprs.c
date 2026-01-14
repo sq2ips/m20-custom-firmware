@@ -9,8 +9,6 @@
 
 #include "utils.h"
 
-#include <string.h>
-
 static uint16_t calculateFcs(char* input_data, uint16_t len) { // Checksum calculator
 	uint16_t crc = 0xFFFF;
 	uint16_t crc16_table[] = {0x0000, 0x1081, 0x2102, 0x3183, 0x4204, 0x5285, 0x6306, 0x7387,
@@ -59,7 +57,7 @@ static uint8_t generate_ax25_frame(char* info_field, uint8_t info_field_size, ch
 	buff[pos++] = APRS_CONTROL_FIELD; // Control field
 	buff[pos++] = APRS_PROTOCOL_ID;   // Protocol ID
 
-	memcpy(buff + pos, info_field, info_field_size); // info field
+	Memcpy(buff + pos, info_field, info_field_size); // info field
 	pos += info_field_size;
 
 	uint16_t fcs = calculateFcs(buff, pos); // checksum
@@ -202,7 +200,7 @@ uint8_t encode_APRS_packet(APRSPacket Packet, char* buff) {
 #if APRS_COMMENT_TEXT_ENABLE
 	info_field[pos++] = ' '; // Space before comment;
 
-	memcpy(info_field + pos, APRS_COMMENT_TEXT, APRS_MAX_INFO_LEN - pos);
+	Memcpy(info_field + pos, APRS_COMMENT_TEXT, APRS_MAX_INFO_LEN - pos);
 	pos += sizeof(APRS_COMMENT_TEXT) - 1;
 	if (pos > APRS_MAX_INFO_LEN) pos = APRS_MAX_INFO_LEN;
 #endif

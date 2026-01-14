@@ -1,5 +1,5 @@
 # m20-custom-firmware
-The goal of this project is to reverse engineer the [Meteomodem M20](https://www.meteomodem.com/m20) radiosonde and build custom free and open-source firmware for its usage in ham radio balloons based on the [Horus Binary V2](https://github.com/projecthorus/horusdemodlib/wiki) radio protocol.
+The goal of this project is to reverse engineer the [Meteomodem M20](https://www.meteomodem.com/m20) radiosonde and build custom free and open-source firmware for its usage in ham radio balloons.
 
 # Code
 The code is writen in C using STM32CubeMX (not to be confused with STM32CubeIDE) generated project and Low Layer (LL) libraries, compiled using arm-none-eabi toolchain (version 15.1.0 is used). Now it fits into the original STM32L051R6T6 chip.
@@ -19,7 +19,8 @@ if you are having any other questions, ideas or issues you can write me an e-mai
 # What works
 - GPS (NMEA): :heavy_check_mark:
 - GPS (XM1110) :heavy_check_mark:
-- Radio (Horus): :heavy_check_mark:
+- Radio (Horus V2): :heavy_check_mark:
+- Radio (Horus V3): :heavy_check_mark:
 - Radio (APRS): :heavy_check_mark:
 - LPS22 barometer + temp sensor: :heavy_check_mark:
 - Uart: :heavy_check_mark:
@@ -30,7 +31,7 @@ if you are having any other questions, ideas or issues you can write me an e-mai
 The currently implemented features are:
 - GPS time, position, altitude, speed (not working in XM1110), ascent rate and number of satellites (NMEA and XM1110)
 - changing u-blox module mode to airborne to allow higher altitude flights
-- Sending data over radio using Horus Binary V2 protocol and/or APRS protocol
+- Sending data over radio using Horus Binary V2/V3 protocol and/or APRS protocol
 - Getting battery voltage
 - Getting temperature and pressure
 - Getting external temperature
@@ -78,7 +79,8 @@ Great pcb reverse enginering work was made by [joyel24](https://github.com/joyel
 - NMEA parsed based on https://github.com/sztvka/stm32-nmea-gps-hal
 - LPS22 implementation based on https://github.com/KitSprout/KSDK/tree/master/firmwareSTM32/KSSTM_Module_LPS22HB/Program/modules
 - Radio modules implementation based on https://github.com/adamgreig/wombat
-- Horus Binary encoder based on https://github.com/projecthorus/horusdemodlib/blob/master/src%2Fhorus_l2.c
+- Horus Binary V2 encoder based on https://github.com/projecthorus/horusdemodlib/blob/master/src%2Fhorus_l2.c
+- Horus Binary V3 encoder based on Mark VK5QI's fork of RS41-nfw https://github.com/darksidelemm/rs41-nfw/tree/main/fw/fw-files/rs41-nfw
 
 # GPS
 There are 2 variants of GPS modules, both of them are supported.
@@ -144,6 +146,30 @@ Sent data (implemented in [`horus.h`](./m20/Core/Inc/horus.h)):
 | 28 | uint8 | GPS watchdog restart count |
 | 29 | uint8 | Additional ADC measurement, see [PV / payload voltage ADC](#pv--payload-voltage-adc) |
 | 30-31 |	uint16 | CRC16-CCITT Checksum |
+## Horus Binary V3
+[Horus Binary V3](https://github.com/xssfox/horusbinaryv3) is a new radio protocol designed for HAB flights. It's based on protocol version V2 but additionaly uses Abstract Syntax Notation 1 (ASN.1) to describe the data format. It is highly customizable, and doesn't need a payload ID request like V2.
+The Fields in the packet are as follows:
+| Field name | Constraint | Description |
+|-|-|-|
+| `payloadCallsign` | 1 to 15 characters : `a-z`,`A-Z`,`0-9`,`-` | Payload callsign |
+| `sequenceNumber` | 0 - 65535 | Frame sequence number. |
+| `timeOfDaySeconds` | -1 - 86400 | This is the time since midnight UTC. Received from the GPS module. |
+| `latitude` | -9000000 - 9000000 | Current GPS latitude (fixt point multiplied by 100000).  |
+| `longitude` | -18000000..18000000 | Current GPS longitude (fixt point multiplied by 100000). |
+| `altitudeMeters` | -1000 - 50000 | GPS altitude. |
+| `extraSensor`: `type` | string | Just sonde identifier, defaults to `M20`. |
+| `extraSensor`: `gps` | uint8 | Number of GPS watchdog restarts. |
+| `velocityHorizontalKilometersPerHour` | 0-512 | Horizontal velocity in km/h from GPS module. |
+| `ascentRateCentimetersPerSecond` | -32767 - 32767 | Ascent rate in centimeters per second. |
+| `gnssSatellitesVisible` | 0 - 31 | Number of satellites the GPS module can see. |
+| `humidityPercentage` | 0 - 100 | Humidity in percentage, not implemented. |
+| `pressurehPa` | 0 - 1200 | Atmospheric pressure in hPa from [LPS22HB](#barometer-and-temperature-sensor). |
+| `temperatureCelsius`: `internal` | -1023 - 1023 | Internal temperature sensor value in Celsius (multiplied by 10), from [LPS22HB](#barometer-and-temperature-sensor) sensor. |
+| `temperatureCelsius`: `external` | -1023 - 1023 | External temperature sensor value in Celsius (multiplied by 10), from [NTC](#external-temperature-sensor) sensor. |
+| `milliVolts`: `battery` | 0 - 16383 | [battery ADC](#battery-voltage-reading) voltage in millivolts. |
+| `milliVolts`: `solar` | 0 - 16383 | Voltage in millivolts from additional ADC measurement, see [PV / payload voltage ADC](#pv--payload-voltage-adc) |
+
+Some sensor fileds are enabled with corresponding sensors enable value from `config.h`.
 
 ## APRS
 The Automatic Packet Reporting System (APRS) is also commonly used for ham balloon flights because of the big network of internet forwarding ground stations together with the [amateur Sondehub](https://amateur.sondehub.org/) infrastructure. Frames are collected from the APRS-IS, parsed by [sondehub-aprs-gateway](https://github.com/projecthorus/sondehub-aprs-gateway) and sent to the map.
@@ -204,10 +230,11 @@ Parameters list:
 | parameter | type (and unit) | description |
 |-----------|------|-------------|
 | **`TIME_PERIOD`** | uint (in seconds) | Time between transmition of frames. Should not be lower than 4. |
-| `HORUS_ENABLE` | bool | Enables the 4-FSK Horus Binary V2 transmission.
+| `HORUS_ENABLE` | uint | 0 for disabled, 2 for Horus Binary V2, 3 for Horus Binary V3.
 | **`QRG_FSK4`** | float[] (in Hz) | Transmitted frequencies array of Horus 4-FSK, switched in a loop, add new frequencies after a comma in braces. Refer to [Horus wiki](https://github.com/projecthorus/horusdemodlib/wiki#commonly-used-frequencies) for commonly used frequencies. |
 | **`FSK4_POWER`** | uint | Number from 0 to 63. See the table bellow. |
-| **`HORUS_PAYLOAD_ID`** | uint16 | Payload ID transmitted in Horus Binary frame, in order to conduct a flight you need to request one for your callsign, more information in the [Protocol documentation](https://github.com/projecthorus/horusdemodlib/wiki#how-do-i-transmit-it). For testing ID 256 is used. |
+| **`HORUS_V2_PAYLOAD_ID`** | uint16 | Payload ID transmitted in Horus Binary V2 frame, in order to conduct a flight you need to request one for your callsign, more information in the [Protocol documentation](https://github.com/projecthorus/horusdemodlib/wiki#how-do-i-transmit-it). For testing ID 256 is used. |
+| **`HORUS_V3_PAYLOAD_CALLSIGN`** | string | Payload callsign string for Horus Binary V3, 1 to 15 characters : `a-z`,`A-Z`,`0-9`,`-`. |
 | `FSK4_BAUD` | uint | Baudrate of the 4-FSK transmission. |
 | `FSK4_SPACE_MULTIPLIER` | uint | Tone spacing multiplier - 1 for 244Hz, 2 for 488, etc. |
 | `FSK4_HEADER_LENGTH` | uint | Length in bytes of 4FSK sync header. |

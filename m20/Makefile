@@ -20,7 +20,7 @@ TARGET = m20
 # building variables
 ######################################
 # debug build?
-DEBUG = 0
+DEBUG = 1
 # optimization
 OPT = -Os
 
@@ -52,7 +52,10 @@ Core/Src/sysmem.c \
 Core/Src/syscalls.c \
 Core/Src/adf.c \
 Core/Src/fsk4.c \
-Core/Src/horus.c \
+Core/Src/horus_l2.c \
+Core/Src/horus_v3.c \
+Core/Src/asn1crt_encoding.c \
+Core/Src/asn1crt.c \
 Core/Src/afsk.c \
 Core/Src/aprs.c \
 Core/Src/lps22hb.c \
@@ -159,7 +162,7 @@ CFLAGS += -MMD -MP -MF"$(@:%.o=%.d)"
 LDSCRIPT = STM32L051XX_FLASH.ld
 
 # libraries
-LIBS = -lc -lm -lnosys 
+LIBS = -lc -lnosys 
 LIBDIR = 
 LDFLAGS = $(MCU) -specs=nano.specs -T$(LDSCRIPT) $(LIBDIR) $(LIBS) -Wl,-Map=$(BUILD_DIR)/$(TARGET).map,--cref -Wl,--gc-sections,--print-memory-usage,--no-wchar-size-warning
 

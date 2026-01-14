@@ -12,7 +12,6 @@
 #if GPS_DEBUG
 #include <stdio.h>
 #endif
-#include <string.h>
 
 static char data[DATA_SIZE][SENTENCE_SIZE];
 
@@ -20,36 +19,18 @@ static uint8_t correct = 0;
 static uint16_t olddAlt = 0;
 static uint32_t olddTime = 0;
 
-static uint16_t a_strtof(char* buffer) {
-	uint8_t d_pos = 0;
-	uint16_t value = 0;
-
-	while (buffer[d_pos] != '.') {
-		if (buffer[d_pos] == '\0') return 0;
-		d_pos++;
-	}
-	uint16_t e = 1;
-	for (int8_t pos = d_pos - 1; pos >= 0; pos--) {
-		value += (buffer[pos] - '0') * e;
-		e *= 10;
-	}
-	if ((buffer[d_pos + 1] - '0') >= 5) value++; // rounding first decimal place
-
-	return value;
-}
-
 static uint8_t checksum(char* nmea_frame) {
 	// if you point a string with less than 5 characters the function will read
 	// outside of scope and crash the mcu.
-	if (strlen(nmea_frame) < 5) return 0;
+	if (Strlen(nmea_frame) < 5) return 0;
 	char recv_crc[2];
-	recv_crc[0] = nmea_frame[strlen(nmea_frame) - 4];
-	recv_crc[1] = nmea_frame[strlen(nmea_frame) - 3];
+	recv_crc[0] = nmea_frame[Strlen(nmea_frame) - 4];
+	recv_crc[1] = nmea_frame[Strlen(nmea_frame) - 3];
 	int crc = 0;
 	int i;
 
 	// exclude the CRLF plus CRC with an * from the end
-	for (i = 0; i < strlen(nmea_frame) - 5; i++) {
+	for (i = 0; i < Strlen(nmea_frame) - 5; i++) {
 		crc ^= nmea_frame[i];
 	}
 	int receivedHash = 0;
@@ -77,21 +58,21 @@ static uint8_t getValues(char* inputString, char values[MAX_SENTENCE_ELEMENTS][S
 	uint8_t d_pos = 0;
 	uint8_t cnt = 0;
 	char buffer[SENTENCE_ELEMENT_LEN];
-	memset(buffer, 0, SENTENCE_ELEMENT_LEN);
+	Memset(buffer, 0, SENTENCE_ELEMENT_LEN);
 
-	while (pos < strlen(inputString) && inputString[pos] != '\n' && pos < SENTENCE_SIZE && cnt < MAX_SENTENCE_ELEMENTS) {
+	while (pos < Strlen(inputString) && inputString[pos] != '\n' && pos < SENTENCE_SIZE && cnt < MAX_SENTENCE_ELEMENTS) {
 		if (inputString[pos] == ',') {
 			// If the length of the value is within buffer limits
 			if (pos - d_pos < SENTENCE_ELEMENT_LEN) {
-				strncpy(values[cnt], buffer,
+				Strncpy(values[cnt], buffer,
 				        pos - d_pos); // Copy the buffer into values[cnt]
-				memset(values[cnt] + (pos - d_pos), 0,
+				Memset(values[cnt] + (pos - d_pos), 0,
 				       SENTENCE_ELEMENT_LEN - (pos - d_pos)); // Ensure null termination
 				                                              // cnt++;
 			}
 			cnt++;
 			// Reset buffer and update d_pos to start from next character
-			memset(buffer, 0, SENTENCE_ELEMENT_LEN);
+			Memset(buffer, 0, SENTENCE_ELEMENT_LEN);
 			d_pos = pos + 1;
 		} else {
 			// Check if writing to buffer exceeds its size
@@ -116,7 +97,7 @@ static uint8_t getValues(char* inputString, char values[MAX_SENTENCE_ELEMENTS][S
 // alt (float): Altitude in meters
 static bool nmea_GGA(GPS* GpsData, char* inputString) {
 	char values[MAX_SENTENCE_ELEMENTS][SENTENCE_ELEMENT_LEN];
-	memset(values, 0, sizeof(values));
+	Memset(values, 0, sizeof(values));
 	uint8_t len = getValues(inputString, values);
 	if (len < 9) return 0;
 
@@ -204,7 +185,7 @@ static bool nmea_GGA(GPS* GpsData, char* inputString) {
 // mode_nav (int): Navigation mode: 1 (fix not available), 2 (2D) or 3 (3D)
 static bool nmea_GSA(GPS* GpsData, char* inputString) {
 	char values[MAX_SENTENCE_ELEMENTS][SENTENCE_ELEMENT_LEN];
-	memset(values, 0, sizeof(values));
+	Memset(values, 0, sizeof(values));
 	uint8_t len = getValues(inputString, values);
 	if (len < 2) return 0;
 
@@ -235,7 +216,7 @@ static bool nmea_GSA(GPS* GpsData, char* inputString) {
 // lon_ew (char): Longitude east (E) or west (W) indicator
 static bool nmea_GLL(GPS* GpsData, char* inputString) {
 	char values[MAX_SENTENCE_ELEMENTS][SENTENCE_ELEMENT_LEN];
-	memset(values, 0, sizeof(values));
+	Memset(values, 0, sizeof(values));
 	uint8_t len = getValues(inputString, values);
 	if (len < 3) return 0;
 
@@ -282,7 +263,7 @@ static bool nmea_GLL(GPS* GpsData, char* inputString) {
 // sog_kph (float): Speed over ground in km/h
 static bool nmea_VTG(GPS* GpsData, char* inputString) {
 	char values[MAX_SENTENCE_ELEMENTS][SENTENCE_ELEMENT_LEN];
-	memset(values, 0, sizeof(values));
+	Memset(values, 0, sizeof(values));
 	uint8_t len = getValues(inputString, values);
 	if (len < 7) return 0;
 
@@ -291,30 +272,30 @@ static bool nmea_VTG(GPS* GpsData, char* inputString) {
 }
 
 void ParseNMEA(GPS* GpsData, uint8_t* buffer) {
-	memset(data, 0, sizeof(data));
-	char* token = strtok((char*)buffer, "$");
+	Memset(data, 0, sizeof(data));
+	char* token = Strtok((char*)buffer, "$");
 	uint8_t cnt = 0;
 	while (token != NULL && cnt < DATA_SIZE) {
-		if (strlen(token) < SENTENCE_SIZE) {
-			strncpy(data[cnt], token, SENTENCE_SIZE - 1);
+		if (Strlen(token) < SENTENCE_SIZE) {
+			Strncpy(data[cnt], token, SENTENCE_SIZE - 1);
 			data[cnt][SENTENCE_SIZE - 1] = '\0';
 			cnt++;
 		}
-		token = strtok(NULL, "$");
+		token = Strtok(NULL, "$");
 	}
 	correct = 0;
 	for (uint8_t i = 0; i < cnt; i++) {
-		if (strstr(data[i], "GN") != NULL && strstr(data[i], "\r\n") != NULL && checksum(data[i])) {
+		if (Strstr(data[i], "GN") != NULL && Strstr(data[i], "\r\n") != NULL && checksum(data[i])) {
 #if GPS_DEBUG
 			printf(">%s", data[i]);
 #endif
-			if (strstr(data[i], "GNGLL") != NULL) {
+			if (Strstr(data[i], "GNGLL") != NULL) {
 				if (nmea_GLL(GpsData, data[i])) correct++;
-			} else if (strstr(data[i], "GNGSA") != NULL) {
+			} else if (Strstr(data[i], "GNGSA") != NULL) {
 				if (nmea_GSA(GpsData, data[i])) correct++;
-			} else if (strstr(data[i], "GNGGA") != NULL) {
+			} else if (Strstr(data[i], "GNGGA") != NULL) {
 				if (nmea_GGA(GpsData, data[i])) correct++;
-			} else if (strstr(data[i], "GNVTG") != NULL) {
+			} else if (Strstr(data[i], "GNVTG") != NULL) {
 				if (nmea_VTG(GpsData, data[i])) correct++;
 			}
 		}
