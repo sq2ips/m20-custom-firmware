@@ -59,6 +59,7 @@ Due to hardware limitations (system clock PLL setting options) it is not possibl
 # Authors
 - Paweł SQ2IPS
 - Jędrzej SQ2DK
+
 Big thanks to:
 - SP9AOB and SP6MPL for testing, making flights and finding new ideas for the project
 - SP2IML for code contribution, writing tests, and debuging the code
@@ -148,6 +149,7 @@ Sent data (implemented in [`horus.h`](./m20/Core/Inc/horus.h)):
 | 30-31 |	uint16 | CRC16-CCITT Checksum |
 ## Horus Binary V3
 [Horus Binary V3](https://github.com/xssfox/horusbinaryv3) is a new radio protocol designed for HAB flights. It's based on protocol version V2 but additionaly uses Abstract Syntax Notation 1 (ASN.1) to describe the data format. It is highly customizable, and doesn't need a payload ID request like V2.
+Note that since in V3 payload callsign is directly encoded into the frame, it's length depends on the callsign length so using any sufixes is not recommended if not really necessary.
 The Fields in the packet are as follows:
 | Field name | Constraint | Description |
 |-|-|-|
@@ -170,6 +172,10 @@ The Fields in the packet are as follows:
 | `milliVolts`: `solar` | 0 - 16383 | Voltage in millivolts from additional ADC measurement, see [PV / payload voltage ADC](#pv--payload-voltage-adc) |
 
 Some sensor fileds are enabled with corresponding sensors enable value from `config.h`.
+
+## Note about Horus Binary
+From [horusdemodlib wiki](https://github.com/projecthorus/horusdemodlib/wiki):
+> Starting from horusdemodlib 0.6.0 it is recommended to use Horus Binary V3 for new designs, projects and launches. This format is more flexible and does not require pull requests to be submitted for payload IDs and custom data types
 
 ## APRS
 The Automatic Packet Reporting System (APRS) is also commonly used for ham balloon flights because of the big network of internet forwarding ground stations together with the [amateur Sondehub](https://amateur.sondehub.org/) infrastructure. Frames are collected from the APRS-IS, parsed by [sondehub-aprs-gateway](https://github.com/projecthorus/sondehub-aprs-gateway) and sent to the map.
@@ -214,9 +220,9 @@ This is the connection schematic, green is PA0 pin, black is ground (other GND c
 Values of R1 and R2 need to be set in config (`PV_ADC_R1`, `PV_ADC_R2`).
 For example for R1 = 1k and R2 = 2k the max voltage is 4.95V.
 When setting values in config you can reduce the values fraction if possible (for 1000R and 2000R you can set 1 and 2 in config).
-Note that Horus voltage field is an unsigned byte of values corresponding to voltage range from 0 to 5V, so higher values can't be represented.
 
-For this to work with Horus decoders you need to make a PR to add your call assigned to payload ID to [Horus custom field list](https://github.com/projecthorus/horusdemodlib/blob/master/custom_field_list.json), in the section of `"SP2ZIE"` in `"other_payloads"` add your call in the list after a `,` in `""`, for example when the table looks like this: `["SQ2IPS"]` adding a call SP0ABC is: `["SQ2IPS", "SP0ABC"]`.
+~~Note that Horus voltage field is an unsigned byte of values corresponding to voltage range from 0 to 5V, so higher values can't be represented.
+For this to work with Horus decoders you need to make a PR to add your call assigned to payload ID to [Horus custom field list](https://github.com/projecthorus/horusdemodlib/blob/master/custom_field_list.json), in the section of `"SP2ZIE"` in `"other_payloads"` add your call in the list after a `,` in `""`, for example when the table looks like this: `["SQ2IPS"]` adding a call SP0ABC is: `["SQ2IPS", "SP0ABC"]`.~~ Since Horus Binary V3 none of this is necessary.
 
 ## Downloading code
 First you need to obtain the code, you can do it with `git`:
