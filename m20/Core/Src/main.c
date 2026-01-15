@@ -229,20 +229,7 @@ uint8_t build_horus_binary_v3_packet(char* uncoded_buffer){
           .nCount=2, // Number of custom fields.
           .arr = {
             {
-                .name = "type",
-                .values = {
-                    .kind = horusStr_PRESENT,
-                    .u = {
-                        .horusStr = "M20"
-                    }
-                },
-                 .exist = {
-                    .name = true,
-                    .values = true,
-                },
-            },
-            {
-                .name = "gps", // This is transmitted in the packet if .exist/name is true
+                .name = "gps", // GPS restarts
                 .values = {
                     .kind = horusInt_PRESENT,
                     .u = {
@@ -256,6 +243,17 @@ uint8_t build_horus_binary_v3_packet(char* uncoded_buffer){
                     .name = true,
                     .values = true,
                 },
+            },
+			{
+                .values = {
+                    .kind = horusStr_PRESENT,
+                    .u = {
+                        .horusStr = "M20" // Sonde identifier
+                    }
+                },
+                 .exist = {
+                    .values = true,
+                },
             }
           },
         },
@@ -267,8 +265,8 @@ uint8_t build_horus_binary_v3_packet(char* uncoded_buffer){
             .internal = LpsTemp, // *10
             .external = ExtTemp, // *10
             .exist = {
-                .internal = true,
-                .external = true,
+                .internal = LPS22_ENABLE,
+                .external = NTC_ENABLE,
                 .custom1 = false,
                 .custom2 = false
             }
@@ -278,7 +276,7 @@ uint8_t build_horus_binary_v3_packet(char* uncoded_buffer){
             .battery = BatVoltage,
 			.solar = PvVoltage,
             .exist = {
-                .battery = true,
+                .battery = BAT_ADC_ENABLE,
                 .solar = PV_ADC_ENABLE,
                 .custom1 = false,
                 .custom2 = false
@@ -287,10 +285,10 @@ uint8_t build_horus_binary_v3_packet(char* uncoded_buffer){
         // We need to explicitly specify which optional fields we want to include in the packet
         .exist = {
             .extraSensors = true,
-            .velocityHorizontalKilometersPerHour = true,
+            .velocityHorizontalKilometersPerHour = (GPS_TYPE == 1), // GPS type 2 doesn't have speed
             .gnssSatellitesVisible = true,
             .ascentRateCentimetersPerSecond = true,
-            .pressurehPa_x10 = true,
+            .pressurehPa_x10 = LPS22_ENABLE,
             .temperatureCelsius_x10 = true,
             .humidityPercentage = false, // not implemented yet
             .milliVolts = true
