@@ -139,6 +139,11 @@ encode_comment_telemetry(APRSPacket Packet,
 	cnt += int_to_string(Packet.Press, buff + cnt, 5, true); // *10, 4+1 digits
 #endif
 
+#if HUMIDITY_ENABLE
+	buff[cnt++] = 'H';                                      // Humidity
+	cnt += int_to_string(Packet.Humidity, buff + cnt, 3, true); // 3 digits
+#endif
+
 #if NTC_ENABLE
 	buff[cnt++] = 'E';                                         // External temp
 	cnt += int_to_string(Packet.ExtTemp, buff + cnt, 3, true); // *10, 2+1 digits (+ sign)

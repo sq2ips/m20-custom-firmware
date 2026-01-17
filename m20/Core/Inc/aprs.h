@@ -40,6 +40,7 @@ typedef struct TAPRSPacket {
 	int8_t Temp;
 	int16_t ExtTemp;
 	uint16_t Press;
+	uint8_t Humidity;
 	uint16_t BatVoltage;
 	uint16_t PvVoltage; // Payload / PV voltage
 } APRSPacket;
