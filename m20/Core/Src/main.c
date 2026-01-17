@@ -666,9 +666,9 @@ int main(void) {
 	/* Infinite loop */
 	/* USER CODE BEGIN WHILE */
 	while (1) {
-/* USER CODE END WHILE */
+	/* USER CODE END WHILE */
 
-/* USER CODE BEGIN 3 */
+	/* USER CODE BEGIN 3 */
 #ifdef IWDG_ENABLE
 		LL_IWDG_ReloadCounter(IWDG);
 #endif
@@ -1204,6 +1204,7 @@ static void MX_TIM22_Init(void) {
  * @retval None
  */
 static void MX_GPIO_Init(void) {
+	LL_EXTI_InitTypeDef EXTI_InitStruct = {0};
 	LL_GPIO_InitTypeDef GPIO_InitStruct = {0};
 	/* USER CODE BEGIN MX_GPIO_Init_1 */
 	/* USER CODE END MX_GPIO_Init_1 */
@@ -1393,6 +1394,22 @@ static void MX_GPIO_Init(void) {
 	GPIO_InitStruct.OutputType = LL_GPIO_OUTPUT_OPENDRAIN;
 	GPIO_InitStruct.Pull = LL_GPIO_PULL_NO;
 	LL_GPIO_Init(NTC_330K_GPIO_Port, &GPIO_InitStruct);
+
+	/**/
+	LL_SYSCFG_SetEXTISource(LL_SYSCFG_EXTI_PORTC, LL_SYSCFG_EXTI_LINE6);
+
+	/**/
+	LL_GPIO_SetPinPull(Humidity_PWM_GPIO_Port, Humidity_PWM_Pin, LL_GPIO_PULL_NO);
+
+	/**/
+	LL_GPIO_SetPinMode(Humidity_PWM_GPIO_Port, Humidity_PWM_Pin, LL_GPIO_MODE_INPUT);
+
+	/**/
+	EXTI_InitStruct.Line_0_31 = LL_EXTI_LINE_6;
+	EXTI_InitStruct.LineCommand = ENABLE;
+	EXTI_InitStruct.Mode = LL_EXTI_MODE_IT;
+	EXTI_InitStruct.Trigger = LL_EXTI_TRIGGER_RISING;
+	LL_EXTI_Init(&EXTI_InitStruct);
 
 	/* USER CODE BEGIN MX_GPIO_Init_2 */
 	/* USER CODE END MX_GPIO_Init_2 */

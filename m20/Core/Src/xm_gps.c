@@ -30,14 +30,14 @@
 const uint8_t preambule[XM_PREAMBULE_LEN] = {0xAA, 0xAA, 0xAA, 0x03};
 
 typedef struct {
-  uint8_t Fix;
-  uint32_t Lat;
-  uint32_t Lon;
-  uint32_t CurrentAlt;
-  uint32_t PreviousAlt;
-  uint32_t CurrentTime;
-  uint32_t PreviousTime;
-  uint8_t Sats;
+	uint8_t Fix;
+	uint32_t Lat;
+	uint32_t Lon;
+	uint32_t CurrentAlt;
+	uint32_t PreviousAlt;
+	uint32_t CurrentTime;
+	uint32_t PreviousTime;
+	uint8_t Sats;
 } XmFrame;
 
 XmFrame Xm;

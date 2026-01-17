@@ -254,7 +254,7 @@ void interleave(unsigned char* inout, int nbytes, int dir) {
 		/* write jbit to ibit position */
 
 		out[jbyte] |= ibit << jshift; // replace with i-th bit
-		// out[ibyte] |= ibit << ishift; // replace with i-th bit
+		                              // out[ibyte] |= ibit << ishift; // replace with i-th bit
 	}
 
 	Memcpy(inout, out, nbytes);

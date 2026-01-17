@@ -1,66 +1,45 @@
--- auto tags because this will be used in uper anyway where tags don't get used (order is important though)
-HorusBinaryV3 DEFINITIONS AUTOMATIC TAGS ::= BEGIN
+--auto tags because this will be used in uper anyway where tags don't get used (order is important though) HorusBinaryV3 DEFINITIONS AUTOMATIC TAGS ::
+    = BEGIN
 
-BitFlags ::= SEQUENCE {
-  b0  BOOLEAN,
-  b1  BOOLEAN,
-  b2  BOOLEAN,
-  b3  BOOLEAN,
-  b4  BOOLEAN,
-  b5  BOOLEAN,
-  b6  BOOLEAN,
-  b7  BOOLEAN
+        BitFlags ::
+            = SEQUENCE{b0 BOOLEAN, b1 BOOLEAN, b2 BOOLEAN, b3 BOOLEAN, b4 BOOLEAN, b5 BOOLEAN, b6 BOOLEAN, b7 BOOLEAN}
+
+CustomFieldValues ::
+    = CHOICE {
+	--prefixed with horus otherwise c codegen is bad
+
+	    -- allows base64 -
+	    if you were crazy enough,
+	    but really you should use customData instead horusStr IA5String(
+	        FROM("abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789_ +/=-.") ^ SIZE(0..255)),
+	    horusInt SEQUENCE(SIZE(1..4)) OF INTEGER, horusReal SEQUENCE(SIZE(1..4)) OF REAL,
+
+	    --we could use a bit string here, but it packs down the same so we may as well make it easier on ourselves to process horusBool BitFlags
 }
 
-CustomFieldValues ::= CHOICE {
-  -- prefixed with horus otherwise c codegen is bad
+AdditionalSensorType :: = SEQUENCE {
+	--adding a name will add-- overhead but means anyone can find out what the sensor does name IA5String(
+	    FROM("abcdefghijklmnopqrstuvwxyz0123456789-") ^ SIZE(1..20)) OPTIONAL,
 
-  -- allows base64 - if you were crazy enough, but really you should use customData instead
-  horusStr   IA5String (FROM("abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789_ +/=-.")^SIZE (0..255)), 
-  horusInt   SEQUENCE(SIZE(1..4)) OF INTEGER,
-  horusReal  SEQUENCE(SIZE(1..4)) OF REAL,
-
-  -- we could use a bit string here, but it packs down the same so we may as well make it easier on ourselves to process
-  horusBool  BitFlags
+	    --values are optional as we may want to send a packet without values and only names values CustomFieldValues OPTIONAL
 }
 
-AdditionalSensorType ::= SEQUENCE {
-  -- adding a name will add 
-  -- overhead but means anyone can find out what the sensor does
-  name    IA5String (FROM("abcdefghijklmnopqrstuvwxyz0123456789-")^SIZE (1..20)) OPTIONAL, 
-  
-  -- values are optional as we may want to send a packet without values and only names
-  values  CustomFieldValues OPTIONAL
+--we limit to 4 additional sensor types to lower our used bits AdditionalSensors :: = SEQUENCE(SIZE(1..4)) OF AdditionalSensorType
+
+    TemperatureSensors ::
+        = SEQUENCE{internal INTEGER(-1023..1023) OPTIONAL, --tenths C external INTEGER(-1023..1023) OPTIONAL,
+                   --tenths C custom1 INTEGER(-1023..1023) OPTIONAL, --tenths C custom2 INTEGER(-1023..1023) OPTIONAL-- tenths C}
+
+MilliVoltSensors ::
+    = SEQUENCE {
+	battery INTEGER(0..16383) OPTIONAL, --millivolts solar INTEGER(0..16383) OPTIONAL, --millivolts custom1 INTEGER(0..16383) OPTIONAL,
+	    --millivolts custom2 INTEGER(0..16383) OPTIONAL-- millivolts
 }
 
--- we limit to 4 additional sensor types to lower our used bits
-AdditionalSensors ::= SEQUENCE(SIZE(1..4)) OF AdditionalSensorType
+--u - blox power save state GnssPowerSaveState :: = ENUMERATED{psmNotActive(0), enabled(1), acquisition(2), tracking(3), optimised(4), inactive(5)}
 
-TemperatureSensors ::= SEQUENCE {
-  internal   INTEGER (-1023..1023) OPTIONAL,  -- tenths C
-  external   INTEGER (-1023..1023) OPTIONAL,  -- tenths C
-  custom1    INTEGER (-1023..1023) OPTIONAL, -- tenths C
-  custom2    INTEGER (-1023..1023) OPTIONAL  -- tenths C
-}
-
-MilliVoltSensors ::= SEQUENCE {
-  battery    INTEGER (0..16383) OPTIONAL, -- millivolts
-  solar      INTEGER (0..16383) OPTIONAL, -- millivolts
-  custom1    INTEGER (0..16383) OPTIONAL, -- millivolts
-  custom2    INTEGER (0..16383) OPTIONAL -- millivolts
-}
-
--- u-blox power save state
-GnssPowerSaveState   ::= ENUMERATED {
-  psmNotActive    (0),
-  enabled         (1),
-  acquisition     (2),
-  tracking        (3),
-  optimised       (4),
-  inactive        (5)
-}
-
-Telemetry ::= SEQUENCE {
+Telemetry ::
+    = SEQUENCE {
   extensionMarkerForASN1CC BOOLEAN OPTIONAL,
   -- required fields
   payloadCallsign     IA5String (FROM("-/abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789")^SIZE (1..15)),
