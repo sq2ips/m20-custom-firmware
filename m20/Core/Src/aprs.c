@@ -150,7 +150,7 @@ encode_comment_telemetry(APRSPacket Packet,
 #endif
 
 #if PV_ADC_ENABLE
-	buff[cnt++] = 'A';                                                // PV / payload voltage
+	buff[cnt++] = 'A';                                           // PV / payload voltage
 	cnt += int_to_string(Packet.PvVoltage, buff + cnt, 4, true); // *1000, 4 digits
 #endif
 

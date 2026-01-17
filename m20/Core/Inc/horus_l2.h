@@ -24,8 +24,8 @@ typedef struct TBinaryPacket { // https://github.com/projecthorus/horusdemodlib/
 	int16_t ExtTemp;
 	uint8_t Hum;
 	uint16_t Press;
-	uint8_t GpsResetCount;  // counter of GPS watchdog resets
-	uint8_t PvVoltage; // Payload / PV voltage
+	uint8_t GpsResetCount; // counter of GPS watchdog resets
+	uint8_t PvVoltage;     // Payload / PV voltage
 	// End of custom data
 	uint16_t Checksum;
 } __attribute__((packed)) HorusBinaryPacket;

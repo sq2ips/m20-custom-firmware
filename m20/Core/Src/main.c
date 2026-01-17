@@ -77,7 +77,7 @@ uint8_t GpsResetCount = 0;
 uint8_t lps_init;
 #endif
 
-int16_t LpsTemp = 0; // *10
+int16_t LpsTemp = 0;   // *10
 uint16_t LpsPress = 0; // *10
 
 uint16_t BatVoltage = 0;
@@ -101,7 +101,7 @@ uint16_t PacketCount = 0;
 
 #if APRS_ENABLE && HORUS_ENABLE
 
-char CodedBuffer[HORUS_CODED_BUFFER_SIZE > APRS_ENABLE ? HORUS_CODED_BUFFER_SIZE: APRS_ENABLE];
+char CodedBuffer[HORUS_CODED_BUFFER_SIZE > APRS_ENABLE ? HORUS_CODED_BUFFER_SIZE : APRS_ENABLE];
 
 #elif APRS_ENABLE
 char CodedBuffer[APRS_MAX_PACKET_LEN];
@@ -172,7 +172,7 @@ PUTCHAR_PROTOTYPE {
 /* Private user code ---------------------------------------------------------*/
 /* USER CODE BEGIN 0 */
 #if HORUS_ENABLE == 2
-void build_horus_binary_v2_packet(){
+void build_horus_binary_v2_packet() {
 	HorusPacket.PacketCount = PacketCount;
 	HorusPacket.PayloadID = HORUS_V2_PAYLOAD_ID;
 	HorusPacket.Hours = GpsData.Hours;
@@ -184,7 +184,7 @@ void build_horus_binary_v2_packet(){
 	HorusPacket.Alt = GpsData.Alt;
 	HorusPacket.Sats = GpsData.Sats;
 	HorusPacket.AscentRate = GpsData.AscentRate;
-	HorusPacket.Temp = (uint8_t)Round(LpsTemp/10.0f);
+	HorusPacket.Temp = (uint8_t)Round(LpsTemp / 10.0f);
 	// ADC voltage: 3.3V, divided by ADC max value 4095 (2^12-1). That gives a
 	// range between 0 for 0V and 1 for 3.3V. Than it's multiplied by max
 	// variable value: 255, and divided by corresponding voltage: 5V, simplified
@@ -201,20 +201,19 @@ void build_horus_binary_v2_packet(){
 	HorusPacket.Checksum = (uint16_t)crc16((char*)&HorusPacket, sizeof(HorusPacket) - 2);
 }
 #elif HORUS_ENABLE == 3
-uint8_t build_horus_binary_v3_packet(char* uncoded_buffer){
-  // Horus v3 packets are encoded using ASN1, and are encapsulated in packets
-  // of sizes 32, 48, 64, 96 or 128 bytes (before coding)
-  // The CRC16 for these packets is located at the *start* of the packet, still little-endian encoded
+uint8_t build_horus_binary_v3_packet(char* uncoded_buffer) {
+	// Horus v3 packets are encoded using ASN1, and are encapsulated in packets
+	// of sizes 32, 48, 64, 96 or 128 bytes (before coding)
+	// The CRC16 for these packets is located at the *start* of the packet, still little-endian encoded
 
-  // Erase the uncoded buffer
-  // This has the effect of padding out the unused bytes in the packet with zeros
-  Memset(uncoded_buffer, 0, HORUS_UNCODED_BUFFER_SIZE);
+	// Erase the uncoded buffer
+	// This has the effect of padding out the unused bytes in the packet with zeros
+	Memset(uncoded_buffer, 0, HORUS_UNCODED_BUFFER_SIZE);
 
+	// Should check how this is allocated in memory.
 
-  // Should check how this is allocated in memory.
-
-  // Need to check how this is allocated in memory. how much it uses.
-  // .. also does it get cleared?
+	// Need to check how this is allocated in memory. how much it uses.
+	// .. also does it get cleared?
 
 
   horusTelemetry asnMessage = {
@@ -297,75 +296,66 @@ uint8_t build_horus_binary_v3_packet(char* uncoded_buffer){
 
 
 
-    // The encoder needs a data structure for the serialization
-    // Again - how much memory is allocated here?
-    BitStream encodedMessage;
+	// The encoder needs a data structure for the serialization
+	// Again - how much memory is allocated here?
+	BitStream encodedMessage;
 
-    // The Encoder may fail and update an error code
-    int errCode;
+	// The Encoder may fail and update an error code
+	int errCode;
 
-    // Initialization associates the buffer to the bit stream
-    // We want to write the uncoded message starting at 2 bytes into the message.
+	// Initialization associates the buffer to the bit stream
+	// We want to write the uncoded message starting at 2 bytes into the message.
 
-    BitStream_Init (&encodedMessage,
-                    (unsigned char*)(uncoded_buffer+2),
-                    HORUS_UNCODED_BUFFER_SIZE-1
-    );
-    // Originally this function call used a MUCH larger value for count
-    //horusTelemetry_REQUIRED_BYTES_FOR_ENCODING);
-    
-    // Encode the message using uPER encoding rule
+	BitStream_Init(&encodedMessage, (unsigned char*)(uncoded_buffer + 2), HORUS_UNCODED_BUFFER_SIZE - 1);
+	// Originally this function call used a MUCH larger value for count
+	// horusTelemetry_REQUIRED_BYTES_FOR_ENCODING);
 
-    // We patch in assert functionality in assert_override.h
-    // Before running encode we set assert_value = 0
-    // Then check the value in assert_value
-    int assert_value = 0;
+	// Encode the message using uPER encoding rule
 
-    if (!horusTelemetry_Encode(&asnMessage,
-                        &encodedMessage,
-                        &errCode,
-                        true) || assert_value != 0)
-    {  
-        // Error occured
-        return 0;
-    }
-    else 
-    {
-        // Encoding was successful!
-        // Now we need to figure out the required frame size, and add the CRC.
-        int encodedSize = BitStream_GetLength(&encodedMessage);
+	// We patch in assert functionality in assert_override.h
+	// Before running encode we set assert_value = 0
+	// Then check the value in assert_value
+	int assert_value = 0;
 
-        // Determine the required frame size.
-        // Probably should do this from a list of valid sizes in a neater manner
-        int frameSize = 128;
-        if (encodedSize <= 30){
-          frameSize = 32;
-        } else if (encodedSize <= 46){
-          frameSize = 48;
-        } else if (encodedSize <= 62){
-          frameSize = 64;
-        } else if (encodedSize <= 94){
-          frameSize = 96;
-        } else if (encodedSize <= 126){
-          frameSize = 128;
-        } else {
+	if (!horusTelemetry_Encode(&asnMessage, &encodedMessage, &errCode, true) || assert_value != 0) {
+		// Error occured
+		return 0;
+	} else {
+		// Encoding was successful!
+		// Now we need to figure out the required frame size, and add the CRC.
+		int encodedSize = BitStream_GetLength(&encodedMessage);
+
+		// Determine the required frame size.
+		// Probably should do this from a list of valid sizes in a neater manner
+		int frameSize = 128;
+		if (encodedSize <= 30) {
+			frameSize = 32;
+		} else if (encodedSize <= 46) {
+			frameSize = 48;
+		} else if (encodedSize <= 62) {
+			frameSize = 64;
+		} else if (encodedSize <= 94) {
+			frameSize = 96;
+		} else if (encodedSize <= 126) {
+			frameSize = 128;
+		} else {
 			// Frame too large
 			// return 0; // Should this happen?
 		}
 
-        // Calculate CRC16 over the frame, starting at byte 2
-        uint16_t packetCrc = (uint16_t)crc16((uncoded_buffer + 2), frameSize - 2);
-        // Write CRC into bytes 0–1 of the packet
-        Memcpy(uncoded_buffer, &packetCrc, sizeof(packetCrc));  // little‑endian on STM32
+		// Calculate CRC16 over the frame, starting at byte 2
+		uint16_t packetCrc = (uint16_t)crc16((uncoded_buffer + 2), frameSize - 2);
+		// Write CRC into bytes 0–1 of the packet
+		Memcpy(uncoded_buffer, &packetCrc, sizeof(packetCrc)); // little‑endian on STM32
 
-        return frameSize;
-    }
+		return frameSize;
+	}
 
-    return 0;
+	return 0;
 }
 #endif
 #if APRS_ENABLE
-void build_aprs_packet(){
+void build_aprs_packet() {
 	AprsPacket.PacketCount = PacketCount;
 	AprsPacket.Hours = GpsData.Hours;
 	AprsPacket.Minutes = GpsData.Minutes;
@@ -376,7 +366,7 @@ void build_aprs_packet(){
 	AprsPacket.Alt = GpsData.Alt;
 	AprsPacket.Sats = GpsData.Sats;
 	AprsPacket.GpsResetCount = GpsResetCount;
-	AprsPacket.Temp = (uint8_t)Round(LpsTemp/10.0f);
+	AprsPacket.Temp = (uint8_t)Round(LpsTemp / 10.0f);
 	AprsPacket.ExtTemp = ExtTemp;
 	AprsPacket.Press = LpsPress;
 	AprsPacket.BatVoltage = BatVoltage;
@@ -406,8 +396,7 @@ void main_loop(void) {
 	LL_ADC_REG_StartConversion(ADC1);
 	while (LL_ADC_IsActiveFlag_EOC(ADC1) == 0) {
 	}
-	PvVoltage = (LL_ADC_REG_ReadConversionData12(ADC1) * (PV_ADC_R1 + PV_ADC_R2)) /
-	                 PV_ADC_R2; // Raw PV / payload voltage scaled by resistor divider
+	PvVoltage = (LL_ADC_REG_ReadConversionData12(ADC1) * (PV_ADC_R1 + PV_ADC_R2)) / PV_ADC_R2; // Raw PV / payload voltage scaled by resistor divider
 	LL_ADC_ClearFlag_EOS(ADC1);
 #if DEBUG
 	printf("Bat voltage value: %d\r\n", BatVoltage);
@@ -507,7 +496,6 @@ void main_loop(void) {
 
 	BufferLen = encode_APRS_packet(AprsPacket, CodedBuffer);
 
-
 	// Transmit
 	AFSK_start_TX(CodedBuffer, BufferLen);
 	while (AFSK_Active) {
@@ -522,17 +510,19 @@ void main_loop(void) {
 	BufferLen = horus_l2_encode_tx_packet((unsigned char*)CodedBuffer, (unsigned char*)&HorusPacket, sizeof(HorusPacket));
 #elif HORUS_ENABLE == 3
 	uint8_t pkt_len = build_horus_binary_v3_packet(rawBuffer);
-	if(pkt_len != 0) BufferLen = horus_l2_encode_tx_packet((unsigned char*)CodedBuffer, (unsigned char*)&rawBuffer, pkt_len);
-	else BufferLen = 0;
+	if (pkt_len != 0)
+		BufferLen = horus_l2_encode_tx_packet((unsigned char*)CodedBuffer, (unsigned char*)&rawBuffer, pkt_len);
+	else
+		BufferLen = 0;
 #endif
-
 
 #if HORUS_ENABLE
 	// Transmit
-	if(BufferLen != 0){
+	if (BufferLen != 0) {
 		FSK4_start_TX(CodedBuffer, BufferLen);
-		while (FSK4_Active) DelayWithIWDG(10);
-	}else{ // Error while creating packet, not sending
+		while (FSK4_Active)
+			DelayWithIWDG(10);
+	} else {                                       // Error while creating packet, not sending
 		LL_GPIO_TogglePin(LED_GPIO_Port, LED_Pin); // Toggle LED for info
 	}
 #endif
@@ -600,9 +590,9 @@ int main(void) {
 	MX_SPI1_Init();
 	MX_TIM22_Init();
 	MX_ADC_Init();
-	#if IWDG_ENABLE
+#if IWDG_ENABLE
 	MX_IWDG_Init();
-	#endif
+#endif
 	MX_TIM6_Init();
 	MX_TIM21_Init();
 	MX_TIM2_Init();
@@ -650,7 +640,7 @@ int main(void) {
 	DelayWithIWDG(100);
 #endif
 
-		// LED timer
+	// LED timer
 #if LED_MODE == 2
 	LL_TIM_EnableCounter(TIM6);
 	LL_TIM_EnableIT_UPDATE(TIM6);
@@ -676,12 +666,12 @@ int main(void) {
 	/* Infinite loop */
 	/* USER CODE BEGIN WHILE */
 	while (1) {
-		/* USER CODE END WHILE */
+/* USER CODE END WHILE */
 
-		/* USER CODE BEGIN 3 */
-		#ifdef IWDG_ENABLE
+/* USER CODE BEGIN 3 */
+#ifdef IWDG_ENABLE
 		LL_IWDG_ReloadCounter(IWDG);
-		#endif
+#endif
 		if (GpsBufferReady) {
 #if GPS_TYPE == 1
 			ParseNMEA(&GpsData, GpsRxBuffer);
@@ -1452,9 +1442,9 @@ void LED_Handler(void) {
 #endif
 void DelayWithIWDG(uint16_t time) {
 	for (uint16_t i = 0; i < time / 10; i++) {
-		#ifdef IWDG_ENABLE
+#ifdef IWDG_ENABLE
 		LL_IWDG_ReloadCounter(IWDG);
-		#endif
+#endif
 		LL_mDelay(10);
 	}
 }

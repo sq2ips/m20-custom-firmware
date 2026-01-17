@@ -3,7 +3,7 @@
 
 #include "asn1crt.h"
 
-#ifdef  __cplusplus
+#ifdef __cplusplus
 extern "C" {
 #endif
 
@@ -36,7 +36,7 @@ void BitStream_EncodeNonNegativeInteger(BitStream* pBitStrm, asn1SccUint v);
 void BitStream_AppendNBitOne(BitStream* pBitStrm, int nbits);
 void BitStream_EncodeNonNegativeIntegerNeg(BitStream* pBitStrm, asn1SccUint v, flag negate);
 flag BitStream_DecodeNonNegativeInteger(BitStream* pBitStrm, asn1SccUint* v, int nBits);
-flag BitStream_ReadPartialByte(BitStream* pBitStrm, byte *v, byte nbits);
+flag BitStream_ReadPartialByte(BitStream* pBitStrm, byte* v, byte nbits);
 void BitStream_AppendPartialByte(BitStream* pBitStrm, byte v, byte nbits, flag negate);
 
 void BitStream_Init(BitStream* pBitStrm, unsigned char* buf, long count);
@@ -61,13 +61,11 @@ flag BitStream_DecodeUnConstraintWholeNumber(BitStream* pBitStrm, asn1SccSint* v
 flag BitStream_DecodeConstraintWholeNumber(BitStream* pBitStrm, asn1SccSint* v, asn1SccSint min, asn1SccSint max);
 flag BitStream_DecodeConstraintPosWholeNumber(BitStream* pBitStrm, asn1SccUint* v, asn1SccUint min, asn1SccUint max);
 
-
 flag BitStream_DecodeConstraintWholeNumberInt16(BitStream* pBitStrm, int16_t* v, int16_t min, int16_t max);
 flag BitStream_DecodeConstraintWholeNumberInt32(BitStream* pBitStrm, int32_t* v, int32_t min, int32_t max);
 
-flag BitStream_DecodeConstraintPosWholeNumberUInt8 (BitStream* pBitStrm, uint8_t* v,  uint8_t min,  uint8_t max);
+flag BitStream_DecodeConstraintPosWholeNumberUInt8(BitStream* pBitStrm, uint8_t* v, uint8_t min, uint8_t max);
 flag BitStream_DecodeConstraintPosWholeNumberUInt16(BitStream* pBitStrm, uint16_t* v, uint16_t min, uint16_t max);
-
 
 int GetNumberOfBitsForNonNegativeInteger(asn1SccUint v);
 
@@ -79,7 +77,6 @@ int GetLengthInBytesOfUInt(asn1SccUint64 v);
 
 void BitStream_EncodeReal(BitStream* pBitStrm, asn1Real v);
 flag BitStream_DecodeReal(BitStream* pBitStrm, asn1Real* v);
-
 
 flag BitStream_AppendByteArray(BitStream* pBitStrm, const byte arr[], const int arr_len);
 flag BitStream_EncodeOctetString_no_length(BitStream* pBitStrm, const byte* arr, int nCount);
@@ -109,8 +106,7 @@ In this case the bit_pattern is consumed (i.e. the currentByte and currentBit ar
 
 */
 
-
-#ifdef  __cplusplus
+#ifdef __cplusplus
 }
 #endif
 
