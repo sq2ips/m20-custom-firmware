@@ -384,11 +384,18 @@ void main_loop(void) {
 
 #if HUMIDITY_ENABLE
 	uint16_t hum_counter = 0;
-	while(LL_GPIO_IsInputPinSet(Humidity_PWM_GPIO_Port, Humidity_PWM_Pin)) {}
-	while(!LL_GPIO_IsInputPinSet(Humidity_PWM_GPIO_Port, Humidity_PWM_Pin)) {}
-	while(LL_GPIO_IsInputPinSet(Humidity_PWM_GPIO_Port, Humidity_PWM_Pin)) hum_counter++;
-	Humidity = (uint8_t)(A_HUMIDITY * hum_counter + B_HUMIDITY);
-	if(Humidity>100) Humidity=100;
+	uint16_t hum_timeout = 0;
+	while(LL_GPIO_IsInputPinSet(Humidity_PWM_GPIO_Port, Humidity_PWM_Pin) && hum_timeout < 500) hum_timeout++;
+	while(!LL_GPIO_IsInputPinSet(Humidity_PWM_GPIO_Port, Humidity_PWM_Pin) && hum_timeout < 1000) hum_timeout++;
+	while(LL_GPIO_IsInputPinSet(Humidity_PWM_GPIO_Port, Humidity_PWM_Pin) && hum_timeout < 1500){
+		hum_counter++;
+		hum_timeout++;
+	}
+	if(hum_timeout==1500) Humidity = 0; // Timed out
+	else{
+		Humidity = (uint8_t)(A_HUMIDITY * hum_counter + B_HUMIDITY);
+		if(Humidity>100) Humidity=100;
+	}
 #endif
 
 	// LPS22HB sensor
