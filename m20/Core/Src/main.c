@@ -644,7 +644,7 @@ int main(void) {
 #if LED_MODE == 2
 	LL_TIM_EnableCounter(TIM6);
 	LL_TIM_EnableIT_UPDATE(TIM6);
-#elif
+#else
 	LL_GPIO_ResetOutputPin(LED_GPIO_Port, LED_Pin); // LED OFF
 #endif
 
