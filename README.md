@@ -25,7 +25,7 @@ if you are having any other questions, ideas or issues you can write me an e-mai
 - LPS22 barometer + temp sensor: :heavy_check_mark:
 - Uart: :heavy_check_mark:
 - Outside temperature sensor: :heavy_check_mark:
-- humidity sensor: :x:
+- humidity sensor: on [humidity branch](https://github.com/sq2ips/m20-custom-firmware/tree/humidity) (needs calibration)
 
 # Features list
 The currently implemented features are:
@@ -79,14 +79,14 @@ Great pcb reverse enginering work was made by [joyel24](https://github.com/joyel
 # GPS
 There are 2 variants of GPS modules, both of them are supported.
 ## New GPS (NMEA)
-In newer M20 sondes u-blox [MAX-M10M](https://content.u-blox.com/sites/default/files/documents/MAX-M10M_DataSheet_UBX-22028884.pdf) that uses NMEA protocol is used.
+In newer M20 sondes u-blox [MAX-M10M](https://content.u-blox.com/sites/default/files/documents/MAX-M10M_DataSheet_UBX-22028884.pdf) that uses NMEA protocol is used. The baudrate is 9600.
 
 The module has normal altitude limit to 12000m, that's why mode change is needed for stratospheric flights (to around 30000m). After startup a command is sent to the module to change its mode. Then the altitude limit is 80000m in exchange for lower max acceleration that is not needed anyway.
 
 ![alt text](./img/gps_new.jpg?raw=true)
 
 ## Old GPS (XM1110)
-In older M20 sondes XM1110 GPS module is used. It transmits data over UART but with custom firmware that transmits only binary protocol data.
+In older M20 sondes XM1110 GPS module is used. It transmits data over UART but with custom firmware that transmits only binary protocol data. The baudrate is 38400.
 
 The module doesn't seem to have any altitude limit lower than 30000m.
 
