@@ -1,3 +1,10 @@
+/*
+ * asn1crt_encoding.c
+ * By Mark VK5QI
+ * Sourced from https://github.com/darksidelemm/rs41-nfw/blob/main/fw/fw-files/rs41-nfw/asn1crt_encoding.c
+ * That itself is a fork of https://github.com/Nevvman18/rs41-nfw
+*/
+
 #include "asn1crt_encoding.h"
 
 #include "utils.h"

@@ -201,7 +201,7 @@ void build_horus_binary_v2_packet() {
 	HorusPacket.Checksum = (uint16_t)crc16((char*)&HorusPacket, sizeof(HorusPacket) - 2);
 }
 #elif HORUS_ENABLE == 3
-uint8_t build_horus_binary_v3_packet(char* uncoded_buffer) {
+uint8_t build_horus_binary_v3_packet(char* uncoded_buffer) { /* Sourced from https://github.com/darksidelemm/rs41-nfw/blob/main/fw/fw-files/rs41-nfw/rs41-nfw.ino#L936 */
 	// Horus v3 packets are encoded using ASN1, and are encapsulated in packets
 	// of sizes 32, 48, 64, 96 or 128 bytes (before coding)
 	// The CRC16 for these packets is located at the *start* of the packet, still little-endian encoded
