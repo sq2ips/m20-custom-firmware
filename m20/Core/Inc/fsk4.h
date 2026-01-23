@@ -8,6 +8,7 @@
 #define FSK4_BAUD 100           // Baudrate for horus 4FSK
 #define FSK4_SPACE_MULTIPLIER 1 // Tone spacing multiplier - 1 for 244Hz, 2 for 488, etc.
 #define FSK4_HEADER_LENGTH 8    // Length in bytes of 4FSK header
+#define FSK4_HEADER 0x1B        // Header
 
 extern bool FSK4_Active;
 
