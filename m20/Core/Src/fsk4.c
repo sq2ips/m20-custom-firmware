@@ -57,7 +57,7 @@ void FSK4_timer_handler() { // called out by interrupt handling procedure in
 	TIM2->CNT = 0;                                  // reset timer  - make sure to have it at the beginning of
 	                                                // procedure, otherwise there will be some delays.
 	if (current_2_bit < (FSK4_HEADER_LENGTH * 4)) { // we are still in header
-		uint8_t tmp_offset = ((FSK4_HEADER >> (6 - (current_2_bit % 4)) * 2) & 3);
+		uint8_t tmp_offset = ((FSK4_HEADER >> (6 - (current_2_bit % 4)*2)) & 3);
 
 		FSK4_send_2bit(tmp_offset);
 	} else {
