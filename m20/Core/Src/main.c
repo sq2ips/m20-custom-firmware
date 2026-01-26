@@ -83,6 +83,8 @@ uint16_t LpsPress = 0; // *10
 uint16_t BatVoltage = 0;
 uint16_t PvVoltage = 0;
 
+uint8_t Humidity = 0;
+
 int16_t ExtTemp = 0; // *10
 
 #if APRS_ENABLE
@@ -193,7 +195,7 @@ void build_horus_binary_v2_packet() {
 	HorusPacket.BatVoltage = (BatVoltage * 187) / 4550;
 	HorusPacket.PvVoltage = (PvVoltage * 187) / 4550; // Same as above but prescaled previously by resistor divider values
 	HorusPacket.ExtTemp = ExtTemp;
-	HorusPacket.Hum = 0; // Not implemented
+	HorusPacket.Hum = Humidity;
 	HorusPacket.Press = LpsPress;
 	HorusPacket.GpsResetCount = GpsResetCount;
 
@@ -270,7 +272,7 @@ uint8_t build_horus_binary_v3_packet(char* uncoded_buffer) { /* Sourced from htt
                 .custom2 = false
             }
         },
-        .humidityPercentage = 0,
+        .humidityPercentage = Humidity,
         .milliVolts = {
             .battery = BatVoltage,
 			.solar = PvVoltage,
@@ -289,7 +291,7 @@ uint8_t build_horus_binary_v3_packet(char* uncoded_buffer) { /* Sourced from htt
             .ascentRateCentimetersPerSecond = true,
             .pressurehPa_x10 = LPS22_ENABLE,
             .temperatureCelsius_x10 = true,
-            .humidityPercentage = false, // not implemented yet
+            .humidityPercentage = HUMIDITY_ENABLE,
             .milliVolts = true
         }
     };
@@ -369,6 +371,7 @@ void build_aprs_packet() {
 	AprsPacket.Temp = (uint8_t)Round(LpsTemp / 10.0f);
 	AprsPacket.ExtTemp = ExtTemp;
 	AprsPacket.Press = LpsPress;
+	AprsPacket.Humidity = Humidity;
 	AprsPacket.BatVoltage = BatVoltage;
 	AprsPacket.PvVoltage = Round((PvVoltage * 3300.0f) / 4095);
 }
@@ -377,6 +380,22 @@ void main_loop(void) {
 	// LED
 #if LED_MODE == 1
 	LL_GPIO_SetOutputPin(LED_GPIO_Port, LED_Pin);
+#endif
+
+#if HUMIDITY_ENABLE
+	uint16_t hum_counter = 0;
+	uint16_t hum_timeout = 0;
+	while(LL_GPIO_IsInputPinSet(Humidity_PWM_GPIO_Port, Humidity_PWM_Pin) && hum_timeout < 500) hum_timeout++;
+	while(!LL_GPIO_IsInputPinSet(Humidity_PWM_GPIO_Port, Humidity_PWM_Pin) && hum_timeout < 1000) hum_timeout++;
+	while(LL_GPIO_IsInputPinSet(Humidity_PWM_GPIO_Port, Humidity_PWM_Pin) && hum_timeout < 1500){
+		hum_counter++;
+		hum_timeout++;
+	}
+	if(hum_timeout==1500) Humidity = 0; // Timed out
+	else{
+		Humidity = (uint8_t)(A_HUMIDITY * hum_counter + B_HUMIDITY);
+		if(Humidity>100) Humidity=100;
+	}
 #endif
 
 	// LPS22HB sensor
@@ -1304,6 +1323,12 @@ static void MX_GPIO_Init(void) {
 	GPIO_InitStruct.OutputType = LL_GPIO_OUTPUT_PUSHPULL;
 	GPIO_InitStruct.Pull = LL_GPIO_PULL_NO;
 	LL_GPIO_Init(RADIO_EN_GPIO_Port, &GPIO_InitStruct);
+
+	/**/
+	GPIO_InitStruct.Pin = Humidity_PWM_Pin;
+	GPIO_InitStruct.Mode = LL_GPIO_MODE_INPUT;
+	GPIO_InitStruct.Pull = LL_GPIO_PULL_NO;
+	LL_GPIO_Init(Humidity_PWM_GPIO_Port, &GPIO_InitStruct);
 
 	/**/
 	GPIO_InitStruct.Pin = ADF_CLK_Pin;
