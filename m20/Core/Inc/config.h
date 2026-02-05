@@ -73,6 +73,10 @@ const static float QRG_AFSK[] = {
 
 #define NTC_ENABLE 1
 
+#define HUMIDITY_ENABLE 1
+#define A_HUMIDITY 0.5f
+#define B_HUMIDITY 0.0f
+
 #define BAT_ADC_ENABLE 1
 
 // PV / payload voltage ADC
