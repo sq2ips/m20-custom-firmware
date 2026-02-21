@@ -1,2 +1,9 @@
 build/
 test_runner
+
+# Ignore CMake files
+cmake
+CMake*
+
+# Ignore AI related files
+AGENTS.md
