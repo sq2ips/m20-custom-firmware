@@ -672,6 +672,14 @@ int main(void) {
 		if (GpsBufferReady) {
 #if GPS_TYPE == 1
 			// TODO: ubx
+#if GPS_RAW_DEBUG
+			printf("U-BLOX GPS raw buffer: ");
+			for (int i = 0; i < GpsRxBuffer_SIZE; i++) {
+				printf("%02X ", GpsRxBuffer[i]);
+			}
+			printf("\r\n");
+#endif
+
 #elif GPS_TYPE == 2
 			parseXM(&GpsData, GpsRxBuffer);
 #endif
