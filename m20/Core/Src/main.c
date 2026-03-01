@@ -140,10 +140,6 @@ void build_aprs_packet(void);
 #endif
 void main_loop(void);
 void DelayWithIWDG(uint16_t time);
-#if GPS_TYPE == 1
-// TODO: ubx
-// void GpsAirborne(void);
-#endif
 
 #if DEBUG
 #ifdef __GNUC__
@@ -535,9 +531,7 @@ void main_loop(void) {
 #if GPS_WATCHDOG
 	if (GpsWatchdog.TriggerRestart) {
 #if GPS_TYPE == 1
-		// TODO: ubx
-		// GpsAirborne(); // Send a command to GPS module to change to airborne mode.
-		//                // clear GPS buffer needed?
+		ublox_init();
 #endif
 		// GPS type 2 doesn't need mode change
 
@@ -638,10 +632,8 @@ int main(void) {
 	LL_LPUART_EnableIT_RXNE(LPUART1);
 
 #if GPS_TYPE == 1
-	// u-blox change mode to airborne
 	DelayWithIWDG(2000); // Wait for full GPS start
-	// TODO: ubx
-	// GpsAirborne();       // Send a command to GPS module to change to airborne mode.
+	ublox_init();
 	DelayWithIWDG(100);
 #endif
 
@@ -1453,23 +1445,6 @@ void DelayWithIWDG(uint16_t time) {
 		LL_mDelay(10);
 	}
 }
-#if GPS_TYPE == 1
-// TODO: ubx
-// void GpsAirborne(void) {
-// 	LL_LPUART_DisableIT_RXNE(LPUART1); // disable UART RX interrupt to not occure while mode change
-// 	for (uint8_t ih = 0; ih < 2; ih++) {
-// 		for (uint8_t ig = 0; ig < 44; ig++) {
-// 			while (!LL_LPUART_IsActiveFlag_TXE(LPUART1)) {
-// 			}
-// 			LL_LPUART_TransmitData8(LPUART1, GPS_airborne[ig]);
-// 		}
-// 		while (!LL_LPUART_IsActiveFlag_TC(LPUART1)) {
-// 		}
-// 		if (ih == 0) DelayWithIWDG(900);
-// 	}
-// 	LL_LPUART_EnableIT_RXNE(LPUART1); // reenable UART RX interrupt
-// }
-#endif
 /* USER CODE END 4 */
 
 /**
