@@ -90,23 +90,6 @@ uint16_t crc16(char* string, uint8_t len) {
 	}
 	return crc;
 }
-uint16_t a_strtof(char* buffer) {
-	uint8_t d_pos = 0;
-	uint16_t value = 0;
-
-	while (buffer[d_pos] != '.') {
-		if (buffer[d_pos] == '\0') return 0;
-		d_pos++;
-	}
-	uint16_t e = 1;
-	for (int8_t pos = d_pos - 1; pos >= 0; pos--) {
-		value += (buffer[pos] - '0') * e;
-		e *= 10;
-	}
-	if ((buffer[d_pos + 1] - '0') >= 5) value++; // rounding first decimal place
-
-	return value;
-}
 
 // From GNU GlibC
 void* Memcpy(void* dest, const void* src, size_t len) {
@@ -149,64 +132,4 @@ char* Strchr(register const char* s, int c) {
 		}
 	} while (*s++);
 	return (0);
-}
-void Strncpy(char* _dst, const char* _src, size_t _n) {
-	size_t i = 0;
-	while (i++ != _n && (*_dst++ = *_src++))
-		;
-}
-char* Strstr(const char* s1, const char* s2) {
-	size_t n = Strlen(s2);
-	while (*s1)
-		if (!Memcmp(s1++, s2, n)) return (char*)(s1 - 1);
-	return 0;
-}
-size_t Strspn(const char* str, const char* chars) {
-	unsigned char ta[32] = {0};
-	size_t i;
-	for (i = 0; chars[i]; ++i)
-		ta[chars[i] >> 3] |= 0x1 << (chars[i] % 8);
-	for (i = 0; ((ta[str[i] >> 3] >> (str[i] % 8)) & 0x1); ++i)
-		;
-	return i;
-}
-char* Strpbrk(const char* s, const char* accept) {
-	while (*s != '\0') {
-		const char* a = accept;
-		while (*a != '\0')
-			if (*a++ == *s) return (char*)s;
-		++s;
-	}
-
-	return NULL;
-}
-char* Strtok(char* s, const char* delim) {
-	static char* olds;
-	char* token;
-
-	if (s == NULL) s = olds;
-
-	/* Scan leading delimiters.  */
-	s += Strspn(s, delim);
-
-	/* if *s points to the null byte \0, that means
-	    we have reached the end of the string and
-	    we return NULL
-	*/
-	if (*s == '\0') {
-		olds = s;
-		return (NULL);
-	}
-
-	/* Find the end of the token.  */
-	token = s;
-	s = Strpbrk(token, delim);
-	if (s == NULL) /* This token finishes the string.  */
-		olds = Strchr(token, '\0');
-	else {
-		/* Terminate the token and make OLDS point past it.  */
-		*s = '\0';
-		olds = s + 1;
-	}
-	return (token);
 }

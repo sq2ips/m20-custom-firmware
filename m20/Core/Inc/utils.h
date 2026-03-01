@@ -21,11 +21,5 @@ void* Memcpy(void* dest, const void* src, size_t len);
 int Memcmp(const void* str1, const void* str2, size_t count);
 size_t Strlen(const char* str);
 char* Strchr(register const char* s, int c);
-uint16_t a_strtof(char* buffer);
-void Strncpy(char* _dst, const char* _src, size_t _n);
-char* Strstr(const char* s1, const char* s2);
-size_t Strspn(const char* str, const char* chars);
-char* Strtok(char* s, const char* delim);
-char* Strpbrk(const char* s, const char* accept);
 
 #endif
