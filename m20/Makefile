@@ -59,7 +59,7 @@ Core/Src/asn1crt.c \
 Core/Src/afsk.c \
 Core/Src/aprs.c \
 Core/Src/lps22hb.c \
-Core/Src/nmea.c \
+Core/Src/ubx.c \
 Core/Src/xm_gps.c \
 Core/Src/gps.c \
 Core/Src/utils.c \
