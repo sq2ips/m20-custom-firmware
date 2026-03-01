@@ -13,7 +13,7 @@
 #include "gps.h"
 
 #if GPS_TYPE == 1
-#include "ubx.h"
+#include "ublox_gps.h"
 #elif GPS_TYPE == 2
 #include "xm_gps.h"
 #endif
