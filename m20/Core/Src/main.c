@@ -632,9 +632,14 @@ int main(void) {
 	LL_LPUART_EnableIT_RXNE(LPUART1);
 
 #if GPS_TYPE == 1
-	DelayWithIWDG(2000); // Wait for full GPS start
+#if DEBUG
+	printf("U-BLOX GPS before init...\n\r");
+#endif
 	ublox_init();
-	DelayWithIWDG(100);
+#if DEBUG
+	printf("U-BLOX GPS after init...\n\r");
+#endif
+	DelayWithIWDG(2000);
 #endif
 
 	// LED timer
