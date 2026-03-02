@@ -45,7 +45,7 @@ static const uint8_t ubx_init_buffer[UBX_INIT_BUFFER_LENGTH] = {
   0x06,
 
   // --- Checksum CK_A, CK_B (Fletcher, liczone od Class do końca payload) ---
-  0xF2, 0x57
+  0x1C, 0xD6
 };
 
 void ublox_init();
