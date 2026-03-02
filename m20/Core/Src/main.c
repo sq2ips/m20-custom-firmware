@@ -396,7 +396,7 @@ void main_loop(void) {
 	LL_ADC_REG_StartConversion(ADC1);
 	while (LL_ADC_IsActiveFlag_EOC(ADC1) == 0) {
 	}
-	PvVoltage = (LL_ADC_REG_ReadConversionData12(ADC1) * (PV_ADC_R1 + PV_ADC_R2)) / PV_ADC_R2; // Raw PV / payload voltage scaled by resistor divider
+	PvVoltage = (LL_ADC_REG_ReadConversionData12(ADC1) * (float)(PV_ADC_R1 + PV_ADC_R2)) / (float)PV_ADC_R2; // Raw PV / payload voltage scaled by resistor divider
 	LL_ADC_ClearFlag_EOS(ADC1);
 #if DEBUG
 	printf("Bat voltage value: %d\r\n", BatVoltage);
