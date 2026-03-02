@@ -682,6 +682,9 @@ int main(void) {
 			for (int i = 0; i < GpsRxBuffer_SIZE; i++) {
 				printf("%02X ", GpsRxBuffer[i]);
 			}
+			for (int i = 0; i < GpsRxBuffer_SIZE; i++) {
+				printf("%c", GpsRxBuffer[i]);
+			}
 			printf("\r\n");
 #endif
 
