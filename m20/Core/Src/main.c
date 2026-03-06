@@ -81,6 +81,7 @@ int16_t LpsTemp = 0;   // *10
 uint16_t LpsPress = 0; // *10
 
 uint16_t BatVoltage = 0;
+uint16_t RawPvVoltage = 0;
 uint16_t PvVoltage = 0;
 
 uint8_t Humidity = 0;
@@ -103,7 +104,7 @@ uint16_t PacketCount = 0;
 
 #if APRS_ENABLE && HORUS_ENABLE
 
-char CodedBuffer[HORUS_CODED_BUFFER_SIZE > APRS_ENABLE ? HORUS_CODED_BUFFER_SIZE : APRS_ENABLE];
+char CodedBuffer[HORUS_CODED_BUFFER_SIZE > APRS_MAX_PACKET_LEN ? HORUS_CODED_BUFFER_SIZE : APRS_MAX_PACKET_LEN];
 
 #elif APRS_ENABLE
 char CodedBuffer[APRS_MAX_PACKET_LEN];
@@ -193,7 +194,7 @@ void build_horus_binary_v2_packet() {
 	// gives 187/4550 Note: this value will not go higher than 168 corresponding
 	// to 3.3V max value of ADC
 	HorusPacket.BatVoltage = (BatVoltage * 187) / 4550;
-	HorusPacket.PvVoltage = (PvVoltage * 187) / 4550; // Same as above but prescaled previously by resistor divider values
+	HorusPacket.PvVoltage = (RawPvVoltage * 187) / 4550; // Same as above but prescaled previously by resistor divider values
 	HorusPacket.ExtTemp = ExtTemp;
 	HorusPacket.Hum = Humidity;
 	HorusPacket.Press = LpsPress;
@@ -203,7 +204,7 @@ void build_horus_binary_v2_packet() {
 	HorusPacket.Checksum = (uint16_t)crc16((char*)&HorusPacket, sizeof(HorusPacket) - 2);
 }
 #elif HORUS_ENABLE == 3
-uint8_t build_horus_binary_v3_packet(char* uncoded_buffer) {
+uint8_t build_horus_binary_v3_packet(char* uncoded_buffer) { /* Sourced from https://github.com/darksidelemm/rs41-nfw/blob/main/fw/fw-files/rs41-nfw/rs41-nfw.ino#L936 */
 	// Horus v3 packets are encoded using ASN1, and are encapsulated in packets
 	// of sizes 32, 48, 64, 96 or 128 bytes (before coding)
 	// The CRC16 for these packets is located at the *start* of the packet, still little-endian encoded
@@ -373,7 +374,7 @@ void build_aprs_packet() {
 	AprsPacket.Press = LpsPress;
 	AprsPacket.Humidity = Humidity;
 	AprsPacket.BatVoltage = BatVoltage;
-	AprsPacket.PvVoltage = Round((PvVoltage * 3300.0f) / 4095);
+	AprsPacket.PvVoltage = PvVoltage;
 }
 #endif
 void main_loop(void) {
@@ -415,10 +416,11 @@ void main_loop(void) {
 	LL_ADC_REG_StartConversion(ADC1);
 	while (LL_ADC_IsActiveFlag_EOC(ADC1) == 0) {
 	}
-	PvVoltage = (LL_ADC_REG_ReadConversionData12(ADC1) * (PV_ADC_R1 + PV_ADC_R2)) / PV_ADC_R2; // Raw PV / payload voltage scaled by resistor divider
+	RawPvVoltage = (LL_ADC_REG_ReadConversionData12(ADC1) * (float)(PV_ADC_R1 + PV_ADC_R2)) / PV_ADC_R2; // Raw PV / payload voltage scaled by resistor divider
+	PvVoltage = Round((RawPvVoltage * 3300.0f) / 4095);
 	LL_ADC_ClearFlag_EOS(ADC1);
 #if DEBUG
-	printf("Bat voltage value: %d\r\n", BatVoltage);
+	printf("PV ADC value: %d\r\n", PvVoltage);
 #endif
 #endif
 
@@ -663,7 +665,7 @@ int main(void) {
 #if LED_MODE == 2
 	LL_TIM_EnableCounter(TIM6);
 	LL_TIM_EnableIT_UPDATE(TIM6);
-#elif
+#else
 	LL_GPIO_ResetOutputPin(LED_GPIO_Port, LED_Pin); // LED OFF
 #endif
 

@@ -1,7 +1,6 @@
 /*
- *  horus.c
- *  Based on https://github.com/whallmann/RS41HUP_V2/blob/master/horus_l2.c
- *  Adapted by SQ2IPS
+ *  horus_l2.c
+ *  Based on https://github.com/darksidelemm/rs41-nfw/blob/main/fw/fw-files/rs41-nfw/horus_l2.cpp by Mark VK5QI
  */
 
 #include "horus_l2.h"

@@ -17,6 +17,10 @@
         "-s",
         "./m20/openocd/"
       ],
+      "postLaunchCommands": [
+      "set substitute-path /opt/m20 ./m20"
+      ],
+      "svdFile": "${workspaceFolder}/svd/STM32L0x1.svd",
       "showDevDebugOutput": "raw"
     }
   ]
