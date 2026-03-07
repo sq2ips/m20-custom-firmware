@@ -140,7 +140,7 @@ encode_comment_telemetry(APRSPacket Packet,
 #endif
 
 #if HUMIDITY_ENABLE
-	buff[cnt++] = 'H';                                      // Humidity
+	buff[cnt++] = 'H';                                          // Humidity
 	cnt += int_to_string(Packet.Humidity, buff + cnt, 3, true); // 3 digits
 #endif
 
