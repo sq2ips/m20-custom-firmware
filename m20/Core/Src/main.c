@@ -651,16 +651,16 @@ int main(void) {
 #endif
 
 	// main loop timer
-	LL_TIM_EnableCounter(TIM22);
-	LL_TIM_EnableIT_UPDATE(TIM22);
+	LL_TIM_EnableCounter(TIM21);
+	LL_TIM_EnableIT_UPDATE(TIM21);
 
 	/* Interrupt priorites:
-	 * TIM2 - 4FSK modulation timer: 0
-	 * TIM21 - AFSK modulation timer: 0
+	 * TIM21 - modulation timer: 0
 	 * LPUART1 - GPS UART RX: 1
-	 * TIM6 - LED timer: 2
-	 * SysTick: 3
-	 * TIM22 - main loop: 4
+	 * TIM22 - Humidity timer (not yet): 2
+	 * TIM6 - LED timer: 3
+	 * SysTick: 4
+	 * TIM2 - main loop: 5
 	 */
 
 	/* USER CODE END 2 */
@@ -1055,15 +1055,15 @@ static void MX_TIM2_Init(void) {
 	LL_APB1_GRP1_EnableClock(LL_APB1_GRP1_PERIPH_TIM2);
 
 	/* TIM2 interrupt Init */
-	NVIC_SetPriority(TIM2_IRQn, 0);
+	NVIC_SetPriority(TIM2_IRQn, 5);
 	NVIC_EnableIRQ(TIM2_IRQn);
 
 	/* USER CODE BEGIN TIM2_Init 1 */
-
+	TIM_InitStruct.Autoreload = ((LED_PERIOD * 1000) / 5) - 1;
 	/* USER CODE END TIM2_Init 1 */
-	TIM_InitStruct.Prescaler = 0;
+	TIM_InitStruct.Prescaler = 60000;
 	TIM_InitStruct.CounterMode = LL_TIM_COUNTERMODE_UP;
-	TIM_InitStruct.Autoreload = 65535;
+	//TIM_InitStruct.Autoreload = 65535;
 	TIM_InitStruct.ClockDivision = LL_TIM_CLOCKDIVISION_DIV1;
 	LL_TIM_Init(TIM2, &TIM_InitStruct);
 	LL_TIM_DisableARRPreload(TIM2);
@@ -1091,7 +1091,7 @@ static void MX_TIM6_Init(void) {
 	LL_APB1_GRP1_EnableClock(LL_APB1_GRP1_PERIPH_TIM6);
 
 	/* TIM6 interrupt Init */
-	NVIC_SetPriority(TIM6_DAC_IRQn, 2);
+	NVIC_SetPriority(TIM6_DAC_IRQn, 3);
 	NVIC_EnableIRQ(TIM6_DAC_IRQn);
 
 	/* USER CODE BEGIN TIM6_Init 1 */
@@ -1180,15 +1180,15 @@ static void MX_TIM22_Init(void) {
 	LL_APB2_GRP1_EnableClock(LL_APB2_GRP1_PERIPH_TIM22);
 
 	/* TIM22 interrupt Init */
-	NVIC_SetPriority(TIM22_IRQn, 3);
+	NVIC_SetPriority(TIM22_IRQn, 2);
 	NVIC_EnableIRQ(TIM22_IRQn);
 
 	/* USER CODE BEGIN TIM22_Init 1 */
-	TIM_InitStruct.Autoreload = ((TIME_PERIOD * 1000) / 5) - 1;
+
 	/* USER CODE END TIM22_Init 1 */
-	TIM_InitStruct.Prescaler = 60000;
+	TIM_InitStruct.Prescaler = 60000; // For now
 	TIM_InitStruct.CounterMode = LL_TIM_COUNTERMODE_UP;
-	// TIM_InitStruct.Autoreload = 2400;
+	TIM_InitStruct.Autoreload = 2400; // For now
 	TIM_InitStruct.ClockDivision = LL_TIM_CLOCKDIVISION_DIV1;
 	LL_TIM_Init(TIM22, &TIM_InitStruct);
 	LL_TIM_DisableARRPreload(TIM22);
