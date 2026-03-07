@@ -1059,7 +1059,7 @@ static void MX_TIM2_Init(void) {
 	NVIC_EnableIRQ(TIM2_IRQn);
 
 	/* USER CODE BEGIN TIM2_Init 1 */
-	TIM_InitStruct.Autoreload = ((LED_PERIOD * 1000) / 5) - 1;
+	TIM_InitStruct.Autoreload = ((TIME_PERIOD * 1000) / 5) - 1;
 	/* USER CODE END TIM2_Init 1 */
 	TIM_InitStruct.Prescaler = 60000;
 	TIM_InitStruct.CounterMode = LL_TIM_COUNTERMODE_UP;

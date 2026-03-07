@@ -6,7 +6,7 @@
 /*-----------------------------------------------------------------*/
 //  Sonde configuration, parameters that should be changed
 
-#define TIME_PERIOD 12 // Time betwen starts of transmissions (in seconds) (must be more than 4+TX_PAUSE)
+#define TIME_PERIOD 60 // Time betwen starts of transmissions (in seconds) (must be more than 4+TX_PAUSE)
 
 // Horus Binary 4FSK mode (V2 or V3)
 #define HORUS_ENABLE 3 // 0 - disabled, 2 - V2, 3 - V3
@@ -53,7 +53,7 @@ const static float QRG_AFSK[] = {
 #define LED_MODE_2_BLINK_PAUSE 200 // pause time between LED blinks in GPS fix mode
 
 // Radio settings
-#define RF_BOOST 1 // RF booster enabled for transmissions about 15dB gain, but more power consumed - normally should be ON(1).
+#define RF_BOOST 0 // RF booster enabled for transmissions about 15dB gain, but more power consumed - normally should be ON(1).
 
 #define ADF_FREQ_CORRECTION 19 // correction of frequency from crystal inaccuracy in 244Hz steps. To be individually set for each sonde.
 #define ADF_FSK_DEVIATION 5    // Deviation parameter used in AFSK modem, don't change it without a reason, 5= about 5k5Hz, 10=11kHz
@@ -81,7 +81,7 @@ const static float QRG_AFSK[] = {
 #define PV_ADC_R2 2 // Resistor value in ohm from PA0 to ground
 // These values should have zeros removed if possible, e.g. for resistors R1=1000ohm and R2=2000ohm PV_ADC_R1 = 1 and PV_ADC_R2 = 2.
 
-#define IWDG_ENABLE 1
+#define IWDG_ENABLE 0
 
 // Debug
 #define DEBUG 0
