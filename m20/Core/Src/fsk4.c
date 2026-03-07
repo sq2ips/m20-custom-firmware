@@ -82,14 +82,18 @@ void FSK4_start_TX(char* buff, uint8_t len) {
 
 	// set ADF deviation to 0 to not disrupt the modulation
 	adf_set_deviation(0);
+#if FSK4_WAIT_TIME != 0
+	LL_mDelay(FSK4_WAIT_TIME);
+#endif
 
 	TIM21->CR1 &= ~(TIM_CR1_CEN);                          // Disable the counter
 	uint16_t timer2StartValue = (100000 / FSK4_BAUD) - 1; // timer value calculated according to baud rate 999 for 100bd
 	TIM21->PSC = FSK4_TIM_PSC;
 	TIM21->ARR = timer2StartValue; // set timer counter max value to pre-set value
+	TIM21->CNT = 0;
 	                              // for baudrate (auto-reload register)
 	TIM21->CR1 |= TIM_CR1_CEN;     // enable timer again
 	TIM21->DIER |= TIM_DIER_UIE;   // Enable the interrupt
-	FSK4_timer_handler();         // force execution of procedure responsible for
+	//FSK4_timer_handler();         // force execution of procedure responsible for
 	                              // interrupt handling
 }

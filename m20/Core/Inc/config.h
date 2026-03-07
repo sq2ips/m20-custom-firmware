@@ -20,6 +20,8 @@ const static float QRG_FSK4[] = {
 
 #define HORUS_V3_PAYLOAD_CALLSIGN "4FSKTEST-V3" // Sonde payload callsing, 1 to 15 characters : a-z,A-Z,0-9,-, note that the longer it is, the longer the frame will be.
 
+#define FSK4_WAIT_TIME 0 // Time in ms of constant TX freq before actual modulation
+
 #define TX_PAUSE 500 // Delay between HORUS and APRS
 
 // APRS (AX.25 AFSK HDLC Bell 202)
