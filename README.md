@@ -257,6 +257,7 @@ Parameters list:
 | `FSK4_BAUD` | uint | Baudrate of the 4-FSK transmission. |
 | `FSK4_SPACE_MULTIPLIER` | uint | Tone spacing multiplier - 1 for 244Hz, 2 for 488, etc. |
 | `FSK4_HEADER_LENGTH` | uint | Length in bytes of 4FSK sync header. |
+| `FSK4_WAIT_TIME` | uint (ms) | Time in ms of constant TX freq before actual modulation. (possibly can help the receiver to lock) |
 | `TX_PAUSE` | uint (ms) | Delay between HORUS and APRS when both are enabled. |
 | `APRS_ENABLE` | bool | Enables the APRS AFSK transmission. |
 | **`QRG_AFSK`** | float[] (in Hz) | Just like `QRG_4FSK`, commonly used in europe is 432.500MHz. |

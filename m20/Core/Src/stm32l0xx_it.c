@@ -145,9 +145,7 @@ void TIM2_IRQHandler(void) {
 	/* USER CODE BEGIN TIM2_IRQn 0 */
 	if (LL_TIM_IsActiveFlag_UPDATE(TIM2)) {
 		LL_TIM_ClearFlag_UPDATE(TIM2);
-#if HORUS_ENABLE
-		if (FSK4_Active) FSK4_timer_handler();
-#endif
+		main_loop();
 	}
 	/* USER CODE END TIM2_IRQn 0 */
 	/* USER CODE BEGIN TIM2_IRQn 1 */
@@ -179,6 +177,9 @@ void TIM21_IRQHandler(void) {
 	/* USER CODE BEGIN TIM21_IRQn 0 */
 	if (LL_TIM_IsActiveFlag_UPDATE(TIM21)) {
 		LL_TIM_ClearFlag_UPDATE(TIM21);
+#if HORUS_ENABLE
+		if (FSK4_Active) FSK4_timer_handler();
+#endif
 #if APRS_ENABLE
 		if (AFSK_Active) AFSK_timer_handler();
 #endif
@@ -196,7 +197,7 @@ void TIM22_IRQHandler(void) {
 	/* USER CODE BEGIN TIM22_IRQn 0 */
 	if (LL_TIM_IsActiveFlag_UPDATE(TIM22)) {
 		LL_TIM_ClearFlag_UPDATE(TIM22);
-		main_loop();
+		// 
 	}
 	/* USER CODE END TIM22_IRQn 0 */
 	/* USER CODE BEGIN TIM22_IRQn 1 */
