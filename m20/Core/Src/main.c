@@ -651,8 +651,8 @@ int main(void) {
 #endif
 
 	// main loop timer
-	LL_TIM_EnableCounter(TIM21);
-	LL_TIM_EnableIT_UPDATE(TIM21);
+	LL_TIM_EnableCounter(TIM2);
+	LL_TIM_EnableIT_UPDATE(TIM2);
 
 	/* Interrupt priorites:
 	 * TIM21 - modulation timer: 0
