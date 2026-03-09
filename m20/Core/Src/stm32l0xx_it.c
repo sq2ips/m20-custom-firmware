@@ -49,6 +49,10 @@
 
 /* Private variables ---------------------------------------------------------*/
 /* USER CODE BEGIN PV */
+static uint16_t hum_val1 = 0;
+static uint16_t hum_val2 = 0;
+uint16_t hum_val = 0;
+bool hum_first = true;
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
@@ -197,7 +201,26 @@ void TIM22_IRQHandler(void) {
 	/* USER CODE BEGIN TIM22_IRQn 0 */
 	if (LL_TIM_IsActiveFlag_UPDATE(TIM22)) {
 		LL_TIM_ClearFlag_UPDATE(TIM22);
-		//
+		if(LL_TIM_IsActiveFlag_CC1(TIM22)){
+			LL_TIM_ClearFlag_CC1(TIM22);
+			if(hum_first){
+				hum_val1 = LL_TIM_IC_GetCaptureCH1(TIM22);
+				hum_first = false;
+			}else{
+				hum_val2 = LL_TIM_IC_GetCaptureCH1(TIM22);
+				
+				if(hum_val2>hum_val1){
+					hum_val = hum_val2-hum_val1;
+				}else{
+					hum_val = (0xffff - hum_val1) - hum_val2;
+				}
+				
+				hum_first = true;
+				LL_TIM_CC_DisableChannel(TIM22, LL_TIM_CHANNEL_CH1);
+				LL_TIM_DisableCounter(TIM22);
+			}
+			LL_TIM_SetCounter(TIM22, 0UL);
+		}
 	}
 	/* USER CODE END TIM22_IRQn 0 */
 	/* USER CODE BEGIN TIM22_IRQn 1 */

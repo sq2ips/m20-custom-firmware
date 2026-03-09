@@ -34,6 +34,8 @@
 #if DEBUG
 #include <stdio.h>
 #endif
+
+#include "stm32l0xx_it.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -385,22 +387,11 @@ void main_loop(void) {
 #endif
 
 #if HUMIDITY_ENABLE
-	uint16_t hum_counter = 0;
-	uint16_t hum_timeout = 0;
-	while (LL_GPIO_IsInputPinSet(Humidity_PWM_GPIO_Port, Humidity_PWM_Pin) && hum_timeout < 500)
-		hum_timeout++;
-	while (!LL_GPIO_IsInputPinSet(Humidity_PWM_GPIO_Port, Humidity_PWM_Pin) && hum_timeout < 1000)
-		hum_timeout++;
-	while (LL_GPIO_IsInputPinSet(Humidity_PWM_GPIO_Port, Humidity_PWM_Pin) && hum_timeout < 1500) {
-		hum_counter++;
-		hum_timeout++;
-	}
-	if (hum_timeout == 1500)
-		Humidity = 0; // Timed out
-	else {
-		Humidity = (uint8_t)(A_HUMIDITY * hum_counter + B_HUMIDITY);
-		if (Humidity > 100) Humidity = 100;
-	}
+	hum_val = 0;
+	LL_TIM_CC_EnableChannel(TIM2, LL_TIM_CHANNEL_CH1);
+	LL_TIM_EnableCounter(TIM2);
+	LL_mDelay(10);
+	//
 #endif
 
 	// LPS22HB sensor
@@ -1236,7 +1227,7 @@ static void MX_TIM22_Init(void) {
 	LL_TIM_IC_SetActiveInput(TIM22, LL_TIM_CHANNEL_CH1, LL_TIM_ACTIVEINPUT_DIRECTTI);
 	LL_TIM_IC_SetPrescaler(TIM22, LL_TIM_CHANNEL_CH1, LL_TIM_ICPSC_DIV1);
 	LL_TIM_IC_SetFilter(TIM22, LL_TIM_CHANNEL_CH1, LL_TIM_IC_FILTER_FDIV1);
-	LL_TIM_IC_SetPolarity(TIM22, LL_TIM_CHANNEL_CH1, LL_TIM_IC_POLARITY_RISING);
+	LL_TIM_IC_SetPolarity(TIM22, LL_TIM_CHANNEL_CH1, LL_TIM_IC_POLARITY_BOTHEDGE);
 	/* USER CODE BEGIN TIM22_Init 2 */
 
 	/* USER CODE END TIM22_Init 2 */
