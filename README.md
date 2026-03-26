@@ -162,7 +162,9 @@ Sent data (implemented in [`horus.h`](./m20/Core/Inc/horus.h)):
 | 30-31 |	uint16 | CRC16-CCITT Checksum |
 ## Horus Binary V3
 [Horus Binary V3](https://github.com/xssfox/horusbinaryv3) is a new radio protocol designed for HAB flights. It's based on protocol version V2 but additionaly uses Abstract Syntax Notation 1 (ASN.1) to describe the data format. It is highly customizable, and doesn't need a payload ID request like V2.
-Note that since in V3 payload callsign is directly encoded into the frame, it's length depends on the callsign length so using any sufixes is not recommended if not really necessary.
+
+**Note that since in V3 payload callsign is directly encoded into the frame, it's length depends on the callsign length so using any sufixes is not recommended if not really necessary.**
+
 The Fields in the packet are as follows:
 | Field name | Constraint | Description |
 |-|-|-|
@@ -235,7 +237,9 @@ For example for R1 = 1k and R2 = 2k the max voltage is 4.95V.
 When setting values in config you can reduce the values fraction if possible (for 1000R and 2000R you can set 1 and 2 in config).
 
 ~~Note that Horus voltage field is an unsigned byte of values corresponding to voltage range from 0 to 5V, so higher values can't be represented.
-For this to work with Horus decoders you need to make a PR to add your call assigned to payload ID to [Horus custom field list](https://github.com/projecthorus/horusdemodlib/blob/master/custom_field_list.json), in the section of `"SP2ZIE"` in `"other_payloads"` add your call in the list after a `,` in `""`, for example when the table looks like this: `["SQ2IPS"]` adding a call SP0ABC is: `["SQ2IPS", "SP0ABC"]`.~~ Since Horus Binary V3 none of this is necessary.
+For this to work with Horus decoders you need to make a PR to add your call assigned to payload ID to [Horus custom field list](https://github.com/projecthorus/horusdemodlib/blob/master/custom_field_list.json), in the section of `"SP2ZIE"` in `"other_payloads"` add your call in the list after a `,` in `""`, for example when the table looks like this: `["SQ2IPS"]` adding a call SP0ABC is: `["SQ2IPS", "SP0ABC"]`.~~
+
+Since Horus Binary V3 none of this is necessary.
 
 ## Downloading code
 First you need to obtain the code, you can do it with `git`:
@@ -254,14 +258,11 @@ Parameters list:
 | **`FSK4_POWER`** | uint | Number from 0 to 63. See the table bellow. |
 | **`HORUS_V2_PAYLOAD_ID`** | uint16 | Payload ID transmitted in Horus Binary V2 frame, in order to conduct a flight you need to request one for your callsign, more information in the [Protocol documentation](https://github.com/projecthorus/horusdemodlib/wiki#how-do-i-transmit-it). For testing ID 256 is used. |
 | **`HORUS_V3_PAYLOAD_CALLSIGN`** | string | Payload callsign string for Horus Binary V3, 1 to 15 characters : `a-z`,`A-Z`,`0-9`,`-`. |
-| `FSK4_BAUD` | uint | Baudrate of the 4-FSK transmission. |
-| `FSK4_SPACE_MULTIPLIER` | uint | Tone spacing multiplier - 1 for 244Hz, 2 for 488, etc. |
-| `FSK4_HEADER_LENGTH` | uint | Length in bytes of 4FSK sync header. |
 | `FSK4_WAIT_TIME` | uint (ms) | Time in ms of constant TX freq before actual modulation. (possibly can help the receiver to lock) |
 | `TX_PAUSE` | uint (ms) | Delay between HORUS and APRS when both are enabled. |
 | `APRS_ENABLE` | bool | Enables the APRS AFSK transmission. |
 | **`QRG_AFSK`** | float[] (in Hz) | Just like `QRG_4FSK`, commonly used in europe is 432.500MHz. |
-| **`AFSK_POWER`** | uint | Just like `FSK4_POWER`. |
+| **`AFSK_POWER`** | uint | Just like `FSK4_POWER`, defaults to `FSK4_POWER`, can be changed to a normal number. |
 | **`APRS_CALLSIGN`** | string | Callsign of the sonde, put your callsign here (max 6 digits). |
 | `APRS_SSID` | uint | Sonde callsign SSID, 11 is "balloons, aircraft, spacecraft, etc", refer to https://www.aprs.org/aprs11/SSIDs.txt. |
 | `APRS_DESTINATION` | string | Destination adress, characterizing a M20 transmitter (max 6 digits). |
@@ -274,10 +275,11 @@ Parameters list:
 | `LED_MODE` | uint | 0 - disabled, 1 - LED on while getting data before transmission, 2 - Fix type indication (1 flash for no fix, 2 flashes for 2D fix, 3 flashed 3D fix). |
 | `LED_PERIOD` | uint | only for `LED_MODE` 2, time between fix indication. |
 | `LED_DISABLE_ALT` | uint (in meters) | only for `LED_MODE` 2, disables LED when prompted altitude is reached. |
+| `LED_MODE_2_BLINK_TIME` | uint (in ms) | only for `LED_MODE` 2, time of blink. |
+| `LED_MODE_2_BLINK_PAUSE` | uint (in ms) | only for `LED_MODE` 2, time of space between blinks. |
 | `RF_BOOST` | bool | State of RF TX boost, amplifies signal by around 15dB. (In off state the boost cricut is attenuating the signal, when less output power is needed it's better to decrease `PA_FSK4` than turning it off.) |
 | `ADF_FREQ_CORRECTION` | uint (multiples of 244Hz) | Frequency correction for transmitted signal. |
 | `ADF_FSK_DEVIATION` | uint (multiples of 244Hz) | Deviation parameter used in AFSK modem, don't change it without a reason. |
-| `ADF_CLOCK` | uint | Clock speed of adf7012 chip coming from STM32 (in Hz) (set to HSE 8MHz oscilator). |
 | **`GPS_TYPE`** | uint | Type of GPS module, eather 1 for u-blox MAX-M10M, 2 for XM1110 module. For identifying the module see [GPS](#gps) section. |
 | `GPS_WATCHDOG` | bool | Enable [GPS Watchdog](#gps-watchdog). |
 | `GPS_WATCHDOG_ARC` | uint | Number of main loop iterations without GPS fix that will trigger restart (Only if there was fix before). |
