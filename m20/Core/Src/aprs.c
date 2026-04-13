@@ -162,18 +162,7 @@ uint8_t encode_APRS_packet(APRSPacket Packet, char* buff) {
 	char info_field[APRS_MAX_INFO_LEN];
 	uint8_t pos = 0;
 
-	info_field[pos++] = '@'; // data type identifier
-
-	info_field[pos++] = Packet.Hours / 10 + '0';
-	info_field[pos++] = Packet.Hours % 10 + '0'; // Hours
-
-	info_field[pos++] = Packet.Minutes / 10 + '0';
-	info_field[pos++] = Packet.Minutes % 10 + '0'; // Minutes
-
-	info_field[pos++] = Packet.Seconds / 10 + '0';
-	info_field[pos++] = Packet.Seconds % 10 + '0'; // Seconds
-
-	info_field[pos++] = 'z'; // Zullu time
+	info_field[pos++] = '!'; // data type identifier
 
 	info_field[pos++] = APRS_SYMBOL[0]; // Symbol table ID
 
