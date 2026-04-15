@@ -40,6 +40,8 @@ const static float QRG_AFSK[] = {
 #define APRS_PATH "WIDE2" // Path, max 6 digits according to https://www.aprs.org/balloons.html
 #define APRS_PATH_SSID 1  // Path SSID
 
+#define APRS_TIMESTAMP 0 // Disable APRS timestanp sending by default, it has some werid issues on the map.
+
 #define APRS_SYMBOL "/O" // baloon symbol, all symbols: https://www.aprs.org/symbols.html, needs to be /O for showing on Sondehub
 
 #define APRS_COMMENT_TELEMETRY 1 // Telemetry in coment field
