@@ -16,9 +16,12 @@ const static float QRG_FSK4[] = {
                       // frequencies: https://github.com/projecthorus/horusdemodlib/wiki#commonly-used-frequencies
 #define FSK4_POWER 10 // RF power setting for horus transmission values 0-63
 
-#define HORUS_V2_PAYLOAD_ID 256 // Sonde payload ID 256 - for 4FSKTEST-V2, change this for real flight, refer to https://github.com/projecthorus/horusdemodlib/wiki#how-do-i-transmit-it
+#define HORUS_V2_PAYLOAD_ID                                                                                                                          \
+	256 // Sonde payload ID 256 - for 4FSKTEST-V2, change this for real flight, refer to
+	    // https://github.com/projecthorus/horusdemodlib/wiki#how-do-i-transmit-it
 
-#define HORUS_V3_PAYLOAD_CALLSIGN "4FSKTEST-V3" // Sonde payload callsing, 1 to 15 characters : a-z,A-Z,0-9,-, note that the longer it is, the longer the frame will be.
+#define HORUS_V3_PAYLOAD_CALLSIGN                                                                                                                    \
+	"4FSKTEST-V3" // Sonde payload callsing, 1 to 15 characters : a-z,A-Z,0-9,-, note that the longer it is, the longer the frame will be.
 
 #define FSK4_WAIT_TIME 0 // Time in ms of constant TX freq before actual modulation
 
@@ -76,6 +79,10 @@ const static float QRG_AFSK[] = {
 #define LPS22_ENABLE 1
 
 #define NTC_ENABLE 1
+
+#define HUMIDITY_ENABLE 1
+#define A_HUMIDITY 0.5f
+#define B_HUMIDITY 0.0f
 
 #define BAT_ADC_ENABLE 1
 

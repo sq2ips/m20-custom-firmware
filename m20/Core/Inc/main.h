@@ -96,6 +96,8 @@ void main_loop(void);
 #define GPS_ON_GPIO_Port GPIOB
 #define RADIO_EN_Pin LL_GPIO_PIN_15
 #define RADIO_EN_GPIO_Port GPIOB
+#define Humidity_PWM_Pin LL_GPIO_PIN_6
+#define Humidity_PWM_GPIO_Port GPIOC
 #define ADF_CLK_Pin LL_GPIO_PIN_7
 #define ADF_CLK_GPIO_Port GPIOC
 #define ADF_Data_Pin LL_GPIO_PIN_8

@@ -34,6 +34,8 @@
 #if DEBUG
 #include <stdio.h>
 #endif
+
+#include "stm32l0xx_it.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -83,6 +85,8 @@ uint16_t LpsPress = 0; // *10
 uint16_t BatVoltage = 0;
 uint16_t RawPvVoltage = 0;
 uint16_t PvVoltage = 0;
+
+uint8_t Humidity = 0;
 
 int16_t ExtTemp = 0; // *10
 
@@ -194,7 +198,7 @@ void build_horus_binary_v2_packet() {
 	HorusPacket.BatVoltage = (BatVoltage * 187) / 4550;
 	HorusPacket.PvVoltage = (RawPvVoltage * 187) / 4550; // Same as above but prescaled previously by resistor divider values
 	HorusPacket.ExtTemp = ExtTemp;
-	HorusPacket.Hum = 0; // Not implemented
+	HorusPacket.Hum = Humidity;
 	HorusPacket.Press = LpsPress;
 	HorusPacket.GpsResetCount = GpsResetCount;
 
@@ -202,7 +206,8 @@ void build_horus_binary_v2_packet() {
 	HorusPacket.Checksum = (uint16_t)crc16((char*)&HorusPacket, sizeof(HorusPacket) - 2);
 }
 #elif HORUS_ENABLE == 3
-uint8_t build_horus_binary_v3_packet(char* uncoded_buffer) { /* Sourced from https://github.com/darksidelemm/rs41-nfw/blob/main/fw/fw-files/rs41-nfw/rs41-nfw.ino#L936 */
+uint8_t build_horus_binary_v3_packet(
+    char* uncoded_buffer) { /* Sourced from https://github.com/darksidelemm/rs41-nfw/blob/main/fw/fw-files/rs41-nfw/rs41-nfw.ino#L936 */
 	// Horus v3 packets are encoded using ASN1, and are encapsulated in packets
 	// of sizes 32, 48, 64, 96 or 128 bytes (before coding)
 	// The CRC16 for these packets is located at the *start* of the packet, still little-endian encoded
@@ -271,7 +276,7 @@ uint8_t build_horus_binary_v3_packet(char* uncoded_buffer) { /* Sourced from htt
                 .custom2 = false
             }
         },
-        .humidityPercentage = 0,
+        .humidityPercentage = Humidity,
         .milliVolts = {
             .battery = BatVoltage,
 			.solar = PvVoltage,
@@ -290,7 +295,7 @@ uint8_t build_horus_binary_v3_packet(char* uncoded_buffer) { /* Sourced from htt
             .ascentRateCentimetersPerSecond = true,
             .pressurehPa_x10 = LPS22_ENABLE,
             .temperatureCelsius_x10 = true,
-            .humidityPercentage = false, // not implemented yet
+            .humidityPercentage = HUMIDITY_ENABLE,
             .milliVolts = true
         }
     };
@@ -370,6 +375,7 @@ void build_aprs_packet() {
 	AprsPacket.Temp = (uint8_t)Round(LpsTemp / 10.0f);
 	AprsPacket.ExtTemp = ExtTemp;
 	AprsPacket.Press = LpsPress;
+	AprsPacket.Humidity = Humidity;
 	AprsPacket.BatVoltage = BatVoltage;
 	AprsPacket.PvVoltage = PvVoltage;
 }
@@ -378,6 +384,14 @@ void main_loop(void) {
 	// LED
 #if LED_MODE == 1
 	LL_GPIO_SetOutputPin(LED_GPIO_Port, LED_Pin);
+#endif
+
+#if HUMIDITY_ENABLE
+	hum_val = 0;
+	LL_TIM_CC_EnableChannel(TIM2, LL_TIM_CHANNEL_CH1);
+	LL_TIM_EnableCounter(TIM2);
+	LL_mDelay(10);
+	//
 #endif
 
 	// LPS22HB sensor
@@ -397,7 +411,8 @@ void main_loop(void) {
 	LL_ADC_REG_StartConversion(ADC1);
 	while (LL_ADC_IsActiveFlag_EOC(ADC1) == 0) {
 	}
-	RawPvVoltage = (LL_ADC_REG_ReadConversionData12(ADC1) * (float)(PV_ADC_R1 + PV_ADC_R2)) / PV_ADC_R2; // Raw PV / payload voltage scaled by resistor divider
+	RawPvVoltage =
+	    (LL_ADC_REG_ReadConversionData12(ADC1) * (float)(PV_ADC_R1 + PV_ADC_R2)) / PV_ADC_R2; // Raw PV / payload voltage scaled by resistor divider
 	PvVoltage = Round((RawPvVoltage * 3300.0f) / 4095);
 	LL_ADC_ClearFlag_EOS(ADC1);
 #if DEBUG
@@ -668,9 +683,9 @@ int main(void) {
 	/* Infinite loop */
 	/* USER CODE BEGIN WHILE */
 	while (1) {
-/* USER CODE END WHILE */
+		/* USER CODE END WHILE */
 
-/* USER CODE BEGIN 3 */
+		/* USER CODE BEGIN 3 */
 #ifdef IWDG_ENABLE
 		LL_IWDG_ReloadCounter(IWDG);
 #endif
@@ -1063,7 +1078,7 @@ static void MX_TIM2_Init(void) {
 	/* USER CODE END TIM2_Init 1 */
 	TIM_InitStruct.Prescaler = 60000;
 	TIM_InitStruct.CounterMode = LL_TIM_COUNTERMODE_UP;
-	//TIM_InitStruct.Autoreload = 65535;
+	// TIM_InitStruct.Autoreload = 65535;
 	TIM_InitStruct.ClockDivision = LL_TIM_CLOCKDIVISION_DIV1;
 	LL_TIM_Init(TIM2, &TIM_InitStruct);
 	LL_TIM_DisableARRPreload(TIM2);
@@ -1176,8 +1191,22 @@ static void MX_TIM22_Init(void) {
 
 	LL_TIM_InitTypeDef TIM_InitStruct = {0};
 
+	LL_GPIO_InitTypeDef GPIO_InitStruct = {0};
+
 	/* Peripheral clock enable */
 	LL_APB2_GRP1_EnableClock(LL_APB2_GRP1_PERIPH_TIM22);
+
+	LL_IOP_GRP1_EnableClock(LL_IOP_GRP1_PERIPH_GPIOC);
+	/**TIM22 GPIO Configuration
+	PC6   ------> TIM22_CH1
+	*/
+	GPIO_InitStruct.Pin = Humidity_PWM_Pin;
+	GPIO_InitStruct.Mode = LL_GPIO_MODE_ALTERNATE;
+	GPIO_InitStruct.Speed = LL_GPIO_SPEED_FREQ_LOW;
+	GPIO_InitStruct.OutputType = LL_GPIO_OUTPUT_PUSHPULL;
+	GPIO_InitStruct.Pull = LL_GPIO_PULL_NO;
+	GPIO_InitStruct.Alternate = LL_GPIO_AF_0;
+	LL_GPIO_Init(Humidity_PWM_GPIO_Port, &GPIO_InitStruct);
 
 	/* TIM22 interrupt Init */
 	NVIC_SetPriority(TIM22_IRQn, 2);
@@ -1195,6 +1224,10 @@ static void MX_TIM22_Init(void) {
 	LL_TIM_SetClockSource(TIM22, LL_TIM_CLOCKSOURCE_INTERNAL);
 	LL_TIM_SetTriggerOutput(TIM22, LL_TIM_TRGO_RESET);
 	LL_TIM_DisableMasterSlaveMode(TIM22);
+	LL_TIM_IC_SetActiveInput(TIM22, LL_TIM_CHANNEL_CH1, LL_TIM_ACTIVEINPUT_DIRECTTI);
+	LL_TIM_IC_SetPrescaler(TIM22, LL_TIM_CHANNEL_CH1, LL_TIM_ICPSC_DIV1);
+	LL_TIM_IC_SetFilter(TIM22, LL_TIM_CHANNEL_CH1, LL_TIM_IC_FILTER_FDIV1);
+	LL_TIM_IC_SetPolarity(TIM22, LL_TIM_CHANNEL_CH1, LL_TIM_IC_POLARITY_BOTHEDGE);
 	/* USER CODE BEGIN TIM22_Init 2 */
 
 	/* USER CODE END TIM22_Init 2 */
