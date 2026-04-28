@@ -10,9 +10,10 @@
 /* USER CODE BEGIN Includes */
 #include "config.h"
 #include "utils.h"
+#include "gps.h"
 
 #if GPS_TYPE == 1
-#include "nmea.h"
+#include "ublox_gps.h"
 #elif GPS_TYPE == 2
 #include "xm_gps.h"
 #endif
@@ -140,9 +141,6 @@ void build_aprs_packet(void);
 #endif
 void main_loop(void);
 void DelayWithIWDG(uint16_t time);
-#if GPS_TYPE == 1
-void GpsAirborne(void);
-#endif
 
 #if DEBUG
 #ifdef __GNUC__
@@ -283,6 +281,7 @@ uint8_t build_horus_binary_v3_packet(char* uncoded_buffer) { /* Sourced from htt
             }
         },
         // We need to explicitly specify which optional fields we want to include in the packet
+  			// TODO: ubx
         .exist = {
             .extraSensors = true,
             .velocityHorizontalKilometersPerHour = (GPS_TYPE == 1), // GPS type 2 doesn't have speed
@@ -534,8 +533,7 @@ void main_loop(void) {
 #if GPS_WATCHDOG
 	if (GpsWatchdog.TriggerRestart) {
 #if GPS_TYPE == 1
-		GpsAirborne(); // Send a command to GPS module to change to airborne mode.
-		               // clear GPS buffer needed?
+		ublox_init();
 #endif
 		// GPS type 2 doesn't need mode change
 
@@ -636,10 +634,14 @@ int main(void) {
 	LL_LPUART_EnableIT_RXNE(LPUART1);
 
 #if GPS_TYPE == 1
-	// u-blox change mode to airborne
-	DelayWithIWDG(2000); // Wait for full GPS start
-	GpsAirborne();       // Send a command to GPS module to change to airborne mode.
-	DelayWithIWDG(100);
+#if DEBUG
+	printf("U-BLOX GPS before init...\n\r");
+#endif
+	ublox_init();
+#if DEBUG
+	printf("U-BLOX GPS after init...\n\r");
+#endif
+	DelayWithIWDG(2000);
 #endif
 
 	// LED timer
@@ -676,7 +678,18 @@ int main(void) {
 #endif
 		if (GpsBufferReady) {
 #if GPS_TYPE == 1
-			ParseNMEA(&GpsData, GpsRxBuffer);
+			// TODO: ubx
+#if GPS_RAW_DEBUG
+			printf("U-BLOX GPS raw buffer: ");
+			for (int i = 0; i < GpsRxBuffer_SIZE; i++) {
+				printf("%02X ", GpsRxBuffer[i]);
+			}
+			for (int i = 0; i < GpsRxBuffer_SIZE; i++) {
+				printf("%c", GpsRxBuffer[i]);
+			}
+			printf("\r\n");
+#endif
+
 #elif GPS_TYPE == 2
 			parseXM(&GpsData, GpsRxBuffer);
 #endif
@@ -1450,22 +1463,6 @@ void DelayWithIWDG(uint16_t time) {
 		LL_mDelay(10);
 	}
 }
-#if GPS_TYPE == 1
-void GpsAirborne(void) {
-	LL_LPUART_DisableIT_RXNE(LPUART1); // disable UART RX interrupt to not occure while mode change
-	for (uint8_t ih = 0; ih < 2; ih++) {
-		for (uint8_t ig = 0; ig < 44; ig++) {
-			while (!LL_LPUART_IsActiveFlag_TXE(LPUART1)) {
-			}
-			LL_LPUART_TransmitData8(LPUART1, GPS_airborne[ig]);
-		}
-		while (!LL_LPUART_IsActiveFlag_TC(LPUART1)) {
-		}
-		if (ih == 0) DelayWithIWDG(900);
-	}
-	LL_LPUART_EnableIT_RXNE(LPUART1); // reenable UART RX interrupt
-}
-#endif
 /* USER CODE END 4 */
 
 /**
