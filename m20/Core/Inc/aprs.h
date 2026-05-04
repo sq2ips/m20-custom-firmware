@@ -10,9 +10,9 @@
 #define APRS_SPACE_SYMBOL 0x20
 
 #if APRS_TIMESTAMP
-#define APRS_INFO_DATA_LEN 30   // info field data length (with timestamp)
+#define APRS_INFO_DATA_LEN 30 // info field data length (with timestamp)
 #else
-#define APRS_INFO_DATA_LEN 23   // info field data length
+#define APRS_INFO_DATA_LEN 23 // info field data length
 #endif
 
 #define APRS_MAX_TELEM_LEN 38   // comment telemetry max length

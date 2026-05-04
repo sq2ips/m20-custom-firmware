@@ -202,7 +202,8 @@ void build_horus_binary_v2_packet() {
 	HorusPacket.Checksum = (uint16_t)crc16((char*)&HorusPacket, sizeof(HorusPacket) - 2);
 }
 #elif HORUS_ENABLE == 3
-uint8_t build_horus_binary_v3_packet(char* uncoded_buffer) { /* Sourced from https://github.com/darksidelemm/rs41-nfw/blob/main/fw/fw-files/rs41-nfw/rs41-nfw.ino#L936 */
+uint8_t build_horus_binary_v3_packet(
+    char* uncoded_buffer) { /* Sourced from https://github.com/darksidelemm/rs41-nfw/blob/main/fw/fw-files/rs41-nfw/rs41-nfw.ino#L936 */
 	// Horus v3 packets are encoded using ASN1, and are encapsulated in packets
 	// of sizes 32, 48, 64, 96 or 128 bytes (before coding)
 	// The CRC16 for these packets is located at the *start* of the packet, still little-endian encoded
@@ -216,86 +217,63 @@ uint8_t build_horus_binary_v3_packet(char* uncoded_buffer) { /* Sourced from htt
 	// Need to check how this is allocated in memory. how much it uses.
 	// .. also does it get cleared?
 
-
-  horusTelemetry asnMessage = {
-        .payloadCallsign  = HORUS_V3_PAYLOAD_CALLSIGN,
-        .sequenceNumber = PacketCount,
-        .timeOfDaySeconds  = GpsData.Hours*3600+GpsData.Minutes*60+GpsData.Seconds,
-        .latitude = (int32_t)((GpsData.Lat)*100000),
-        .longitude = (int32_t)((GpsData.Lon)*100000),
-        .altitudeMeters = GpsData.Alt,
-        // Example of adding some custom fields.
-        .extraSensors = {
-          .nCount=2, // Number of custom fields.
-          .arr = {
-            {
-                .name = "gps", // GPS restarts
-                .values = {
-                    .kind = horusInt_PRESENT,
-                    .u = {
-                        .horusInt = {
-                          .nCount = 1,
-                            .arr = {GpsResetCount},
-                        }
-                    }
-                },
-                .exist = {
-                    .name = true,
-                    .values = true,
-                },
-            },
-			{
-                .values = {
-                    .kind = horusStr_PRESENT,
-                    .u = {
-                        .horusStr = "M20" // Sonde identifier
-                    }
-                },
-                 .exist = {
-                    .values = true,
-                },
-            }
-          },
-        },
-        .velocityHorizontalKilometersPerHour = GpsData.Speed, // km/h
-        .gnssSatellitesVisible = GpsData.Sats,
-        .ascentRateCentimetersPerSecond = GpsData.AscentRate, // cm/s
-        .pressurehPa_x10 = (int)(LpsPress), // *10
-        .temperatureCelsius_x10 = {
-            .internal = LpsTemp, // *10
-            .external = ExtTemp, // *10
-            .exist = {
-                .internal = LPS22_ENABLE,
-                .external = NTC_ENABLE,
-                .custom1 = false,
-                .custom2 = false
-            }
-        },
-        .humidityPercentage = 0,
-        .milliVolts = {
-            .battery = BatVoltage,
-			.solar = PvVoltage,
-            .exist = {
-                .battery = BAT_ADC_ENABLE,
-                .solar = PV_ADC_ENABLE,
-                .custom1 = false,
-                .custom2 = false
-            }
-        },
-        // We need to explicitly specify which optional fields we want to include in the packet
-        .exist = {
-            .extraSensors = true,
-            .velocityHorizontalKilometersPerHour = (GPS_TYPE == 1), // GPS type 2 doesn't have speed
-            .gnssSatellitesVisible = true,
-            .ascentRateCentimetersPerSecond = true,
-            .pressurehPa_x10 = LPS22_ENABLE,
-            .temperatureCelsius_x10 = true,
-            .humidityPercentage = false, // not implemented yet
-            .milliVolts = true
-        }
-    };
-
-
+	horusTelemetry asnMessage = {.payloadCallsign = HORUS_V3_PAYLOAD_CALLSIGN,
+	                             .sequenceNumber = PacketCount,
+	                             .timeOfDaySeconds = GpsData.Hours * 3600 + GpsData.Minutes * 60 + GpsData.Seconds,
+	                             .latitude = (int32_t)((GpsData.Lat) * 100000),
+	                             .longitude = (int32_t)((GpsData.Lon) * 100000),
+	                             .altitudeMeters = GpsData.Alt,
+	                             // Example of adding some custom fields.
+	                             .extraSensors =
+	                                 {
+	                                     .nCount = 2, // Number of custom fields.
+	                                     .arr = {{
+	                                                 .name = "gps", // GPS restarts
+	                                                 .values = {.kind = horusInt_PRESENT,
+	                                                            .u = {.horusInt =
+	                                                                      {
+	                                                                          .nCount = 1,
+	                                                                          .arr = {GpsResetCount},
+	                                                                      }}},
+	                                                 .exist =
+	                                                     {
+	                                                         .name = true,
+	                                                         .values = true,
+	                                                     },
+	                                             },
+	                                             {
+	                                                 .values = {.kind = horusStr_PRESENT,
+	                                                            .u =
+	                                                                {
+	                                                                    .horusStr = "M20" // Sonde identifier
+	                                                                }},
+	                                                 .exist =
+	                                                     {
+	                                                         .values = true,
+	                                                     },
+	                                             }},
+	                                 },
+	                             .velocityHorizontalKilometersPerHour = GpsData.Speed, // km/h
+	                             .gnssSatellitesVisible = GpsData.Sats,
+	                             .ascentRateCentimetersPerSecond = GpsData.AscentRate, // cm/s
+	                             .pressurehPa_x10 = (int)(LpsPress),                   // *10
+	                             .temperatureCelsius_x10 =
+	                                 {.internal = LpsTemp, // *10
+	                                  .external = ExtTemp, // *10
+	                                  .exist = {.internal = LPS22_ENABLE, .external = NTC_ENABLE, .custom1 = false, .custom2 = false}},
+	                             .humidityPercentage = 0,
+	                             .milliVolts = {.battery = BatVoltage,
+	                                            .solar = PvVoltage,
+	                                            .exist = {.battery = BAT_ADC_ENABLE, .solar = PV_ADC_ENABLE, .custom1 = false, .custom2 = false}},
+	                             // We need to explicitly specify which optional fields we want to include in the packet
+	                             .exist = {.extraSensors = true,
+	                                       .velocityHorizontalKilometersPerHour = (GPS_TYPE == 1), // GPS type 2 doesn't have speed
+	                                       .gnssSatellitesVisible = true,
+	                                       .ascentRateCentimetersPerSecond = true,
+	                                       .pressurehPa_x10 = LPS22_ENABLE,
+	                                       .temperatureCelsius_x10 = true,
+	                                       .humidityPercentage = false, // not implemented yet
+	                                       .milliVolts = true}};
 
 	// The encoder needs a data structure for the serialization
 	// Again - how much memory is allocated here?
@@ -397,7 +375,8 @@ void main_loop(void) {
 	LL_ADC_REG_StartConversion(ADC1);
 	while (LL_ADC_IsActiveFlag_EOC(ADC1) == 0) {
 	}
-	RawPvVoltage = (LL_ADC_REG_ReadConversionData12(ADC1) * (float)(PV_ADC_R1 + PV_ADC_R2)) / PV_ADC_R2; // Raw PV / payload voltage scaled by resistor divider
+	RawPvVoltage =
+	    (LL_ADC_REG_ReadConversionData12(ADC1) * (float)(PV_ADC_R1 + PV_ADC_R2)) / PV_ADC_R2; // Raw PV / payload voltage scaled by resistor divider
 	PvVoltage = Round((RawPvVoltage * 3300.0f) / 4095);
 	LL_ADC_ClearFlag_EOS(ADC1);
 #if DEBUG
@@ -1063,7 +1042,7 @@ static void MX_TIM2_Init(void) {
 	/* USER CODE END TIM2_Init 1 */
 	TIM_InitStruct.Prescaler = 60000;
 	TIM_InitStruct.CounterMode = LL_TIM_COUNTERMODE_UP;
-	//TIM_InitStruct.Autoreload = 65535;
+	// TIM_InitStruct.Autoreload = 65535;
 	TIM_InitStruct.ClockDivision = LL_TIM_CLOCKDIVISION_DIV1;
 	LL_TIM_Init(TIM2, &TIM_InitStruct);
 	LL_TIM_DisableARRPreload(TIM2);

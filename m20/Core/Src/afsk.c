@@ -65,8 +65,8 @@ bool AFSK_Active = false; // Activity flag
 static char* buff;
 static uint8_t buff_len;
 
-void AFSK_stop_TX() {             // Disable TX
-	TIM21->CR1 &= ~(TIM_CR1_CEN); // Disable the PWM counter
+void AFSK_stop_TX() {                     // Disable TX
+	TIM21->CR1 &= ~(TIM_CR1_CEN);         // Disable the PWM counter
 	TIM21->DIER &= ~(TIM_DIER_UIE);       // Disable the interrupt
 	TIM21->CCER &= ~(LL_TIM_CHANNEL_CH1); // Reset PWM channel
 	adf_RF_off();                         // turn TX off
@@ -159,5 +159,5 @@ void AFSK_start_TX(char* buffer, uint8_t buffer_len) {
 	TIM21->CR1 |= TIM_CR1_CEN;         // enable timer again
 	TIM21->DIER |= TIM_DIER_UIE;       // Enable the interrupt
 
-	//AFSK_timer_handler(); // Tirgger first modulation iteration to set initial values before PWM will be turned on
+	// AFSK_timer_handler(); // Tirgger first modulation iteration to set initial values before PWM will be turned on
 }
