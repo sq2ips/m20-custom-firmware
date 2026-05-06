@@ -244,6 +244,22 @@ uint8_t build_horus_binary_v3_packet(
 	                    .values = true,
 	                },
 	            },
+				{
+					.name = "cpm",
+					.values = {
+						.kind = horusInt_PRESENT,
+						.u = {
+							.horusInt = {
+	                    		.nCount = 1,
+	                        	.arr = {},
+	                    	}
+						}
+					},
+					{
+						.name = true,
+						.values = true,
+					},
+				},
 	            {
 	                .values = {
 						.kind = horusStr_PRESENT,
