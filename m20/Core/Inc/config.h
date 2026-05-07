@@ -28,7 +28,7 @@ const static float QRG_FSK4[] = {
 #define TX_PAUSE 500 // Delay between HORUS and APRS
 
 // APRS (AX.25 AFSK HDLC Bell 202)
-#define APRS_ENABLE 1
+#define APRS_ENABLE 0
 
 const static float QRG_AFSK[] = {
     435100000};               // AFSK transmitted frequencies array, switched in a loop, add new frequencies (in Hz) after a comma in braces.
@@ -60,13 +60,13 @@ const static float QRG_AFSK[] = {
 #define LED_MODE_2_BLINK_PAUSE 200 // pause time between LED blinks in GPS fix mode
 
 // Radio settings
-#define RF_BOOST 1 // RF booster enabled for transmissions about 15dB gain, but more power consumed - normally should be ON(1).
+#define RF_BOOST 0 // RF booster enabled for transmissions about 15dB gain, but more power consumed - normally should be ON(1).
 
 #define ADF_FREQ_CORRECTION 19 // correction of frequency from crystal inaccuracy in 244Hz steps. To be individually set for each sonde.
 #define ADF_FSK_DEVIATION 5    // Deviation parameter used in AFSK modem, don't change it without a reason, 5= about 5k5Hz, 10=11kHz
 
 // GPS configuration
-#define GPS_TYPE 1 // Type of GPS module: 1 - u-blox | 2 - XM1110
+#define GPS_TYPE 2 // Type of GPS module: 1 - u-blox | 2 - XM1110
 
 #define GPS_WATCHDOG 1 // Enable GPS watchdog
 #define GPS_WATCHDOG_ARC                                                                                                                             \

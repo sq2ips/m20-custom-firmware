@@ -154,6 +154,11 @@ encode_comment_telemetry(APRSPacket Packet,
 	cnt += int_to_string(Packet.PvVoltage, buff + cnt, 4, true); // *1000, 4 digits
 #endif
 
+#if PV_ADC_ENABLE
+	buff[cnt++] = 'G';                                           // Geiger CPM
+	cnt += int_to_string(Packet.GeigerCpm, buff + cnt, 5, true); // 5 digits
+#endif
+
 	return cnt;
 }
 #endif

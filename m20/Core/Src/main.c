@@ -86,6 +86,8 @@ uint16_t PvVoltage = 0;
 
 int16_t ExtTemp = 0; // *10
 
+uint32_t geigerCpm = 0;
+
 #if APRS_ENABLE
 APRSPacket AprsPacket;
 #endif
@@ -251,7 +253,7 @@ uint8_t build_horus_binary_v3_packet(
 						.u = {
 							.horusInt = {
 	                    		.nCount = 1,
-	                        	.arr = {},
+	                        	.arr = {TIM22->CNT},
 	                    	}
 						}
 					},
@@ -310,6 +312,7 @@ uint8_t build_horus_binary_v3_packet(
 	        .milliVolts = true
 		}
 	};
+	TIM22->CNT = 0;
 
 	// The encoder needs a data structure for the serialization
 	// Again - how much memory is allocated here?
@@ -386,6 +389,7 @@ void build_aprs_packet() {
 	AprsPacket.Press = LpsPress;
 	AprsPacket.BatVoltage = BatVoltage;
 	AprsPacket.PvVoltage = PvVoltage;
+	AprsPacket.GeigerCpm = geigerCpm;
 }
 #endif
 void main_loop(void) {
@@ -1191,8 +1195,22 @@ static void MX_TIM22_Init(void) {
 
 	LL_TIM_InitTypeDef TIM_InitStruct = {0};
 
+	LL_GPIO_InitTypeDef GPIO_InitStruct = {0};
+
 	/* Peripheral clock enable */
 	LL_APB2_GRP1_EnableClock(LL_APB2_GRP1_PERIPH_TIM22);
+
+	LL_IOP_GRP1_EnableClock(LL_IOP_GRP1_PERIPH_GPIOC);
+	/**TIM22 GPIO Configuration
+	PC6   ------> TIM22_CH1
+	*/
+	GPIO_InitStruct.Pin = LL_GPIO_PIN_6;
+	GPIO_InitStruct.Mode = LL_GPIO_MODE_ALTERNATE;
+	GPIO_InitStruct.Speed = LL_GPIO_SPEED_FREQ_LOW;
+	GPIO_InitStruct.OutputType = LL_GPIO_OUTPUT_PUSHPULL;
+	GPIO_InitStruct.Pull = LL_GPIO_PULL_NO;
+	GPIO_InitStruct.Alternate = LL_GPIO_AF_0;
+	LL_GPIO_Init(GPIOC, &GPIO_InitStruct);
 
 	/* TIM22 interrupt Init */
 	NVIC_SetPriority(TIM22_IRQn, 2);
@@ -1201,15 +1219,19 @@ static void MX_TIM22_Init(void) {
 	/* USER CODE BEGIN TIM22_Init 1 */
 
 	/* USER CODE END TIM22_Init 1 */
-	TIM_InitStruct.Prescaler = 60000; // For now
+	TIM_InitStruct.Prescaler = 0;
 	TIM_InitStruct.CounterMode = LL_TIM_COUNTERMODE_UP;
-	TIM_InitStruct.Autoreload = 2400; // For now
+	TIM_InitStruct.Autoreload = 65535;
 	TIM_InitStruct.ClockDivision = LL_TIM_CLOCKDIVISION_DIV1;
 	LL_TIM_Init(TIM22, &TIM_InitStruct);
 	LL_TIM_DisableARRPreload(TIM22);
 	LL_TIM_SetClockSource(TIM22, LL_TIM_CLOCKSOURCE_INTERNAL);
 	LL_TIM_SetTriggerOutput(TIM22, LL_TIM_TRGO_RESET);
 	LL_TIM_DisableMasterSlaveMode(TIM22);
+	LL_TIM_IC_SetActiveInput(TIM22, LL_TIM_CHANNEL_CH1, LL_TIM_ACTIVEINPUT_DIRECTTI);
+	LL_TIM_IC_SetPrescaler(TIM22, LL_TIM_CHANNEL_CH1, LL_TIM_ICPSC_DIV1);
+	LL_TIM_IC_SetFilter(TIM22, LL_TIM_CHANNEL_CH1, LL_TIM_IC_FILTER_FDIV1);
+	LL_TIM_IC_SetPolarity(TIM22, LL_TIM_CHANNEL_CH1, LL_TIM_IC_POLARITY_RISING);
 	/* USER CODE BEGIN TIM22_Init 2 */
 
 	/* USER CODE END TIM22_Init 2 */

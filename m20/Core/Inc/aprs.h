@@ -15,7 +15,7 @@
 #define APRS_INFO_DATA_LEN 23 // info field data length
 #endif
 
-#define APRS_MAX_TELEM_LEN 38   // comment telemetry max length
+#define APRS_MAX_TELEM_LEN 44   // comment telemetry max length
 #define APRS_AX25_FORMAT_LEN 32 // AX.25 additional length: 7 bytes * 4 fields (source, destination, path 1, path 2) + 2 control bytes
 
 #ifdef APRS_COMMENT_TEXT
@@ -47,6 +47,7 @@ typedef struct TAPRSPacket {
 	uint16_t Press;
 	uint16_t BatVoltage;
 	uint16_t PvVoltage; // Payload / PV voltage
+	uint16_t GeigerCpm;
 } APRSPacket;
 
 uint8_t encode_APRS_packet(APRSPacket Packet, char* buff);

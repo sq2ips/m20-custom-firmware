@@ -95,5 +95,5 @@ void FSK4_start_TX(char* buff, uint8_t len) {
 	TIM21->CR1 |= TIM_CR1_CEN;   // enable timer again
 	TIM21->DIER |= TIM_DIER_UIE; // Enable the interrupt
 	                             // FSK4_timer_handler();         // force execution of procedure responsible for
-	//  interrupt handling
+	                             //  interrupt handling
 }
