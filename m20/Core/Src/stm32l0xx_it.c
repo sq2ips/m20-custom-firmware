@@ -34,7 +34,7 @@
 
 /* Private typedef -----------------------------------------------------------*/
 /* USER CODE BEGIN TD */
-
+uint16_t TIM22_High;
 /* USER CODE END TD */
 
 /* Private define ------------------------------------------------------------*/
@@ -197,7 +197,7 @@ void TIM22_IRQHandler(void) {
 	/* USER CODE BEGIN TIM22_IRQn 0 */
 	if (LL_TIM_IsActiveFlag_UPDATE(TIM22)) {
 		LL_TIM_ClearFlag_UPDATE(TIM22);
-		//
+		TIM22_High++;
 	}
 	/* USER CODE END TIM22_IRQn 0 */
 	/* USER CODE BEGIN TIM22_IRQn 1 */

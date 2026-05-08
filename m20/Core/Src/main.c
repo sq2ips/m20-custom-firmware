@@ -34,6 +34,8 @@
 #if DEBUG
 #include <stdio.h>
 #endif
+
+#include "stm32l0xx_it.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -253,7 +255,7 @@ uint8_t build_horus_binary_v3_packet(
 						.u = {
 							.horusInt = {
 	                    		.nCount = 1,
-	                        	.arr = {TIM22->CNT},
+	                        	.arr = {geigerCpm},
 	                    	}
 						}
 					},
@@ -457,6 +459,10 @@ void main_loop(void) {
 	printf("NTC: raw: %d, Temp: %d /10 C\r\n", temp_adc_raw, ExtTemp);
 #endif
 #endif
+
+	geigerCpm = TIM22->CNT + (uint32_t)TIM22_High * (1<<16);
+	TIM22->CNT = 0;
+	TIM22_High = 0;
 
 #if GPS_WATCHDOG
 	// Set a flag if we have initial fix.
@@ -1225,13 +1231,14 @@ static void MX_TIM22_Init(void) {
 	TIM_InitStruct.ClockDivision = LL_TIM_CLOCKDIVISION_DIV1;
 	LL_TIM_Init(TIM22, &TIM_InitStruct);
 	LL_TIM_DisableARRPreload(TIM22);
-	LL_TIM_SetClockSource(TIM22, LL_TIM_CLOCKSOURCE_INTERNAL);
+	LL_TIM_SetTriggerInput(TIM22, LL_TIM_TS_TI1F_ED);
+	LL_TIM_SetClockSource(TIM22, LL_TIM_CLOCKSOURCE_EXT_MODE1);
+	LL_TIM_CC_DisableChannel(TIM22, LL_TIM_CHANNEL_CH1);
+	LL_TIM_IC_SetFilter(TIM22, LL_TIM_CHANNEL_CH1, LL_TIM_IC_FILTER_FDIV1);
+	LL_TIM_DisableIT_TRIG(TIM22);
+	LL_TIM_DisableDMAReq_TRIG(TIM22);
 	LL_TIM_SetTriggerOutput(TIM22, LL_TIM_TRGO_RESET);
 	LL_TIM_DisableMasterSlaveMode(TIM22);
-	LL_TIM_IC_SetActiveInput(TIM22, LL_TIM_CHANNEL_CH1, LL_TIM_ACTIVEINPUT_DIRECTTI);
-	LL_TIM_IC_SetPrescaler(TIM22, LL_TIM_CHANNEL_CH1, LL_TIM_ICPSC_DIV1);
-	LL_TIM_IC_SetFilter(TIM22, LL_TIM_CHANNEL_CH1, LL_TIM_IC_FILTER_FDIV1);
-	LL_TIM_IC_SetPolarity(TIM22, LL_TIM_CHANNEL_CH1, LL_TIM_IC_POLARITY_RISING);
 	/* USER CODE BEGIN TIM22_Init 2 */
 
 	/* USER CODE END TIM22_Init 2 */
