@@ -63,6 +63,7 @@ Core/Src/nmea.c \
 Core/Src/xm_gps.c \
 Core/Src/gps.c \
 Core/Src/utils.c \
+Core/Src/si5351.c \
 Drivers/STM32L0xx_HAL_Driver/Src/stm32l0xx_ll_adc.c \
 Drivers/STM32L0xx_HAL_Driver/Src/stm32l0xx_ll_pwr.c \
 Drivers/STM32L0xx_HAL_Driver/Src/stm32l0xx_ll_i2c.c

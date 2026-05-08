@@ -31,6 +31,7 @@
 #if LPS22_ENABLE
 #include "lps22hb.h"
 #endif
+#include "si5351.h"
 #if DEBUG
 #include <stdio.h>
 #endif
@@ -603,6 +604,7 @@ int main(void) {
 
 	// Power on modules
 	LL_GPIO_SetOutputPin(POWER_ON_GPIO_Port, POWER_ON_Pin);
+	/*
 	LL_GPIO_SetOutputPin(GPS_ON_GPIO_Port, GPS_ON_Pin);
 	LL_GPIO_SetOutputPin(RADIO_EN_GPIO_Port, RADIO_EN_Pin);
 	adf_setup(); // Radio module setup
@@ -631,7 +633,6 @@ int main(void) {
 	while (LL_ADC_IsActiveFlag_ADRDY(ADC1) == 0) {
 	}
 #endif
-
 	// GPS UART init
 	LL_LPUART_Enable(LPUART1); // Disable interrupt for sending command
 	LL_LPUART_EnableIT_RXNE(LPUART1);
@@ -654,7 +655,8 @@ int main(void) {
 	// main loop timer
 	LL_TIM_EnableCounter(TIM2);
 	LL_TIM_EnableIT_UPDATE(TIM2);
-
+*/
+	si5351_init();
 	/* Interrupt priorites:
 	 * TIM21 - modulation timer: 0
 	 * LPUART1 - GPS UART RX: 1
@@ -668,6 +670,7 @@ int main(void) {
 
 	/* Infinite loop */
 	/* USER CODE BEGIN WHILE */
+	while(1){}
 	while (1) {
 /* USER CODE END WHILE */
 
@@ -878,7 +881,7 @@ static void MX_I2C2_Init(void) {
 	LL_I2C_DisableGeneralCall(I2C2);
 	LL_I2C_EnableClockStretching(I2C2);
 	I2C_InitStruct.PeripheralMode = LL_I2C_MODE_I2C;
-	I2C_InitStruct.Timing = 0x00402D41;
+	I2C_InitStruct.Timing =0x40000A0B;
 	I2C_InitStruct.AnalogFilter = LL_I2C_ANALOGFILTER_ENABLE;
 	I2C_InitStruct.DigitalFilter = 0;
 	I2C_InitStruct.OwnAddress1 = 0;
