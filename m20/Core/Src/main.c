@@ -31,6 +31,7 @@
 #if LPS22_ENABLE
 #include "lps22hb.h"
 #endif
+#include "si5351.h"
 #if DEBUG
 #include <stdio.h>
 #endif
@@ -124,6 +125,7 @@ static void MX_IWDG_Init(void);
 static void MX_TIM6_Init(void);
 static void MX_TIM21_Init(void);
 static void MX_TIM2_Init(void);
+static void MX_I2C2_Init(void);
 /* USER CODE BEGIN PFP */
 float convert_temperature(uint16_t temp_adc_raw);
 void GPS_Handler(void);
@@ -597,10 +599,12 @@ int main(void) {
 	MX_TIM6_Init();
 	MX_TIM21_Init();
 	MX_TIM2_Init();
+	MX_I2C2_Init();
 	/* USER CODE BEGIN 2 */
 
 	// Power on modules
 	LL_GPIO_SetOutputPin(POWER_ON_GPIO_Port, POWER_ON_Pin);
+	/*
 	LL_GPIO_SetOutputPin(GPS_ON_GPIO_Port, GPS_ON_Pin);
 	LL_GPIO_SetOutputPin(RADIO_EN_GPIO_Port, RADIO_EN_Pin);
 	adf_setup(); // Radio module setup
@@ -629,7 +633,6 @@ int main(void) {
 	while (LL_ADC_IsActiveFlag_ADRDY(ADC1) == 0) {
 	}
 #endif
-
 	// GPS UART init
 	LL_LPUART_Enable(LPUART1); // Disable interrupt for sending command
 	LL_LPUART_EnableIT_RXNE(LPUART1);
@@ -652,7 +655,8 @@ int main(void) {
 	// main loop timer
 	LL_TIM_EnableCounter(TIM2);
 	LL_TIM_EnableIT_UPDATE(TIM2);
-
+*/
+	si5351_init();
 	/* Interrupt priorites:
 	 * TIM21 - modulation timer: 0
 	 * LPUART1 - GPS UART RX: 1
@@ -666,6 +670,7 @@ int main(void) {
 
 	/* Infinite loop */
 	/* USER CODE BEGIN WHILE */
+	while(1){}
 	while (1) {
 /* USER CODE END WHILE */
 
@@ -825,6 +830,68 @@ static void MX_ADC_Init(void) {
 	}
 	/* USER CODE BEGIN ADC_Init 2 */
 	/* USER CODE END ADC_Init 2 */
+}
+
+/**
+ * @brief I2C2 Initialization Function
+ * @param None
+ * @retval None
+ */
+static void MX_I2C2_Init(void) {
+	/* USER CODE BEGIN I2C2_Init 0 */
+
+	/* USER CODE END I2C2_Init 0 */
+
+	LL_I2C_InitTypeDef I2C_InitStruct = {0};
+
+	LL_GPIO_InitTypeDef GPIO_InitStruct = {0};
+
+	LL_IOP_GRP1_EnableClock(LL_IOP_GRP1_PERIPH_GPIOB);
+	/**I2C2 GPIO Configuration
+	PB10   ------> I2C2_SCL
+	PB11   ------> I2C2_SDA
+	*/
+	GPIO_InitStruct.Pin = LL_GPIO_PIN_10;
+	GPIO_InitStruct.Mode = LL_GPIO_MODE_ALTERNATE;
+	GPIO_InitStruct.Speed = LL_GPIO_SPEED_FREQ_VERY_HIGH;
+	GPIO_InitStruct.OutputType = LL_GPIO_OUTPUT_OPENDRAIN;
+	GPIO_InitStruct.Pull = LL_GPIO_PULL_NO;
+	GPIO_InitStruct.Alternate = LL_GPIO_AF_6;
+	LL_GPIO_Init(GPIOB, &GPIO_InitStruct);
+
+	GPIO_InitStruct.Pin = LL_GPIO_PIN_11;
+	GPIO_InitStruct.Mode = LL_GPIO_MODE_ALTERNATE;
+	GPIO_InitStruct.Speed = LL_GPIO_SPEED_FREQ_VERY_HIGH;
+	GPIO_InitStruct.OutputType = LL_GPIO_OUTPUT_OPENDRAIN;
+	GPIO_InitStruct.Pull = LL_GPIO_PULL_NO;
+	GPIO_InitStruct.Alternate = LL_GPIO_AF_6;
+	LL_GPIO_Init(GPIOB, &GPIO_InitStruct);
+
+	/* Peripheral clock enable */
+	LL_APB1_GRP1_EnableClock(LL_APB1_GRP1_PERIPH_I2C2);
+
+	/* USER CODE BEGIN I2C2_Init 1 */
+
+	/* USER CODE END I2C2_Init 1 */
+
+	/** I2C Initialization
+	 */
+	LL_I2C_EnableAutoEndMode(I2C2);
+	LL_I2C_DisableOwnAddress2(I2C2);
+	LL_I2C_DisableGeneralCall(I2C2);
+	LL_I2C_EnableClockStretching(I2C2);
+	I2C_InitStruct.PeripheralMode = LL_I2C_MODE_I2C;
+	I2C_InitStruct.Timing =0x40000A0B;
+	I2C_InitStruct.AnalogFilter = LL_I2C_ANALOGFILTER_ENABLE;
+	I2C_InitStruct.DigitalFilter = 0;
+	I2C_InitStruct.OwnAddress1 = 0;
+	I2C_InitStruct.TypeAcknowledge = LL_I2C_ACK;
+	I2C_InitStruct.OwnAddrSize = LL_I2C_OWNADDRESS1_7BIT;
+	LL_I2C_Init(I2C2, &I2C_InitStruct);
+	LL_I2C_SetOwnAddress2(I2C2, 0, LL_I2C_OWNADDRESS2_NOMASK);
+	/* USER CODE BEGIN I2C2_Init 2 */
+
+	/* USER CODE END I2C2_Init 2 */
 }
 
 /**
