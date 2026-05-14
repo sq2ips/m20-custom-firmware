@@ -460,9 +460,8 @@ void main_loop(void) {
 #endif
 #endif
 
-	geigerCpm = TIM22->CNT + (uint32_t)TIM22_High * (1<<16);
+	geigerCpm = TIM22->CNT;
 	TIM22->CNT = 0;
-	TIM22_High = 0;
 
 #if GPS_WATCHDOG
 	// Set a flag if we have initial fix.
@@ -666,6 +665,8 @@ int main(void) {
 	GpsAirborne();       // Send a command to GPS module to change to airborne mode.
 	DelayWithIWDG(100);
 #endif
+
+	LL_TIM_EnableCounter(TIM22);
 
 	// LED timer
 #if LED_MODE == 2
