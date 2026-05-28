@@ -314,7 +314,7 @@ uint8_t build_horus_binary_v3_packet(
 	        .milliVolts = true
 		}
 	};
-	TIM22->CNT = 0;
+	// TIM22->CNT = 0;
 
 	// The encoder needs a data structure for the serialization
 	// Again - how much memory is allocated here?
@@ -677,8 +677,8 @@ int main(void) {
 #endif
 
 	// main loop timer
-	LL_TIM_EnableCounter(TIM2);
-	LL_TIM_EnableIT_UPDATE(TIM2);
+	// LL_TIM_EnableCounter(TIM2);
+	// LL_TIM_EnableIT_UPDATE(TIM2);
 
 	/* Interrupt priorites:
 	 * TIM21 - modulation timer: 0
@@ -712,6 +712,8 @@ int main(void) {
 			GpsBufferReady = false;
 		}
 		LL_mDelay(10);
+
+		volatile uint16_t c = TIM22->CNT;
 	}
 	/* USER CODE END 3 */
 }
@@ -1220,8 +1222,8 @@ static void MX_TIM22_Init(void) {
 	LL_GPIO_Init(GPIOC, &GPIO_InitStruct);
 
 	/* TIM22 interrupt Init */
-	NVIC_SetPriority(TIM22_IRQn, 2);
-	NVIC_EnableIRQ(TIM22_IRQn);
+	// NVIC_SetPriority(TIM22_IRQn, 2);
+	// NVIC_EnableIRQ(TIM22_IRQn);
 
 	/* USER CODE BEGIN TIM22_Init 1 */
 
@@ -1229,7 +1231,7 @@ static void MX_TIM22_Init(void) {
 	TIM_InitStruct.Prescaler = 0;
 	TIM_InitStruct.CounterMode = LL_TIM_COUNTERMODE_UP;
 	TIM_InitStruct.Autoreload = 65535;
-	TIM_InitStruct.ClockDivision = LL_TIM_CLOCKDIVISION_DIV1;
+	TIM_InitStruct.ClockDivision = LL_TIM_CLOCKDIVISION_DIV2;
 	LL_TIM_Init(TIM22, &TIM_InitStruct);
 	LL_TIM_DisableARRPreload(TIM22);
 	LL_TIM_SetTriggerInput(TIM22, LL_TIM_TS_TI1F_ED);
