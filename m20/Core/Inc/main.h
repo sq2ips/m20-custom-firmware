@@ -58,7 +58,7 @@ extern "C" {
 
 /* Exported constants --------------------------------------------------------*/
 /* USER CODE BEGIN EC */
-
+extern uint16_t TIM22_High;
 /* USER CODE END EC */
 
 /* Exported macro ------------------------------------------------------------*/

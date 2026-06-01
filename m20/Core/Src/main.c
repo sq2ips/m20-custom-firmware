@@ -88,6 +88,7 @@ uint16_t PvVoltage = 0;
 
 int16_t ExtTemp = 0; // *10
 
+uint16_t TIM22_High = 0;
 uint32_t geigerCpm = 0;
 
 #if APRS_ENABLE
@@ -114,6 +115,7 @@ char CodedBuffer[APRS_MAX_PACKET_LEN];
 char CodedBuffer[HORUS_CODED_BUFFER_SIZE];
 #endif
 uint8_t BufferLen;
+
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
@@ -249,7 +251,7 @@ uint8_t build_horus_binary_v3_packet(
 	                },
 	            },
 				{
-					.name = "cpm",
+					.name = "cpt",
 					.values = {
 						.kind = horusInt_PRESENT,
 						.u = {
@@ -314,7 +316,6 @@ uint8_t build_horus_binary_v3_packet(
 	        .milliVolts = true
 		}
 	};
-	// TIM22->CNT = 0;
 
 	// The encoder needs a data structure for the serialization
 	// Again - how much memory is allocated here?
@@ -460,9 +461,6 @@ void main_loop(void) {
 #endif
 #endif
 
-	geigerCpm = TIM22->CNT;
-	TIM22->CNT = 0;
-
 #if GPS_WATCHDOG
 	// Set a flag if we have initial fix.
 	if (GpsData.Fix > 1 && GpsData.Sats > 0) {
@@ -516,6 +514,10 @@ void main_loop(void) {
 		LL_GPIO_SetOutputPin(GPS_ON_GPIO_Port, GPS_ON_Pin); // enable GPS
 	}
 #endif
+
+	geigerCpm = (TIM22_High << 16) | TIM22->CNT;
+	TIM22_High = 0;
+	TIM22->CNT = 0;
 
 #if APRS_ENABLE
 	build_aprs_packet();
@@ -667,6 +669,7 @@ int main(void) {
 #endif
 
 	LL_TIM_EnableCounter(TIM22);
+	LL_TIM_EnableIT_UPDATE(TIM22);
 
 	// LED timer
 #if LED_MODE == 2
@@ -677,13 +680,13 @@ int main(void) {
 #endif
 
 	// main loop timer
-	// LL_TIM_EnableCounter(TIM2);
-	// LL_TIM_EnableIT_UPDATE(TIM2);
+	LL_TIM_EnableCounter(TIM2);
+	LL_TIM_EnableIT_UPDATE(TIM2);
 
 	/* Interrupt priorites:
 	 * TIM21 - modulation timer: 0
 	 * LPUART1 - GPS UART RX: 1
-	 * TIM22 - Humidity timer (not yet): 2
+	 * TIM22 - Geiger counter timer: 2
 	 * TIM6 - LED timer: 3
 	 * SysTick: 4
 	 * TIM2 - main loop: 5
@@ -712,8 +715,6 @@ int main(void) {
 			GpsBufferReady = false;
 		}
 		LL_mDelay(10);
-
-		volatile uint16_t c = TIM22->CNT;
 	}
 	/* USER CODE END 3 */
 }
@@ -1222,8 +1223,8 @@ static void MX_TIM22_Init(void) {
 	LL_GPIO_Init(GPIOC, &GPIO_InitStruct);
 
 	/* TIM22 interrupt Init */
-	// NVIC_SetPriority(TIM22_IRQn, 2);
-	// NVIC_EnableIRQ(TIM22_IRQn);
+	NVIC_SetPriority(TIM22_IRQn, 2);
+	NVIC_EnableIRQ(TIM22_IRQn);
 
 	/* USER CODE BEGIN TIM22_Init 1 */
 
@@ -1231,13 +1232,13 @@ static void MX_TIM22_Init(void) {
 	TIM_InitStruct.Prescaler = 0;
 	TIM_InitStruct.CounterMode = LL_TIM_COUNTERMODE_UP;
 	TIM_InitStruct.Autoreload = 65535;
-	TIM_InitStruct.ClockDivision = LL_TIM_CLOCKDIVISION_DIV2;
+	TIM_InitStruct.ClockDivision = LL_TIM_CLOCKDIVISION_DIV1;
 	LL_TIM_Init(TIM22, &TIM_InitStruct);
 	LL_TIM_DisableARRPreload(TIM22);
 	LL_TIM_SetTriggerInput(TIM22, LL_TIM_TS_TI1F_ED);
 	LL_TIM_SetClockSource(TIM22, LL_TIM_CLOCKSOURCE_EXT_MODE1);
 	LL_TIM_CC_DisableChannel(TIM22, LL_TIM_CHANNEL_CH1);
-	LL_TIM_IC_SetFilter(TIM22, LL_TIM_CHANNEL_CH1, LL_TIM_IC_FILTER_FDIV1);
+	LL_TIM_IC_SetFilter(TIM22, LL_TIM_CHANNEL_CH1, LL_TIM_IC_FILTER_FDIV8_N6);
 	LL_TIM_DisableIT_TRIG(TIM22);
 	LL_TIM_DisableDMAReq_TRIG(TIM22);
 	LL_TIM_SetTriggerOutput(TIM22, LL_TIM_TRGO_RESET);
