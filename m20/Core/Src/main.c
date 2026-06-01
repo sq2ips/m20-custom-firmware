@@ -400,6 +400,9 @@ void main_loop(void) {
 #if LED_MODE == 1
 	LL_GPIO_SetOutputPin(LED_GPIO_Port, LED_Pin);
 #endif
+	geigerCpm = (TIM22_High << 16) | TIM22->CNT;
+	TIM22_High = 0;
+	TIM22->CNT = 0;
 
 	// LPS22HB sensor
 #if LPS22_ENABLE
@@ -514,10 +517,6 @@ void main_loop(void) {
 		LL_GPIO_SetOutputPin(GPS_ON_GPIO_Port, GPS_ON_Pin); // enable GPS
 	}
 #endif
-
-	geigerCpm = (TIM22_High << 16) | TIM22->CNT;
-	TIM22_High = 0;
-	TIM22->CNT = 0;
 
 #if APRS_ENABLE
 	build_aprs_packet();
