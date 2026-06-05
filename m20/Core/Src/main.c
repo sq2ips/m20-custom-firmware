@@ -400,7 +400,8 @@ void main_loop(void) {
 #if LED_MODE == 1
 	LL_GPIO_SetOutputPin(LED_GPIO_Port, LED_Pin);
 #endif
-	geigerCpm = (TIM22_High << 16) | TIM22->CNT;
+volatile uint16_t a = TIM22->CNT;
+	geigerCpm = (((TIM22_High) << 16) & 0xFFFF0000) | (TIM22->CNT & 0xFFFF);
 	TIM22_High = 0;
 	TIM22->CNT = 0;
 
@@ -667,6 +668,8 @@ int main(void) {
 	DelayWithIWDG(100);
 #endif
 
+	LL_TIM_ClearFlag_UPDATE(TIM22);
+	TIM22->CNT = 0;
 	LL_TIM_EnableCounter(TIM22);
 	LL_TIM_EnableIT_UPDATE(TIM22);
 
@@ -1231,13 +1234,13 @@ static void MX_TIM22_Init(void) {
 	TIM_InitStruct.Prescaler = 0;
 	TIM_InitStruct.CounterMode = LL_TIM_COUNTERMODE_UP;
 	TIM_InitStruct.Autoreload = 65535;
-	TIM_InitStruct.ClockDivision = LL_TIM_CLOCKDIVISION_DIV1;
+	TIM_InitStruct.ClockDivision = LL_TIM_CLOCKDIVISION_DIV2;
 	LL_TIM_Init(TIM22, &TIM_InitStruct);
 	LL_TIM_DisableARRPreload(TIM22);
 	LL_TIM_SetTriggerInput(TIM22, LL_TIM_TS_TI1F_ED);
 	LL_TIM_SetClockSource(TIM22, LL_TIM_CLOCKSOURCE_EXT_MODE1);
 	LL_TIM_CC_DisableChannel(TIM22, LL_TIM_CHANNEL_CH1);
-	LL_TIM_IC_SetFilter(TIM22, LL_TIM_CHANNEL_CH1, LL_TIM_IC_FILTER_FDIV8_N6);
+	LL_TIM_IC_SetFilter(TIM22, LL_TIM_CHANNEL_CH1, 0xF);
 	LL_TIM_DisableIT_TRIG(TIM22);
 	LL_TIM_DisableDMAReq_TRIG(TIM22);
 	LL_TIM_SetTriggerOutput(TIM22, LL_TIM_TRGO_RESET);
