@@ -12,7 +12,7 @@
 #define HORUS_ENABLE 3 // 0 - disabled, 2 - V2, 3 - V3
 
 const static float QRG_FSK4[] = {
-    435100000};       // 4FSK transmitted frequencies array, switched in a loop, add new frequencies (in Hz) after a comma in braces. Commonly used
+    437600000};       // 4FSK transmitted frequencies array, switched in a loop, add new frequencies (in Hz) after a comma in braces. Commonly used
                       // frequencies: https://github.com/projecthorus/horusdemodlib/wiki#commonly-used-frequencies
 #define FSK4_POWER 10 // RF power setting for horus transmission values 0-63
 
@@ -88,7 +88,7 @@ const static float QRG_AFSK[] = {
 #define PV_ADC_R2 2 // Resistor value in ohm from PA0 to ground
 // These values should have zeros removed if possible, e.g. for resistors R1=1000ohm and R2=2000ohm PV_ADC_R1 = 1 and PV_ADC_R2 = 2.
 
-#define IWDG_ENABLE 0
+#define IWDG_ENABLE 1
 
 // Debug
 #define DEBUG 0

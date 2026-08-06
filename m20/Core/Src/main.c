@@ -400,7 +400,7 @@ void main_loop(void) {
 #if LED_MODE == 1
 	LL_GPIO_SetOutputPin(LED_GPIO_Port, LED_Pin);
 #endif
-volatile uint16_t a = TIM22->CNT;
+
 	geigerCpm = (((TIM22_High) << 16) & 0xFFFF0000) | (TIM22->CNT & 0xFFFF);
 	TIM22_High = 0;
 	TIM22->CNT = 0;
