@@ -1234,13 +1234,13 @@ static void MX_TIM22_Init(void) {
 	TIM_InitStruct.Prescaler = 0;
 	TIM_InitStruct.CounterMode = LL_TIM_COUNTERMODE_UP;
 	TIM_InitStruct.Autoreload = 65535;
-	TIM_InitStruct.ClockDivision = LL_TIM_CLOCKDIVISION_DIV2;
+	TIM_InitStruct.ClockDivision = LL_TIM_CLOCKDIVISION_DIV1;
 	LL_TIM_Init(TIM22, &TIM_InitStruct);
 	LL_TIM_DisableARRPreload(TIM22);
-	LL_TIM_SetTriggerInput(TIM22, LL_TIM_TS_TI1F_ED);
+	LL_TIM_SetTriggerInput(TIM22, LL_TIM_TS_TI1FP1);
 	LL_TIM_SetClockSource(TIM22, LL_TIM_CLOCKSOURCE_EXT_MODE1);
-	LL_TIM_CC_DisableChannel(TIM22, LL_TIM_CHANNEL_CH1);
-	LL_TIM_IC_SetFilter(TIM22, LL_TIM_CHANNEL_CH1, 0xF);
+	LL_TIM_IC_SetFilter(TIM22, LL_TIM_CHANNEL_CH1, LL_TIM_IC_FILTER_FDIV1);
+	LL_TIM_IC_SetPolarity(TIM22, LL_TIM_CHANNEL_CH1, LL_TIM_IC_POLARITY_RISING);
 	LL_TIM_DisableIT_TRIG(TIM22);
 	LL_TIM_DisableDMAReq_TRIG(TIM22);
 	LL_TIM_SetTriggerOutput(TIM22, LL_TIM_TRGO_RESET);
