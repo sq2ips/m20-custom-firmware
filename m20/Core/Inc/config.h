@@ -50,7 +50,7 @@ const static float QRG_AFSK[] = {
 #define APRS_COMMENT_TELEMETRY 1 // Telemetry in coment field
 
 #define APRS_COMMENT_TEXT_ENABLE 1
-#define APRS_COMMENT_TEXT "M20 radiosonde test" // Additional text in comment field
+#define APRS_COMMENT_TEXT "Geiger counter mission 4FSK-437.600MHz" // Additional text in comment field
 
 // LED settings
 #define LED_MODE 2                 // 0 - disabled, 1 - flashes when prepairing tx data before transmit, 2 - GPS fix indication
@@ -66,7 +66,7 @@ const static float QRG_AFSK[] = {
 #define ADF_FSK_DEVIATION 5    // Deviation parameter used in AFSK modem, don't change it without a reason, 5= about 5k5Hz, 10=11kHz
 
 // GPS configuration
-#define GPS_TYPE 2 // Type of GPS module: 1 - u-blox | 2 - XM1110
+#define GPS_TYPE 1 // Type of GPS module: 1 - u-blox | 2 - XM1110
 
 #define GPS_WATCHDOG 1 // Enable GPS watchdog
 #define GPS_WATCHDOG_ARC                                                                                                                             \
