@@ -381,6 +381,11 @@ void main_loop(void) {
 	// LED
 #if LED_MODE == 1
 	LL_GPIO_SetOutputPin(LED_GPIO_Port, LED_Pin);
+#elif LED_MODE == 2
+	if(LED_RE_EANBLE && GpsData.Fix>2 && GpsData.Alt < LED_DISABLE_ALT){
+		LL_TIM_EnableCounter(TIM6);	
+		LL_TIM_EnableIT_UPDATE(TIM6);
+	}
 #endif
 
 	// LPS22HB sensor

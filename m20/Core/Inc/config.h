@@ -56,7 +56,8 @@ const static float QRG_AFSK[] = {
 #define LED_MODE 2                 // 0 - disabled, 1 - flashes when prepairing tx data before transmit, 2 - GPS fix indication
 #define LED_TIMER_PERIOD 150       // time between LED lighting
 #define LED_PERIOD 10               // time between LED lighting
-#define LED_DISABLE_ALT 1000       // disable led when certain altitude is reached, 0 for always enable
+#define LED_DISABLE_ALT 1500       // disable led when certain altitude is reached, 0 for always enable
+#define LED_RE_EANBLE 0		// re enable led after getting below certain altitude
 
 // Radio settings
 #define RF_BOOST 1 // RF booster enabled for transmissions about 15dB gain, but more power consumed - normally should be ON(1).
