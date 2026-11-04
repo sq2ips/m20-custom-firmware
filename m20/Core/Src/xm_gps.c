@@ -17,8 +17,8 @@ const uint8_t preambule[XM_PREAMBULE_LEN] = {0xAA, 0xAA, 0xAA, 0x03};
 
 typedef struct {
 	uint8_t Fix;
-	uint32_t Lat;
-	uint32_t Lon;
+	int32_t Lat;
+	int32_t Lon;
 	uint32_t CurrentAlt;
 	uint32_t PreviousAlt;
 	uint32_t CurrentTime;
@@ -50,8 +50,8 @@ void ParseXmFrame(const uint8_t* buffer, const uint8_t frameStartPosition) {
 #endif
 
 	Xm.Fix = buffer[FIX_OFFSET];
-	Xm.Lat = convert_buffer_to_uint32(buffer + LAT_OFFSET, 4);
-	Xm.Lon = convert_buffer_to_uint32(buffer + LON_OFFSET, 4);
+	Xm.Lat = (int32_t)convert_buffer_to_uint32(buffer + LAT_OFFSET, 4);
+	Xm.Lon = (int32_t)convert_buffer_to_uint32(buffer + LON_OFFSET, 4);
 	Xm.CurrentAlt = convert_buffer_to_uint32(buffer + ALT_OFFSET, 3);   // in centimeters
 	Xm.CurrentTime = convert_buffer_to_uint32(buffer + TIME_OFFSET, 3); // number of seconds from midnight
 
