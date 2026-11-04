@@ -9,6 +9,8 @@
 
 #include "utils.h"
 
+#include <assert.h>
+
 static uint16_t calculateFcs(char* input_data, uint16_t len) { // Checksum calculator
 	uint16_t crc = 0xFFFF;
 	uint16_t crc16_table[] = {0x0000, 0x1081, 0x2102, 0x3183, 0x4204, 0x5285, 0x6306, 0x7387,
@@ -28,6 +30,7 @@ static uint8_t generate_ax25_frame(char* info_field, uint8_t info_field_size, ch
 	uint8_t pos = 0;
 	uint8_t d_pos = 0;
 
+	static_assert(sizeof(APRS_DESTINATION)-1<=6, "APRS destination can be 6 characters max!");
 	for (; pos < 6; pos++) { // Destination adress
 		if (pos >= sizeof(APRS_DESTINATION) - 1) {
 			buff[pos] = APRS_SPACE_SYMBOL << 1;
@@ -36,6 +39,7 @@ static uint8_t generate_ax25_frame(char* info_field, uint8_t info_field_size, ch
 	}
 	buff[pos++] = (APRS_DESTINATION_SSID << 1) | 0b11100000; // Destination adress SSID
 
+	static_assert(sizeof(APRS_CALLSIGN)-1<=6, "APRS callsign can be 6 characters max!");
 	d_pos = pos;
 	for (; pos - d_pos < 6; pos++) { // Source adress
 		if (pos - d_pos >= sizeof(APRS_CALLSIGN) - 1) {
@@ -45,6 +49,7 @@ static uint8_t generate_ax25_frame(char* info_field, uint8_t info_field_size, ch
 	}
 	buff[pos++] = (APRS_SSID << 1) | 0b11100000; // Source adress SSID
 
+	static_assert(sizeof(APRS_PATH)-1<=6, "APRS path can be 6 characters max!");
 	d_pos = pos;
 	for (; pos - d_pos < 6; pos++) { // Path 1
 		if (pos - d_pos >= sizeof(APRS_PATH) - 1) {
