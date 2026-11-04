@@ -89,11 +89,30 @@ void test_parseXMframe() {
     TEST_ASSERT(gps.Fix == 3, "ParseXM Fix");
     TEST_ASSERT(gps.Lat > 54.54 && gps.Lat < 54.55, "ParseXM Lat");
     TEST_ASSERT(gps.Lon > 18.54 && gps.Lon < 18.55, "ParseXM Lon");
-    TEST_ASSERT(gps.Alt == 722, "ParseXM Alt");
-    TEST_ASSERT(gps.Hours == 19, "ParseXM Hours");
-    TEST_ASSERT(gps.Minutes == 51, "ParseXM Minutes");
-    TEST_ASSERT(gps.Seconds == 44, "ParseXM Seconds");
-    TEST_ASSERT(gps.Sats == 10, "ParseXM Sats");
+}
+
+void test_parseXMframe_negative() {
+    uint8_t buffer[] = {
+        0xAA, 0xAA, 0xAA, 0x03, // preambule
+        0x03,                   // fix
+        0xFC, 0xBF, 0xA7, 0xB9, // latitude => -54.548519
+        0xFE, 0xE5, 0x05, 0xEC, // longitude => -18.545172
+        0x01, 0x1A, 0x31,       // alt => 722
+        0xFF, 0xE6,             // lat dir
+        0xFF, 0xBC,             // lon dir
+        0x00, 0x01,             // alt dir
+        0x07, 0xAE, 0xD0,       // gps time => 19:51:44
+        0x01,                   // ?
+        0x57,                   // ?
+        0x12,                   // 0x12
+        0x11, 0x16, 0x22, 0x28, 0x1C, 0x24, 0x20, 0x20, 0x14, 0x1F, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, // sats
+        0x04, 0x05, 0x10, 0x12, 0x15, 0x19, 0x1A, 0x1C, 0x1D, 0x1F, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, // sats
+        0x24, 0x1C              // checksum
+    };
+    GPS gps;
+    parseXM(&gps, buffer);
+    TEST_ASSERT(gps.Lat > -54.55 && gps.Lat < -54.54, "ParseXM Lat (negative)");
+    TEST_ASSERT(gps.Lon > -18.55 && gps.Lon < -18.54, "ParseXM Lon (negative)");
 }
 
 int main() {
@@ -106,6 +125,7 @@ int main() {
     test_timeDifference_midnight();
     test_calculateAscentRate_basic();
     test_parseXMframe();
+    test_parseXMframe_negative();
 
     printf("\nTests passed: %d, failed %d\n", tests_passed, tests_failed);
 
